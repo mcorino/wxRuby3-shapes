@@ -39,14 +39,9 @@ class Wx::Enum
 
   property :value => ->(enum) { enum.to_i }
 
-  def self.create_for_deserialize
-    self.new(0)
+  def self.create_for_deserialize(data)
+    self.new(data[:value] || 0)
   end
-
-  def set_value(val)
-    @value = val
-  end
-  private :set_value
 
 end
 

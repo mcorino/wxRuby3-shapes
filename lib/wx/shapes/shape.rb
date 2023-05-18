@@ -34,7 +34,10 @@ module Wx::SF
     property :active, :visibility, :style,
              :accepted_children, :accepted_connections,
              :accepted_src_neighbours, :accepted_trg_neighbours,
-             :hover_colour
+             :hover_colour, :relative_position,
+             :h_align, :v_align, :h_border, :v_border,
+             :custom_dock_point, :connection_points,
+             :user_data
 
     class SEARCHMODE < Wx::Enum
       # Depth-First-Search algorithm
@@ -152,10 +155,12 @@ module Wx::SF
       DOCK_POINT = -3
     end
 
-    # constructor
-    # @param [Wx::Point] pos Initial relative position
-    # @param [DiagramManager] manager parent diagram manager
-    def initialize(pos, manager)
+    # @overload initialize()
+    #   default constructor
+    # @overload initialize(pos, manager)
+    #   @param [Wx::Point] pos Initial relative position
+    #   @param [DiagramManager] manager parent diagram manager
+    def initialize(pos=nil, manager=nil)
       @parent_manager = manager
       @parent_shape = nil
       @child_shapes = []
@@ -568,7 +573,8 @@ module Wx::SF
 
     # Associate user data with the shape.
     # If the data object is properly set then its marked properties will be serialized
-    # together with the parent shape.
+    # together with the parent shape. This means the user data must either be a serializable
+    # core type or a Wx::SF::Serializable.
     # @param [Object] data user data
     def set_user_data(data)
 
@@ -1191,6 +1197,12 @@ module Wx::SF
       @accepted_trg_neighbours.replace(set)
     end
     private :set_accepted_trg_neighbours
+
+    # Sets connection points. Exclusively for deserialization.
+    def set_connection_points(list)
+      @connection_pts.replace(list)
+    end
+    private :set_connection_points
 
   end
 

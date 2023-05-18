@@ -85,7 +85,7 @@ module Wx::SF
           if inst_meth
             @setter = ->(obj, val) { inst_meth.bind(obj).call(val) }
           else
-            return self.method(:setter_fail)
+            return self.method(:setter_noop)
           end
         end
         @setter
@@ -97,11 +97,17 @@ module Wx::SF
       end
       private :getter_fail
 
-      def setter_fail(obj, _)
-        ::Kernel.raise RuntimeError, "Missing setter for property #{@id} of #{@klass}"
+      def setter_noop(_, _)
+        # do nothing
       end
-      private :setter_fail
+      private :setter_noop
     end
+
+    # Serializable unique ids.
+    # This class makes sure to maintain uniqueness across serialization/deserialization cycles
+    # and keeps all shared instances within a single (serialized/deserialized) object set in
+    # sync.
+    class ID; end
 
     class << self
 
@@ -220,13 +226,16 @@ module Wx::SF
       alias :excluded_properties :excluded_property
       alias :excludes :excluded_property
 
-      # Creates a new instance for subsequent deserialization.
+      # Creates a new instance for subsequent deserialization and optionally initialize
+      # it using the given data hash.
       # The default implementation creates a new instance using the default constructor
-      # (no arguments).
+      # (no arguments, no initialization) and leaves the initialization to a subsequent call
+      # to the instance method #from_serialized(data).
       # Classes that do not support a default constructor can override this class method and
       # implement a custom creation scheme.
+      # @param [Hash] _data hash containing deserialized property data (symbol keys)
       # @return [Object] the newly created object
-      def create_for_deserialize
+      def create_for_deserialize(_data)
         self.new
       end
 
@@ -264,6 +273,18 @@ module Wx::SF
         @list_serialize_disabled = true
       end
 
+      # @!method for_serialize(hash, excludes = Set.new)
+      #   Serializes the properties of a serializable instance to the given hash
+      #   except when the property id is included in excludes.
+      #   @param [Hash] hash property serialization hash
+      #   @param [Set] excludes set with excluded property ids
+      #   @return [Hash] property serialization hash
+
+      # @!method from_serialized(hash)
+      #   Restores the properties of a deserialized instance.
+      #   @param [Hash] hash deserialized properties hash
+      #   @return [self]
+
     end
 
     # Serialize the given object
@@ -292,6 +313,11 @@ module Wx::SF
 
     def self.included(base)
       ::Kernel.raise RuntimeError, "#{self} should only be included in classes" if base.instance_of?(::Module)
+
+      # register as serializable class
+      Serializable.serializables << base
+
+      return if base == Serializable::ID # special case which does not need the rest
 
       # provide serialized property definition support
 
@@ -360,12 +386,9 @@ module Wx::SF
 
       # add instance serialization method
       base.include(SerializeInstanceMethods)
-
-      # register as serializable class
-      Serializable.serializables << base
     end
 
-  end # module Serializer
+  end # module Serializable
 
 end # module Wx::SF
 

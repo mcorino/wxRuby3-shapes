@@ -1,7 +1,7 @@
 
 require 'test/unit'
 require 'test/unit/ui/console/testrunner'
-require 'wx'
+require 'wx/core'
 
 module Wx::SF
 

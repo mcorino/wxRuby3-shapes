@@ -4,62 +4,62 @@ module SerializerTestMixin
 
   def test_wx_data
     obj = Wx::Point.new(10, 90)
-    obj_json = obj.serialize
+    obj_serial = obj.serialize
     obj_new = nil
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_instance_of(Wx::Point, obj_new)
     assert_equal(obj, obj_new)
 
     obj = Wx::RealPoint.new(10, 90)
-    obj_json = obj.serialize
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_instance_of(Wx::RealPoint, obj_new)
     assert_equal(obj, obj_new)
 
     obj = Wx::Size.new(100, 900)
-    obj_json = obj.serialize
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_instance_of(Wx::Size, obj_new)
     assert_equal(obj, obj_new)
 
     obj = Wx::Rect.new(10, 20, 100, 900)
-    obj_json = obj.serialize
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_instance_of(Wx::Rect, obj_new)
     assert_equal(obj, obj_new)
 
     obj = Wx::Colour.new('red')
-    obj_json = obj.serialize
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_instance_of(Wx::Colour, obj_new)
     assert_equal(obj, obj_new)
   end
 
   def test_core
     obj = [Wx::Point.new(10, 90), Wx::Point.new(20, 80)]
-    obj_json = obj.serialize
+    obj_serial = obj.serialize
     obj_new = nil
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
 
     obj = { '1' => Wx::Point.new(10, 90), '2' => Wx::Point.new(20, 80) }
-    obj_json = obj.serialize
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
 
     obj = Struct.new('MyStruct', :one, :two).new(one: Wx::Point.new(10, 90), two: Wx::Point.new(20, 80))
-    obj_json = obj.serialize
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
 
     obj = ::Set.new(%i[one two three])
-    obj_json = obj.serialize
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
 
     obj = OpenStruct.new(one: Wx::Point.new(10, 90), two: Wx::Point.new(20, 80))
-    obj_json = obj.serialize
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
   end
 
@@ -81,17 +81,17 @@ module SerializerTestMixin
 
   def test_composition
     obj = PointsOwner.new([Wx::Point.new(10, 90), Wx::Point.new(20, 80)])
-    obj_json = obj.serialize
+    obj_serial = obj.serialize
     obj_new = nil
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
   end
 
   def test_connection_point
     obj = Wx::SF::ConnectionPoint.new(nil, Wx::SF::ConnectionPoint::CPTYPE::TOPLEFT)
-    obj_json = obj.serialize
+    obj_serial = obj.serialize
     obj_new = nil
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_instance_of(obj.class, obj_new)
     assert_equal(obj.type, obj_new.type)
     assert_equal(obj.relative_position, obj_new.relative_position)
@@ -137,14 +137,14 @@ module SerializerTestMixin
 
   def test_exclusion
     obj = SerializedBase.new(1, :hello, 'World')
-    obj_json = obj.serialize
+    obj_serial = obj.serialize
     obj_new = nil
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
 
     obj = SerializedDerived.new(2, :derived, 103.50)
-    obj_json = obj.serialize
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
   end
 
@@ -238,25 +238,96 @@ module SerializerTestMixin
 
   def test_disable
     obj = SerializedBase2.new([Wx::Point.new(1,1), Wx::Point.new(2,2), Wx::Point.new(3,3)])
-    obj_json = obj.serialize
+    obj_serial = obj.serialize
     obj_new = nil
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
 
     obj = SerializedDerived2.new([Wx::Point.new(1,1), Wx::Point.new(2,2), Wx::Point.new(3,3)])
-    obj_json = obj.serialize
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
 
     obj = SerializedDerived2_1.new([Wx::Point.new(1,1), Wx::Point.new(2,2), Wx::Point.new(3,3)], Wx::Size.new(40, 40))
-    obj_json = obj.serialize
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
 
     obj = SerializedDerived3.new([Wx::Point.new(1,1), Wx::Point.new(2,2), Wx::Point.new(3,3)])
-    obj_json = obj.serialize
-    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_json) }
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
+  end
+
+  class Identifiable
+    include Wx::SF::Serializable
+
+    property :id, :sym
+
+    def initialize(sym = nil)
+      @id = sym ? Wx::SF::Serializable::ID.new : nil
+      @sym = sym
+    end
+
+    attr_accessor :sym
+    attr_reader :id
+
+    def set_id(id)
+      @id = id
+    end
+    private :set_id
+  end
+
+  class Container
+    include Wx::SF::Serializable
+
+    property :map
+
+    def initialize(map = {})
+      @map = map
+    end
+
+    attr_reader :map
+
+    def set_map(map)
+      @map.replace(map)
+    end
+    private :set_map
+  end
+
+  class RefUser
+    include Wx::SF::Serializable
+
+    property :ref1, :ref2, :ref3
+
+    def initialize(*rids)
+      @ref1, @ref2, @ref3 = *rids
+    end
+
+    attr_accessor :ref1, :ref2, :ref3
+  end
+
+  def test_ids
+    container = Container.new
+    id_obj = Identifiable.new(:one)
+    container.map[id_obj.id] = id_obj
+    id_obj = Identifiable.new(:two)
+    container.map[id_obj.id] = id_obj
+    id_obj = Identifiable.new(:three)
+    container.map[id_obj.id] = id_obj
+    ref_obj = RefUser.new(*container.map.keys)
+    obj_serial = [container, ref_obj].serialize
+    obj_new = nil
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
+    assert_instance_of(Array, obj_new)
+    assert_instance_of(Container, obj_new.first)
+    assert_instance_of(RefUser, obj_new.last)
+    assert_instance_of(Wx::SF::Serializable::ID, obj_new.last.ref1)
+    assert_instance_of(Wx::SF::Serializable::ID, obj_new.last.ref2)
+    assert_instance_of(Wx::SF::Serializable::ID, obj_new.last.ref3)
+    assert_equal(:one, obj_new.first.map[obj_new.last.ref1].sym)
+    assert_equal(:two, obj_new.first.map[obj_new.last.ref2].sym)
+    assert_equal(:three, obj_new.first.map[obj_new.last.ref3].sym)
   end
 
 end

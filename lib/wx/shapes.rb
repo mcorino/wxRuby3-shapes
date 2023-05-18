@@ -1,7 +1,7 @@
 # Wx::SF loader for wxRuby3-shapes
 # Copyright (c) M.J.N. Corino, The Netherlands
 
-require 'wx'
+require 'wx/core'
 
 require 'wx/shapes/version'
 require 'wx/shapes/wx'

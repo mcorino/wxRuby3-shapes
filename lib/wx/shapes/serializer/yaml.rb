@@ -20,11 +20,17 @@ module Wx::SF
       module YamlSerializePatch
         def revive(klass, node)
           if Wx::SF::Serializable > klass
-            s = register(node, klass.create_for_deserialize)
-            init_with(s, revive_hash({}, node, true), node)
+            s = register(node, klass.create_for_deserialize(data = revive_hash({}, node, true)))
+            init_with(s, data, node)
           else
             super
           end
+        end
+        def visit_Psych_Nodes_Alias o
+          rc = @st.fetch(o.anchor) { raise AnchorNotDefined, o.anchor }
+          # only allow Serializable::ID aliases
+          raise AliasesNotEnabled unless Serializable::ID === rc
+          rc
         end
       end
 
@@ -55,13 +61,19 @@ module Wx::SF
       def self.load(source)
         result = ::YAML.parse(source, filename: nil)
         return nil unless result
-
-        allowed_classes =(YAML.serializables + Serializable.serializables).map(&:to_s)
-        class_loader = RestrictedRelaxed.new(allowed_classes)
-        scanner      = ::YAML::ScalarScanner.new(class_loader, strict_integer: false)
-        visitor = ::YAML::Visitors::NoAliasRuby.new(scanner, class_loader, symbolize_names: false, freeze: false)
-        visitor.extend(YamlSerializePatch)
-        result = visitor.accept result
+        begin
+          # initialize ID restoration map
+          Serializable::ID.init_restoration_map
+          allowed_classes =(YAML.serializables + Serializable.serializables.to_a).map(&:to_s)
+          class_loader = RestrictedRelaxed.new(allowed_classes)
+          scanner      = ::YAML::ScalarScanner.new(class_loader, strict_integer: false)
+          visitor = ::YAML::Visitors::NoAliasRuby.new(scanner, class_loader, symbolize_names: false, freeze: false)
+          visitor.extend(YamlSerializePatch)
+          result = visitor.accept result
+        ensure
+          # reset ID restoration map
+          Serializable::ID.clear_restoration_map
+        end
         result
       end
 
@@ -76,6 +88,18 @@ module Wx::SF
 
       def init_with(coder)
         from_serialized(coder.map)
+      end
+
+    end
+
+    class ID
+
+      def encode_with(coder)
+        for_serialize(coder)
+      end
+
+      def init_with(_coder)
+        # noop
       end
 
     end
