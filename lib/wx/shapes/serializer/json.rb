@@ -12,47 +12,99 @@ module Wx::SF
 
     module JSON
 
-      class HashMap
-        include Wx::SF::Serializable
-
-        property :hash_list
-
-        def initialize(hash = nil)
-          @hash = hash
+      # Derived Hash class to use for deserialized JSON object data which
+      # supports using Symbol keys.
+      class ObjectHash < ::Hash
+        # Returns the object associated with given key.
+        # @param [String,Symbol] key key value
+        # @return [Object] associated object
+        # @see ::Hash#[]
+        def [](key)
+          super(key.to_s)
         end
-
-        attr_reader :hash
-
-        def get_hash_list
-          @hash.to_a
+        # Returns true if the given key exists in self otherwise false.
+        # @param [String,Symbol] key key value
+        # @return [Boolean]
+        # @see ::Hash#include?
+        def include?(key)
+          super(key.to_s)
         end
-        private :get_hash_list
+        alias member? include?
+        alias has_key? include?
+        alias key? include?
+      end
 
-        def set_hash_list(arr)
-          @hash = arr.to_h
+      # Mixin module to patch hash objects during JSON serialization.
+      # By default JSON will not consider hash keys for custom serialization
+      # but assumes any key should be serialized as it's string representation.
+      # This is restrictive but compatible with "pure" JSON object notation.
+      # JSON however also does not (correctly?) honour overriding Hash#to_json to
+      # customize serialization of Hash-es which seems too restrictive (stupid?)
+      # as using more complex custom keys for Hash-es instead of String/Symbol-s
+      # is not that uncommon.
+      # This mixin is used to "patch" Hash **instances** through #extend.
+      module HashInstancePatch
+        def patch_nested_hashes(obj)
+          case obj
+          when ::Hash
+            obj.extend(HashInstancePatch) unless obj.singleton_class.include?(HashInstancePatch)
+            obj.each_pair { |k, v| patch_nested_hashes(k); patch_nested_hashes(v) }
+          when ::Array
+            obj.each { |e| patch_nested_hashes(e) }
+          end
+          obj
+        end
+        private :patch_nested_hashes
+
+        # Returns JSON representation (String) of self.
+        # Hash data which is part of object properties/members being serialized
+        # (including any nested Hash-es) will be patched with HashInstancePatch.
+        # Patched Hash instances will be serialized as JSON-creatable objects
+        # (so provided with a JSON#create_id) with the hash contents represented
+        # as an array of key/value pairs (arrays).
+        # @param [Array<Object>] args any args passed by the JSON generator
+        # @return [String] JSON representation
+        def to_json(*args)
+          if self.has_key?(::JSON.create_id)
+            if self.has_key?('data')
+              if (data = self['data']).is_a?(::Hash)
+                data.each_value { |v| patch_nested_hashes(v) }
+              end
+            else # core class extensions use different data members for property serialization
+              self.each_value { |v| patch_nested_hashes(v) }
+            end
+            super
+          else
+            {
+              ::JSON.create_id => self.class.name,
+              'data' => patch_nested_hashes(to_a)
+            }.to_json(*args)
+          end
         end
       end
 
-      class ObjectHash < ::Hash
-        def self.[](arg)
-          arg.to_hash.each_pair { |k,v| self[k] = v }
+      # Mixin module to patch singleton_clas of the Hash class to make Hash-es
+      # JSON creatable (#json_creatable? returns true).
+      module HashClassPatch
+        # Create a new Hash instance from deserialized JSON data.
+        # @param [Hash] object deserialized JSON object
+        # @return [Hash] restored Hash instance
+        def json_create(object)
+          object['data'].to_h
         end
+      end
 
-        def [](key)
-          (v = super(key.to_s)).is_a?(HashMap) ? v.hash : v
-        end
-        def has_key?(key)
-          super(key.to_s)
-        end
-        def []=(key, val)
-          super(key.to_s, val.instance_of?(::Hash) ? HashMap.new(val) : val)
+      class ::Hash
+        include Wx::SF::Serializable::JSON::HashInstancePatch
+        class << self
+          include Wx::SF::Serializable::JSON::HashClassPatch
         end
       end
 
       class << self
         def serializables
-          ::Set.new [NilClass, TrueClass, FalseClass, Integer, Float, String, Array, Hash,
-                           Date, DateTime, Exception, Range, Regexp, Struct, Symbol, Time, Set, OpenStruct]
+          ::Set.new [::NilClass, ::TrueClass, ::FalseClass, ::Integer, ::Float, ::String, ::Array, ::Hash,
+                     ::Date, ::DateTime, ::Exception, ::Range, ::Regexp, ::Struct, ::Symbol, ::Time, ::Set, ::OpenStruct]
         end
 
         TLS_SAFE_DESERIALIZE_KEY = :wx_sf_json_safe_deserialize.freeze
@@ -95,7 +147,7 @@ module Wx::SF
       end
 
       def self.dump(obj, io=nil, pretty: false)
-        obj = obj.instance_of?(::Hash) ? HashMap.new(obj) : obj
+        obj.extend(HashInstancePatch) if obj.is_a?(::Hash)
         if pretty
           if io
             io.write(::JSON.pretty_generate(obj))
@@ -117,7 +169,7 @@ module Wx::SF
           result = ::JSON.parse!(source,
                                  {create_additions: true,
                                   object_class: Serializable::JSON::ObjectHash})
-          result.is_a?(HashMap) ? result.hash : result
+          # result.is_a?(HashMap) ? result.hash : result
         ensure
           # reset safe deserializing
           self.end_safe_deserialize
@@ -132,7 +184,8 @@ module Wx::SF
     module SerializeClassMethods
 
       def json_create(object)
-        create_for_deserialize(data = object['data']).__send__(:from_serialized, data)
+        create_for_deserialize(data = object['data'])
+          .__send__(:from_serialized, data)
       end
 
     end
@@ -143,7 +196,7 @@ module Wx::SF
       def to_json(*args)
         {
           ::JSON.create_id => self.class.name,
-          'data' => for_serialize(Serializable::JSON::ObjectHash.new)
+          'data' => for_serialize(Hash.new)
         }.to_json(*args)
       end
 
@@ -158,7 +211,7 @@ module Wx::SF
       def to_json(*args)
         {
           ::JSON.create_id => self.class.name,
-          'data' => for_serialize({})
+          'data' => for_serialize(Hash.new)
         }.to_json(*args)
       end
 

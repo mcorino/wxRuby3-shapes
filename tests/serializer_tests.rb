@@ -330,4 +330,28 @@ module SerializerTestMixin
     assert_equal(:three, obj_new.first.map[obj_new.last.ref3].sym)
   end
 
+  def test_nested_hash_with_complex_keys
+    id_obj = Identifiable.new(:one)
+    id_obj2 = Identifiable.new(:two)
+    h = {
+      [
+        { id_obj.id => id_obj }
+      ] => 'one',
+      [
+        { id_obj2.id => id_obj2 }
+      ] => 'two'
+    }
+    obj_serial = h.serialize
+    obj_new = nil
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
+    assert_instance_of(::Hash, obj_new)
+    obj_new.each_pair do |k,v|
+      assert_instance_of(::Array, k)
+      assert_instance_of(::String, v)
+      assert_instance_of(::Hash, k.first)
+      assert_instance_of(Wx::SF::Serializable::ID, k.first.first.first)
+      assert_equal(v, k.first[k.first.first.first].sym.to_s)
+    end
+  end
+
 end
