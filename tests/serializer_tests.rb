@@ -61,6 +61,11 @@ module SerializerTestMixin
     obj_serial = obj.serialize
     assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
+
+    obj = [1, nil, 2]
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
+    assert_equal(obj, obj_new)
   end
 
   class PointsOwner
