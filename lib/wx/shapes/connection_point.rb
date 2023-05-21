@@ -1,6 +1,8 @@
 # Wx::SF::ConnectionPoint - shape connection point class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
+require 'wx/shapes/serializable'
+
 module Wx::SF
 
   class ConnectionPoint
@@ -45,23 +47,24 @@ module Wx::SF
     # Constructor
     # @overload initialize()
     #   default ctor for deserialize
-    # @overload initialize(parent, pos, id=-1)
+    # @overload initialize(parent, pos, id=nil)
     #   @param [Wx::SF::Shape] parent parent shape
     #   @param [Wx::RealPoint,Array(Float, Float)] pos relative position in percentages
     #   @param [Integer] id point id
     # @overload initialize(parent, type)
     #   @param [Wx::SF::Shape] parent parent shape
     #   @param [Wx::SF::ConnectionPoint::CPTYPE] type connection point type
-    def initialize(parent=nil, type_or_pos=nil, id = -1)
+    def initialize(*args)
+      @parent_shape, type_or_pos, id = *args
       if type_or_pos # allow parent to be nil (mainly for testing purposes)
-        @parent_shape = parent
         if CPTYPE === type_or_pos
           @type = type_or_pos
           @rel_position = DEFAULT::RELPOS
+          @id = nil
         elsif Wx::RealPoint === type_or_pos || Array === type_or_pos
           @type = CPTYPE::CUSTOM
           @rel_position = Wx::RealPoint === type_or_pos ? type_or_pos : Wx::RealPoint.new(*type_or_pos)
-          set_id(id)
+          @id = id
         else
           ::Kernel.raise ArgumentError, 'Invalid arguments'
         end
