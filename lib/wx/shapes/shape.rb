@@ -1397,6 +1397,8 @@ module Wx::SF
         evt.set_key_code(key)
         get_shape_canvas.get_event_handler.process_event(evt)
       end
+
+      true
     end
 
     # Event handler called when any shape is dropped above this shape (and the dropped
@@ -1650,7 +1652,75 @@ module Wx::SF
     # @see Wx::SF::Shape#on_mouse_over
     # @see Wx::SF::Shape#on_mouse_leave
     def _on_mouse_move(pos)
+      return unless @diagram
 
+      if @visible && @active
+        f_update_shape = false
+        canvas = get_shape_canvas
+
+        # send the event to the shape handles too...
+        @handles.each { |h| h.__send__(:_on_mouse_move, pos) }
+
+        # send the event to the connection points too...
+        @connection_pts.each { |cp| cp.__send__(:_on_mouse_move, pos) }
+
+        # determine, whether the shape should be highlighted for any reason
+        if canvas
+          case canvas.get_mode
+          when Wx::SF::ShapeCanvas::MODE::SHAPEMOVE
+            if has_style?(STYLE::HIGHLIGHTING) && canvas.has_style?(Wx::SF::ShapeCanvas::STYLE::HIGHLIGHTING)
+              shape_under_cursor = canvas.get_shape_under_cursor(Wx::SF::ShapeCanvas::SEARCHMODE::UNSELECTED)
+              while shape_under_cursor
+                break unless shape_under_cursor.has_style?(STYLE::PROPAGATE_HIGHLIGHTING)
+                shape_under_cursor = shape_under_cursor.get_parent_shape
+              end
+              if shape_under_cursor == self
+                f_update_shape = @highlight_parent = accept_currently_dragged_shapes
+              end
+            end
+
+          when Wx::SF::ShapeCanvas::MODE::HANDLEMOVE
+            if has_style?(STYLE::HOVERING) && canvas.has_style?(Wx::SF::ShapeCanvas::STYLE::HOVERING)
+              shape_under_cursor = canvas.get_shape_under_cursor(Wx::SF::ShapeCanvas::SEARCHMODE::UNSELECTED)
+              while shape_under_cursor
+                break unless shape_under_cursor.has_style?(STYLE::PROPAGATE_HOVERING)
+                shape_under_cursor = shape_under_cursor.get_parent_shape
+              end
+
+              f_update_shape = true if shape_under_cursor == self
+              @highlight_parent = false
+            end
+
+          else
+            if has_style?(STYLE::HOVERING) && canvas.has_style?(Wx::SF::ShapeCanvas::STYLE::HOVERING)
+              shape_under_cursor = canvas.get_shape_under_cursor
+              while shape_under_cursor
+                break unless shape_under_cursor.has_style?(STYLE::PROPAGATE_HOVERING)
+                shape_under_cursor = shape_under_cursor.get_parent_shape
+              end
+
+              f_update_shape = true if shape_under_cursor == self
+              @highlight_parent = false
+            end
+          end
+        end
+
+        if contains(pos) && f_update_shape
+          if !@mouse_over
+            @mouse_over = true
+            on_mouse_enter(pos)
+            refresh(STYLE::DELAYED)
+          else
+            on_mouse_over(pos)
+          end
+        else
+          if @mouse_over
+            @mouse_over = false
+            on_mouse_leave(pos)
+            refresh(STYLE::DELAYED)
+          end
+        end
+      end
     end
 
     # Original protected event handler called at the beginning of dragging process.
@@ -1659,7 +1729,14 @@ module Wx::SF
     # @param [Wx::Point] pos Current mouse position
     # @see Wx::SF::Shape#on_begin_drag
     def _on_begin_drag(pos)
+      return unless @active
 
+      @first_move = true
+      on_begin_drag(pos)
+
+      if get_parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
+          get_parent_shape.__send__(:_on_begin_drag, pos)
+      end
     end
 
     # Original protected event handler called during a dragging process.
@@ -1668,7 +1745,35 @@ module Wx::SF
     # @param [Wx::Point] pos Current mouse position
     # @see Wx::SF::Shape#on_dragging
     def _on_dragging(pos)
+      return unless @diagram
 
+      if @visible && @active && has_style?(STYLE::POSITION_CHANGE)
+        if @first_move
+          @mouse_offset = Wx::RealPoint.new(pos.x, pos.y) - get_absolute_position
+        end
+
+        # get shape BB BEFORE movement and combine it with BB of assigned lines
+        prev_bb = get_complete_bounding_box(Wx::Rect.new, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
+
+        move_to(pos.x - @mouse_offset.x, pos.y - @mouse_offset.y)
+        on_dragging(pos)
+
+        # GUI controls in child control shapes must be updated explicitly
+        lst_child_ctrls = get_child_shapes(Wx::SF::ControlShape, RECURSIVE)
+        lst_child_ctrls.each { |ctrl| ctrl.update_control }
+
+        # get shape BB AFTER movement and combine it with BB of assigned lines
+        curr_bb = get_complete_bounding_box(Wx::Rect.new, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
+
+        # update canvas
+        refresh_rect(prev_bb.union(curr_bb), DELAYED)
+
+        @first_move = false
+      end
+
+      if get_parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
+        get_parent_shape.__send__(:_on_dragging, pos)
+      end
     end
 
     # Original protected event handler called at the end of dragging process.
@@ -1677,7 +1782,13 @@ module Wx::SF
     # @param [Wx::Point] pos Current mouse position
     # @see Wx::SF::Shape#on_end_drag
     def _on_end_drag(pos)
+      return unless @active
 
+      on_end_drag(pos)
+
+      if get_parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
+        get_parent_shape.__send__(:_on_end_drag, pos)
+      end
     end
 
     # Original protected event handler called when any key is pressed (in the shape canvas).
@@ -1687,7 +1798,55 @@ module Wx::SF
 	  # @param [Integer] key The key code
 	  # @see Wx::SF::Shape#on_key
     def _on_key(key)
+      canvas = get_shape_canvas
 
+      return unless canvas
+
+      if @visible && @active
+        dx = 1.0
+        dy = 1.0
+        f_refresh_all = false
+
+        if canvas.has_style?(Wx::SF::ShapeCanvas::STYLE::GRID_USE)
+          dx = canvas.get_grid.x
+          dy = canvas.get_grid.y
+        end
+
+        lst_selection = canvas.get_selected_shapes
+        if (lst_selection.size > 1) && lst_selection.include?(self)
+          f_refresh_all = true
+        end
+
+        prev_bb = Wx::Rect.new
+        if !f_refresh_all
+          prev_bb = get_complete_bounding_box(prev_bb, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
+        end
+
+        if on_key(key)
+          case key
+          when Wx::K_LEFT
+            move_by(-dx, 0) if has_style?(STYLE::POSITION_CHANGE)
+
+          when Wx::K_RIGHT
+            move_by(dx, 0) if has_style?(STYLE::POSITION_CHANGE)
+
+          when Wx::K_UP
+            move_by(0, -dy) if has_style?(STYLE::POSITION_CHANGE)
+
+          when Wx::K_DOWN
+            move_by(0, dy) if has_style?(STYLE::POSITION_CHANGE)
+         end
+        end
+
+        if !f_refresh_all
+          curr_bb = get_complete_bounding_box(Wx::Rect.new, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
+
+          prev_bb.union(curr_bb)
+          refresh_rect(prev_bb, DELAYED)
+        else
+          canvas.refresh(false)
+        end
+      end
     end
 
     # Original protected event handler called during dragging of the shape handle.
@@ -1695,7 +1854,35 @@ module Wx::SF
 	  # Default implementation manages the child shapes' alignment (if set).
 	  # @param [Wx::SF::Shape::Handle] handle dragged handle
     def _on_handle(handle)
+      return unless @diagram
 
+      if @parent_shape
+        prev_bb = get_grand_parent_shape.get_complete_bounding_box(Wx::Rect.new)
+      else
+        prev_bb = get_complete_bounding_box(Wx::Rect.new)
+      end
+
+      # call appropriate user-defined handler
+      on_handle(handle)
+
+      # align children
+      @child_shapes.each do |child|
+        if child.get_v_align != VALIGN::NONE || child.get_h_align != HALIGN::NONE
+          child.do_alignment
+        end
+      end
+
+      # update shape
+      update
+
+      if @parent_shape
+        curr_bb = get_grand_parent_shape.get_complete_bounding_box(Wx::Rect.new)
+      else
+        curr_bb = get_complete_bounding_box(Wx::Rect.new)
+      end
+
+      # refresh shape
+      refresh_rect(curr_bb.union(prev_bb), DELAYED)
     end
 
     # Sets accepted children. Exclusively for deserialization.
@@ -1728,9 +1915,9 @@ module Wx::SF
     end
     private :set_connection_points
 
-  end
+  end # class Shape
 
-end
+end # module Wx::SF
 
 require 'wx/shapes/shape_handle'
 
