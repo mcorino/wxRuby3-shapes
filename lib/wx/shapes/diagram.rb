@@ -33,6 +33,7 @@ module Wx::SF
       @shapes = []
       @shapes_index = {}
       @shape_canvas = nil
+      @is_modified = false
     end
 
     attr_accessor :manager, :shape_canvas
@@ -46,6 +47,23 @@ module Wx::SF
       @shapes.each { |sh| @shapes_index[sh.id] = sh }
     end
     private :set_shapes
+
+    # Get information about managed diagram's modification.
+    #
+    # The function returns TRUE if the diagram has been modified and its content
+    # should be saved. The modification flag is cleared when the content is saved.
+    # @return [Boolean] true if managed diagram is modified, otherwise false.
+    def is_modified
+      @is_modified
+    end
+    alias :modified? :is_modified
+
+    # Set diagram's modification flag manually.
+    # @param [Boolean] state State of diagram's modification flag.
+    def set_modified(state = true)
+      @is_modified = state
+    end
+    alias :modified= :set_modified
 
   end
 

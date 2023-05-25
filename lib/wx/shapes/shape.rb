@@ -15,7 +15,14 @@ module Wx::SF
   WITHOUTCHILDREN = false
   ANY = nil
   DELAYED = true
-  
+
+  class ERRCODE < Wx::Enum
+    OK = self.new(0)
+    NOT_CREATED = self.new(1)
+    NOT_ACCEPTED = self.new(2)
+    INVALID_INPUT = self.new(3)
+  end
+
   # Base class for all shapes providing fundamental functionality and publishing set
   # of virtual functions which must be defined by the user in derived shapes. This class
   # shouldn't be used as it is.
@@ -212,6 +219,34 @@ module Wx::SF
       @accepted_src_neighbours = ::Set.new
       @accepted_trg_neighbours = ::Set.new
     end
+
+    # Set managing diagram
+    # @param [Wx::SF::Diagram] diagram
+    def set_diagram(diagram)
+      @diagram = diagram
+    end
+    alias :diagram= :set_diagram
+
+    # Get managing diagram
+    # @return [Wx::SF::Diagram]
+    def get_diagram
+      @diagram
+    end
+    alias :diagram :get_diagram
+
+    # Set parent shape object
+    # @param [Wx::SF::Shape] shape
+    def set_parent_shape(shape)
+      @parent_shape = shape
+    end
+    alias :parent_shape= :set_parent_shape
+
+    # Get parent shape object
+    # @return [Wx::SF::Shape]
+    def get_parent_shape
+      @parent_shape
+    end
+    alias :parent_shape :get_parent_shape
 
     # Refresh (redraw) the shape
     # @param [Boolean] delayed If true then the shape canvas will be rather invalidated than refreshed.

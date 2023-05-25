@@ -52,3 +52,11 @@ class Wx::Colour
   property :colour => ->(col, *val) { col.set(*val.first) unless val.empty?; [col.red, col.green, col.blue, col.alpha] }
 
 end
+
+class Wx::Brush
+
+  include Wx::SF::Serializable
+
+  property :colour, :style
+
+end
