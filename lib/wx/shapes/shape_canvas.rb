@@ -297,6 +297,22 @@ module Wx::SF
     #   @param [Wx::Size] size Initial size
     #   @param [Integer] style Window style
     def initialize(diagram = nil, *mixed_args)
+      super()
+
+      @dnd_started_here = false
+      @dnd_started_at = nil
+      @can_save_state_on_mouse_up = false
+      @working_mode = MODE::READY
+      @selection_mode = SELECTIONMODE::NORMAL
+      @selected_handle = nil
+      @new_line_shape = nil
+      @unselected_shape_under_cursor = nil
+      @selected_shape_under_cursor = nil
+      @topmost_shape_under_cursor = nil
+      @invalidate_rect = nil
+
+      @canvas_history = CanvasHistory.new(self)
+
       if diagram
         parent = mixed_args.first.is_a?(Wx::Window) ? mixed_args.shift : nil
         begin
@@ -317,9 +333,23 @@ module Wx::SF
         self.diagram = diagram
 
         save_canvas_state
-      else
-        super()
       end
+      
+      # set up event handlers
+      evt_paint :_on_paint
+      evt_erase_background :_on_erase_background
+      evt_left_down :_on_left_down
+      evt_left_up :_on_left_up
+      evt_right_down :_on_right_down
+      evt_right_up :_on_right_up
+      evt_left_dclick :_on_left_double_click
+      evt_right_dclick :_on_right_double_click
+      evt_motion :_on_mouse_move
+      evt_mousewheel :_on_mouse_wheel
+      evt_key_down :_on_key_down
+      evt_enter_window :_on_enter_window
+      evt_leave_window :_on_leave_window
+      evt_size :_on_resize
     end
 
     def create(parent, id = -1, pos = Wx::DEFAULT_POSITION, size = Wx::DEFAULT_SIZE, style = (Wx::HSCROLL | Wx::VSCROLL), name = "Wx::ScrolledWindow")
@@ -333,18 +363,6 @@ module Wx::SF
       if Wx.has_feature?(:USE_DRAG_AND_DROP)
         set_drop_target(Wx::SF::CanvasDropTarget.new(Wx::SF::ShapeDataObject.new, self))
       end
-      @d_n_d_started_here = false
-
-      # initialize data members
-      @can_save_state_on_mouse_up = false
-
-      @working_mode = MODE::READY
-      @selection_mode = SELECTIONMODE::NORMAL
-      @selected_handle = nil
-      @new_line_shape = nil
-      @unselected_shape_under_cursor = nil
-      @selected_shape_under_cursor = nil
-      @topmost_shape_under_cursor = nil
 
       # initialize selection rectangle
       @shp_selection = MultiSelRect.new
@@ -361,8 +379,6 @@ module Wx::SF
       @shp_multi_edit.select(true)
       @shp_multi_edit.show(false)
       @shp_multi_edit.show_handles(true)
-
-      @canvas_history = CanvasHistory.new(self)
 
       # if ++m_nRefCounter == 1 )
       #   {
@@ -406,11 +422,13 @@ module Wx::SF
 
     # Load serialized canvas content (diagrams) from given file.
     # @param [String] file Full file name
-    def load_canvas(file) end
+    def load_canvas(file)
+    end
 
     # Save  canvas content (diagrams) to given file.
     # @param [String] file Full file name
-    def save_canvas(file) end
+    def save_canvas(file)
+    end
 
     # Export canvas content to image file.
     # @param [String] file Full file name
@@ -418,7 +436,81 @@ module Wx::SF
     #                              Wx::BITMAP_TYPE_BMP.
     # @param [Boolean] background Export also diagram background
     # @param [Float] scale Image scale. If -1 then current canvas scale id used.
-    def save_canvas_to_image(file, type = Wx::BITMAP_TYPE_BMP, background = true, scale = -1.0) end
+    def save_canvas_to_image(file, type = Wx::BITMAP_TYPE_BMP, background = true, scale = -1.0)
+      # create memory DC a draw the canvas content into
+
+      prev_scale = get_scale
+      scale = prev_scale if scale == -1
+
+      bmp_bb = get_total_bounding_box
+
+      bmp_bb.left *= scale
+      bmp_bb.top *= scale
+      bmp_bb.width *= scale
+      bmp_bb.height *= scale
+
+      bmp_bb.inflate(@settings.grid_size * scale)
+
+      outbmp = Wx::Bitmap.new(bmp_bb.width, bmp_bb.height)
+      Wx::MemoryDC.draw_on(outbmp) do |mdc|
+
+        Wx::ScaledDC.draw_on(mdc, scale) do |outdc|
+
+          if outdc.ok?
+            set_scale(scale) if scale != prev_scale
+
+            outdc.set_device_origin(-bmp_bb.left, -bmp_bb.top)
+
+            prev_style = get_style
+            prev_colour = get_canvas_colour
+
+            if !background
+              remove_style(STYLE::GRADIENT_BACKGROUND)
+              remove_style(STYLE::GRID_SHOW)
+              set_canvas_colour(Wx::WHITE)
+            end
+
+            draw_background(outdc, NOT_FROM_PAINT)
+            draw_content(outdc, NOT_FROM_PAINT)
+            draw_foreground( outdc, NOT_FROM_PAINT)
+
+            if !background
+              set_style(prev_style)
+              set_canvas_colour(prev_colour)
+            end
+
+            set_scale(prev_scale) if scale != prev_scale
+
+            if outbmp.save_file(file, type)
+              Wx.message_box("The image has been saved to '#{file}'.", 'ShapeFramework')
+            else
+              Wx.message_box("Unable to save image to '#{file}'.", 'wxShapeFramework', Wx::OK | Wx::ICON_ERROR)
+            end
+          else
+            Wx.message_box('Could not create output bitmap.', 'wxShapeFramework', Wx::OK | Wx::ICON_ERROR)
+          end
+        end
+      end
+    end
+
+    def _start_interactive_connection(lpos, src_shape_id)
+      if @new_line_shape
+        @working_mode = MODE::CREATECONNECTION
+        @new_line_shape.set_line_mode(LineShape::MODE::UNDERCONSTRUCTION)
+
+        @new_line_shape.set_src_shape_id(src_shape_id)
+
+        # switch on the "under-construction" mode
+        @new_line_shape.set_unfinished_point(lpos)
+        # assign starting point of new line shapes to the nearest connection point of
+        # connected shape if exists
+        @new_line_shape.set_starting_connection_point(shape_under.get_nearest_connection_point(lpos.to_real))
+        ERRCODE::OK
+      else
+        ERRCODE::NOT_CREATED
+      end
+    end
+    private :_start_interactive_connection
 
     # Start interactive connection creation.
     #
@@ -444,47 +536,157 @@ module Wx::SF
     #   @param [Wx::Point] pos Position where to start
     #   @return [Wx::SF::ERRCODE] err operation result
     # @see create_connection
-    def start_interactive_connection(*args) end
+    def start_interactive_connection(*args)
+      return ERRCODE::INVALID_INPUT unless @diagram
+
+      shape_info = shape = pos = connection_point = nil
+      shape_klass = nil
+      case args.first
+      when Wx::SF::LineShape
+        shape = args.shift
+        shape_klass = shape.class.name
+        if args.first.is_a?(Wx::SF::ConnectionPoint)
+          connection_point = args.shift
+        end
+        pos = args.shift
+      when ::Class
+        shape_info, pos = args
+        shape_klass = shape_info.name
+      end
+      ::Kernel.raise ArgumentError, "Invalid arguments #{args}" unless args.empty?
+      return ERRCODE::INVALID_INPUT unless pos
+
+      lpos = dp2lp(pos)
+
+      if @working_mode == MODE::READY && ((shape_info && shape_info < Wx::SF::LineShape) || (shape.is_a?(Wx::SF::LineShape)))
+
+        if connection_point
+          if @diagram.contains?(shape)
+            @new_line_shape = shape
+          else
+            @new_line_shape = @diagram.add_shape(shape, nil, Wx::DEFAULT_POSITION, INITIALIZE, DONT_SAVE_STATE)
+          end
+          return _start_interactive_connection(lpos, connection_point.get_parent_shape.id)
+
+        else
+          shape_under = get_shape_at_position(lpos)
+          if shape_info
+            # propagate request for interactive connection if requested
+            shape_under = shape_under.get_parent_shape while shape_under &&
+                                                          shape_under.has_style?(Shape::STYLE::PROPAGATE_INTERACTIVE_CONNECTION)
+          end
+
+          # start the connection's creation process if possible
+          if shape_under && shape_under.id && shape_under.is_connection_accepted(shape_klass)
+            if shape && @diagram.contains?(shape)
+              @new_line_shape = shape
+            else
+              @new_line_shape = if shape
+                                  @diagram.add_shape(shape, nil, Wx::DEFAULT_POSITION, INITIALIZE, DONT_SAVE_STATE)
+                                else
+                                  @diagram.create_shape(shape_info, DONT_SAVE_STATE)
+                                end
+            end
+            return _start_interactive_connection(lpos, shape_under.id)
+          else
+            return ERRCODE::NOT_ACCEPTED
+          end
+        end
+      end
+      ERRCODE::INVALID_INPUT
+    end
 
     # Abort interactive connection creation process
     def abort_interactive_connection
+      return unless @diagram
 
+      if @new_line_shape
+        @diagram.remove_shape(@new_line_shape)
+        @new_line_shape = nil
+        on_connection_finished(nil)
+      end
+      @working_mode = MODE::READY
+      refresh(false)
     end
 
     # Select all shapes in the canvas
     def select_all
+      return unless @diagram
 
+      shapes = @diagram.get_shapes(Wx::SF::Shape, [])
+
+      unless shapes.empty?
+        shapes.each { |shape| shape.select(true) }
+
+        validate_selection(get_selected_shapes)
+
+        hide_all_handles
+        update_multiedit_size
+        @shp_multi_edit.show(true)
+        @shp_multi_edit.show_handles(true)
+
+        refresh(false)
+      end
     end
 
     # Deselect all shapes
     def deselect_all
+      return unless @diagram
 
+      shapes = @diagram.get_shapes(Wx::SF::Shape, [])
+      shapes.each { |shape| shape.select(false) }
+
+      @shp_multi_edit.show(false)
     end
 
     # Hide handles of all shapes
     def hide_all_handles
+      return unless @diagram
 
+      shapes = @diagram.get_shapes(Wx::SF::Shape, [])
+      shapes.each { |shape| shape.show_handles(false) }
     end
 
     # Repaint the shape canvas.
     # @param [Boolean] erase true if the canvas should be erased before repainting
     # @param [Wx::Rect] rct Refreshed region (rectangle)
-    def refresh_canvas(erase, rct) end
+    def refresh_canvas(erase, rct)
+      lpos = dp2lp(Wx::Point.new(0, 0))
+      upd_rct = Wx::Rect.new(rct)
+
+      upd_rct.inflate((20/@settings.scale).to_i, (20/@settings.scale).to_i)
+      upd_rct.offset([-lpos.x, -lpos.y])
+
+      refresh_rect(Wx::Rect.new((upd_rct.x*@settings.scale).to_i,
+                                (upd_rct.y*@settings.scale).to_i,
+                                (upd_rct.width*@settings.scale).to_i,
+                                (upd_rct.height*@settings.scale).to_i),
+                   erase)
+    end
 
     # Mark given rectangle as an invalidated one, i.e. as a rectangle which should
     # be refreshed (by using Wx::SF::ShapeCanvas::refresh_invalidated_rect).
     # @param [Wx::Rect] rct Rectangle to be invalidated
-    def invalidate_rect(rct) end
+    def invalidate_rect(rct)
+      if @invalidate_rect.nil?
+        @invalidate_rect = Wx::Rect.new(rct)
+      else
+        @invalidate_rect.union(rct)
+      end
+    end
 
     # Mark whole visible canvas portion as an invalidated rectangle.
     def invalidate_visible_rect
-
+      invalidate_rect(dp2lp(get_client_rect))
     end
 
     # Refresh all canvas rectangles marked as invalidated.
     # @see Wx::SF::ShapeCanvas::invalidate_rect
     def refresh_invalidated_rect
-
+      unless @invalidate_rect.nil? && @invalidate_rect.empty?
+        refresh_canvas(false, @invalidate_rect)
+        @invalidate_rect = nil
+      end
     end
 
     # Show shapes shadows (only current diagram shapes are affected).
@@ -493,7 +695,33 @@ module Wx::SF
     # @param [Boolean] show true if the shadow should be shown, otherwise false
     # @param [SHADOWMODE] style Shadow style
     # @see SHADOWMODE
-    def show_shadows(show, style) end
+    def show_shadows(show, style)
+      return unless @diagram
+
+      shapes = @diagram.get_shapes(Wx::SF::Shape, [])
+
+      shapes.each do |shape|
+        shape.remove_style(Shape::STYLE::SHOW_SHADOW) if show
+
+        case style
+        when SHADOWMODE::TOPMOST
+          unless shape.get_parent_shape
+            if show
+              shape.add_style(Shape::STYLE::SHOW_SHADOW)
+            else
+              shape.remove_style(Shape::STYLE::SHOW_SHADOW)
+            end
+          end
+
+        when SHADOWMODE::ALL
+          if show
+            shape.add_style(Shape::STYLE::SHOW_SHADOW)
+          else
+            shape.remove_style(Shape::STYLE::SHOW_SHADOW)
+          end
+        end
+      end
+    end
 
     if Wx.has_feature?(:USE_DRAG_AND_DROP)
 
@@ -501,91 +729,206 @@ module Wx::SF
       # @param [Array<Wx::SF::Shape>] shapes List of shapes which should be dragged
       # @param [Wx::Point] start A point where the dragging operation has started
       # @return [Wx::DragResult] Drag result
-      def do_drag_drop(shapes, start = Wx::Point.new(-1, -1)) end
+      def do_drag_drop(shapes, start = Wx::Point.new(-1, -1))
+        return Wx::DragNone unless has_style?(STYLE::DND)
 
-    end
+        @working_mode = MODE::DND
+
+        result = Wx::DragNone
+
+        validate_selection_for_clipboard(shapes, true)
+
+        unless shapes.empty?
+          deselect_all
+
+          @dnd_started_here = true
+          @dnd_started_at = start
+
+          data_obj = Wx::SF::ShapeDataObject.new(shapes)
+
+          dnd_src = if Wx::PLATFORM == 'WXGTK'
+                      Wx::DropSource.new(data_obj, self, Wx::Icon(:page_xpm), Wx::Icon(:page_xpm), Wx::Icon(:page_xpm))
+                    else
+                      Wx::DropSource.new(data_obj)
+                    end
+
+          result = dnd_src.do_drag_drop(Wx::Drag_AllowMove)
+          case result
+          when Wx::DragResult::DragMove
+            @diagram.remove_shapes(shapes)
+          else
+          end
+
+          @dnd_started_here = false
+
+          restore_prev_positions
+
+          move_shapes_from_negatives
+          update_virtual_size
+
+          save_canvas_state
+          refresh(false)
+        end
+
+        @working_mode = MODE::READY
+
+        result
+      end
+
+    end # if Wx.has_feature?(:USE_DRAG_AND_DROP)
 
     # Copy selected shapes to the clipboard
     def copy
+      return unless has_style?(STYLE::CLIPBOARD)
+      return unless @diagram
 
+      # copy selected shapes to the clipboard
+      Wx::Clipboard.open do |clipboard|
+        lst_selection = get_selected_shapes
+
+        validate_selection_for_clipboard(lst_selection,true)
+
+        unless lst_selection.empty?
+          data_obj = Wx::SF::ShapeDataObject.new(lst_selection)
+          clipboard.place(data_obj)
+
+          restore_prev_positions
+        end
+      end
     end
 
     # Copy selected shapes to the clipboard and remove them from the canvas
     def cut
+      return unless has_style?(STYLE::CLIPBOARD)
+      return unless @diagram
 
+      copy
+
+      clear_temporaries
+
+      # remove selected shapes
+      lst_selection = get_selected_shapes
+
+      validate_selection_for_clipboard(lst_selection,false)
+
+      unless lst_selection.empty?
+        @diagram.remove_shapes(lst_selection)
+        @shp_multi_edit.show(false)
+        save_canvas_state
+        refresh(false)
+      end
     end
 
     # Paste shapes stored in the clipboard to the canvas
     def paste
+      return unless has_style?(STYLE::CLIPBOARD)
+      return unless @diagram
 
+      Wx::Clipboard.open do |clipboard|
+        # store previous canvas content
+        lst_old_content = @diagram.get_shapes(Wx::SF::Shape, lst_old_content)
+
+        # read data object from the clipboard
+        data_obj = Wx::SF::ShapeDataObject.new
+        if clipboard.fetch(data_obj)
+
+          # deserialize shapes
+          new_shapes = Wx::SF::Serializable.deserialize(data_obj.get_data_here)
+          # add new shapes to diagram
+          new_shapes.each { |shape| @diagram.add_shape(shape, nil, Wx::Point.new(0, 0), DONT_INITIALIZE, DONT_SAVE_STATE) }
+
+          # call user-defined handler
+          on_paste(new_shapes)
+
+          save_canvas_state
+          refresh(false)
+        end
+      end
     end
 
     # Perform Undo operation (if available)
     def undo
+      return unless has_style?(STYLE::UNDOREDO)
 
+      clear_temporaries
+
+      @canvas_history.restore_older_state
+      @shp_multi_edit.show(false)
     end
 
     # Perform Redo operation (if available)
     def redo
+      return unless has_style?(STYLE::UNDOREDO)
 
+      clear_temporaries
+
+      @canvas_history.restore_newer_state
+      @shp_multi_edit.show(false)
     end
 
     # Function returns true if some shapes can be copied to the clipboard (it means they are selected)
     # @return [Boolean]
     def can_copy
+      return false unless has_style?(STYLE::CLIPBOARD)
 
+      !get_selected_shapes.empty?
     end
-
     alias :can_copy? :can_copy
 
     # Function returns true if some shapes can be cut to the clipboard (it means they are selected)
     # @return [Boolean]
     def can_cut
-
+      can_copy
     end
-
     alias :can_cut? :can_cut
 
     # Function returns true if some shapes can be copied from the clipboard to the canvas
     # (it means the clipboard contains stored shapes)
     # @return [Boolean]
     def can_paste
+      return false unless has_style?(STYLE::CLIPBOARD)
 
+      Wx::Clipboard.open do |clipboard|
+        return clipboard.supported?(Wx::DataFormat.new(DataFormatID))
+      end
     end
-
     alias :can_paste? :can_paste
 
     # Function returns true if undo operation can be done
     # @return [Boolean]
     def can_undo
+      return false unless has_style?(STYLE::UNDOREDO)
 
+      @canvas_history.can_undo
     end
-
     alias :can_undo? :can_undo
 
     # Function returns TRUE if Redo operation can be done
     # @return [Boolean]
     def can_redo
+      return false unless has_style?(STYLE::UNDOREDO)
 
+      @canvas_history.can_redo
     end
-
     alias :can_redo? :can_redo
 
     # Function returns true if align_selected function can be invoked (if more than
     # @return [Boolean]
     def can_align_selected
-
+      @shp_multi_edit.visible? && @working_mode == MODE::READY
     end
-
     alias :can_align_selected? :can_align_selected
 
     # Save current canvas state (for Undo/Redo operations)
     def save_canvas_state
+      return unless has_style?(STYLE::UNDOREDO)
 
+      @canvas_history.save_canvas_state
     end
 
     # Clear all stored canvas states (no Undo/Redo operations will be available)
     def clear_canvas_history
+      @canvas_history.clear
     end
 
     # @!group Print methods
@@ -1272,7 +1615,7 @@ module Wx::SF
     #  Validate selection so the shapes in the given list can be processed by the clipboard functions
     # @param [Array<Wx::SF::Shape>] selection
     # @param [Boolean] storeprevpos
-    def validate_selection_for_clipboard(selection, bool storeprevpos)
+    def validate_selection_for_clipboard(selection, storeprevpos)
 
     end
 

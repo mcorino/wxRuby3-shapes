@@ -241,12 +241,21 @@ module Wx::SF
     end
     alias :parent_shape= :set_parent_shape
 
-    # Get parent shape object
-    # @return [Wx::SF::Shape]
+    # Get parent shape
+    # @return [Wx::SF::Shape,nil] parent shape
     def get_parent_shape
+      return nil unless @diagram
       @parent_shape
     end
     alias :parent_shape :get_parent_shape
+
+    # Get pointer to the topmost parent shape
+    # @return [Wx::SF::Shape] topmost parent shape
+    def get_grand_parent_shape
+      return nil unless @diagram
+      @parent_shape ? @parent_shape.get_parent_shape : self
+    end
+    alias :grand_parent_shape :get_grand_parent_shape
 
     # Refresh (redraw) the shape
     # @param [Boolean] delayed If true then the shape canvas will be rather invalidated than refreshed.
@@ -407,6 +416,7 @@ module Wx::SF
     def has_children
       !@child_shapes.empty?
     end
+    alias :has_children? :has_children
 
     # Get children of given type.
     # @param [Class,nil] type Child shape type (if nil then all children are returned)
@@ -800,22 +810,6 @@ module Wx::SF
     end
     alias :custom_dock_point :get_custom_dock_point
 
-    # Get parent shape
-    # @return [Wx::SF::Shape,nil] parent shape
-    def get_parent_shape
-      return nil unless @diagram
-      @parent_shape
-    end
-    alias :parent_shape :get_parent_shape
-
-    # Get pointer to the topmost parent shape
-    # @return [Wx::SF::Shape] topmost parent shape
-    def get_grand_parent_shape
-      return nil unless @diagram
-      @parent_shape ? @parent_shape.get_parent_shape : self
-    end
-    alias :grand_parent_shape :get_grand_parent_shape
-
 	  # Determine whether this shape is ancestor of given child shape.
 	  # @param [Wx::SF::Shape] child child shape.
 	  # @return true if this shape is parent of given child shape, otherwise false
@@ -853,16 +847,6 @@ module Wx::SF
       @user_data
     end
     alias :user_data :get_user_data
-
-	  # Get shape's parent diagram
-    # @return [Wx::SF::Diagram,nil] diagram
-    # @see Wx::SF::Diagram
-    def get_diagram
-      @diagram
-    end
-    alias :get_shape_manager :get_diagram
-    alias :diagram :get_diagram
-    alias :shape_manager :get_diagram
 
 	  # Get shape's diagram canvas
 	  # @return [Wx::SF::ShapeCanvas,nil] shape canvas if assigned via diagram, otherwise nil
