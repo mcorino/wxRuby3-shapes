@@ -5,6 +5,9 @@ require 'wx/shapes/shapes/text_shape'
 
 module Wx::SF
 
+  CANCEL_TEXT_CHANGES = false
+  APPLY_TEXT_CHANGES = true
+
   class EditTextShape < TextShape
 
     # @overload initialize()

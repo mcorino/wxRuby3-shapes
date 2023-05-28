@@ -309,12 +309,14 @@ module Wx::SF
       @unselected_shape_under_cursor = nil
       @selected_shape_under_cursor = nil
       @topmost_shape_under_cursor = nil
+      @current_shapes = []
       @invalidate_rect = nil
 
       @canvas_history = CanvasHistory.new(self)
 
       if diagram
         parent = mixed_args.first.is_a?(Wx::Window) ? mixed_args.shift : nil
+        real_args = []
         begin
           real_args = [parent] + Wx::ScrolledWindow.args_as_list(*mixed_args)
           create(*real_args)
@@ -323,7 +325,7 @@ module Wx::SF
             " : #{err.message} \n" +
             "Provided are #{real_args} \n" +
             "Correct parameters for #{self.class.name}.new are:\n" +
-            self.class.describe_constructor()
+            self.class.describe_constructor
 
           new_err = err.class.new(msg)
           new_err.set_backtrace(caller)
@@ -464,7 +466,7 @@ module Wx::SF
             prev_style = get_style
             prev_colour = get_canvas_colour
 
-            if !background
+            unless background
               remove_style(STYLE::GRADIENT_BACKGROUND)
               remove_style(STYLE::GRID_SHOW)
               set_canvas_colour(Wx::WHITE)
@@ -474,7 +476,7 @@ module Wx::SF
             draw_content(outdc, NOT_FROM_PAINT)
             draw_foreground( outdc, NOT_FROM_PAINT)
 
-            if !background
+            unless background
               set_style(prev_style)
               set_canvas_colour(prev_colour)
             end
@@ -496,7 +498,7 @@ module Wx::SF
     def _start_interactive_connection(lpos, src_shape_id)
       if @new_line_shape
         @working_mode = MODE::CREATECONNECTION
-        @new_line_shape.set_line_mode(LineShape::MODE::UNDERCONSTRUCTION)
+        @new_line_shape.set_line_mode(LineShape::LINEMODE::UNDERCONSTRUCTION)
 
         @new_line_shape.set_src_shape_id(src_shape_id)
 
@@ -613,7 +615,7 @@ module Wx::SF
     def select_all
       return unless @diagram
 
-      shapes = @diagram.get_shapes(Wx::SF::Shape, [])
+      shapes = @diagram.get_shapes
 
       unless shapes.empty?
         shapes.each { |shape| shape.select(true) }
@@ -633,8 +635,7 @@ module Wx::SF
     def deselect_all
       return unless @diagram
 
-      shapes = @diagram.get_shapes(Wx::SF::Shape, [])
-      shapes.each { |shape| shape.select(false) }
+      @diagram.get_shapes.each { |shape| shape.select(false) }
 
       @shp_multi_edit.show(false)
     end
@@ -643,8 +644,7 @@ module Wx::SF
     def hide_all_handles
       return unless @diagram
 
-      shapes = @diagram.get_shapes(Wx::SF::Shape, [])
-      shapes.each { |shape| shape.show_handles(false) }
+      @diagram.get_shapes.each { |shape| shape.show_handles(false) }
     end
 
     # Repaint the shape canvas.
@@ -698,7 +698,7 @@ module Wx::SF
     def show_shadows(show, style)
       return unless @diagram
 
-      shapes = @diagram.get_shapes(Wx::SF::Shape, [])
+      shapes = @diagram.get_shapes
 
       shapes.each do |shape|
         shape.remove_style(Shape::STYLE::SHOW_SHADOW) if show
@@ -756,7 +756,6 @@ module Wx::SF
           case result
           when Wx::DragResult::DragMove
             @diagram.remove_shapes(shapes)
-          else
           end
 
           @dnd_started_here = false
@@ -825,9 +824,6 @@ module Wx::SF
       return unless @diagram
 
       Wx::Clipboard.open do |clipboard|
-        # store previous canvas content
-        lst_old_content = @diagram.get_shapes(Wx::SF::Shape, lst_old_content)
-
         # read data object from the clipboard
         data_obj = Wx::SF::ShapeDataObject.new
         if clipboard.fetch(data_obj)
@@ -967,7 +963,15 @@ module Wx::SF
     # @overload dp2lp(rct)
     #   @param [Wx::Rect] rct Device position (for example mouse position)
     #   @return [Wx::Rect] Logical position
-    def dp2lp(arg) end
+    def dp2lp(arg)
+      x, y = calc_unscrolled_position(arg.x, arg.y)
+      if arg.is_a?(Wx::Rect)
+        Wx::Rect.new((x/@settings.scale).to_i, (y/@settings.scale).to_i,
+                     (arg.width/@settings.scale).to_i, (arg.height/@settings.scale).to_i)
+      else
+        Wx::Point.new((x/@settings.scale).to_i, (y/@settings.scale).to_i)
+      end
+    end
 
     # Convert logical position to device position.
     #
@@ -978,18 +982,72 @@ module Wx::SF
     # @overload lp2dp(rct)
     #   @param [Wx::Rect] rct Logical position (for example shape position)
     #   @return [Wx::Rect] Device position
-    def lp2dp(arg) end
+    def lp2dp(arg)
+      x, y = calc_unscrolled_position(arg.x, arg.y)
+      if arg.is_a?(Wx::Rect)
+        Wx::Rect.new((x*@settings.scale).to_i, (y*@settings.scale).to_i,
+                     (arg.width*@settings.scale).to_i, (arg.height*@settings.scale).to_i)
+      else
+        Wx::Point.new((x*@settings.scale).to_i, (y*@settings.scale).to_i)
+      end
+    end
 
-    # Search for any shape located at the (mouse cursor) position (result used by Wx::SF::ShapeCanvas#get_shape_under_cursor)
-    # @param [Wx::Point] pos
-    def update_shape_under_cursor_cache(pos) end
+    # Search for any shape located at the (mouse cursor) position (result used by #get_shape_under_cursor)
+    # @param [Wx::Point] lpos
+    def update_shape_under_cursor_cache(lpos)
+      sel_shape = unsel_shape = top_shape = nil
+      sel_line = unsel_line = top_line = nil
+
+      @topmost_shape_under_cursor = nil
+      @current_shapes.clear
+
+      @current_shapes.concat(@diagram.get_shapes) if @diagram
+
+      @current_shapes.each do |shape|
+        if shape.visible? && shape.active? && shape.contains?(lpos)
+          if shape.is_a?(Wx::SF::LineShape)
+            top_line ||= shape
+            if shape.selected?
+              sel_line ||= shape
+            else
+              unsel_line ||= shape
+            end
+          else
+            top_shape ||= shape
+            if shape.selected?
+              sel_shape ||= shape
+            else
+              unsel_shape ||= shape
+            end
+          end
+        end
+      end
+
+      # set reference to logically topmost selected and unselected shape under the mouse cursor
+      @topmost_shape_under_cursor = top_line ? top_line : top_shape
+
+      @selected_shape_under_cursor = sel_line ? sel_line : sel_shape
+
+      @unselected_shape_under_cursor = unsel_line ? unsel_line : unsel_shape
+    end
 
     # Get shape under current mouse cursor position (fast implementation - use everywhere
     # it is possible instead of much slower GetShapeAtPosition()).
     # @param [SEARCHMODE] mode Search mode
     # @return [Wx::SF::Shape,nil] shape if found, otherwise nil
     # @see SEARCHMODE, Wx::SF::ShapeCanvas#dp2lp, Wx::SF::ShapeCanvas#get_shape_at_position
-    def get_shape_under_cursor(mode = SEARCHMODE::BOTH) end
+    def get_shape_under_cursor(mode = SEARCHMODE::BOTH)
+      case mode
+      when SEARCHMODE::BOTH
+        @topmost_shape_under_cursor
+      when SEARCHMODE::SELECTED
+        @selected_shape_under_cursor
+      when SEARCHMODE::UNSELECTED
+        @unselected_shape_under_cursor
+      else
+        nil
+      end
+    end
 
     # Get shape at given logical position
     # @param [Wx::Point] pos Logical position
@@ -998,42 +1056,98 @@ module Wx::SF
     # @param [SEARCHMODE] mode Search mode
     # @return [Wx::SF::Shape,nil] shape if found, otherwise nil
     # @see SEARCHMODE, Wx::SF::ShapeCanvas#dp2lp, Wx::SF::ShapeCanvas#get_shape_under_cursor
-    def get_shape_at_position(pos, zorder = 1, mode = SEARCHMODE::BOTH) end
+    def get_shape_at_position(pos, zorder = 1, mode = SEARCHMODE::BOTH)
+      return nil unless @diagram
+
+      @diagram.get_shape_at_position(pos, zorder, mode)
+    end
 
     # Get topmost handle at given position
     # @param [Wx::Point] pos Logical position
     # @return [Wx::SF::Shape::Handle,nil] shape handle if found, otherwise nil
     # @see Wx::SF::ShapeCanvas#dp2lp
-    def get_topmost_handle_at_position(pos) end
+    def get_topmost_handle_at_position(pos)
+      return nil unless @diagram
+
+      # first test multiedit handles...
+      if @shp_multi_edit.visible?
+        @shp_multi_edit.handles.each do |handle|
+          return handle if handle.visible? && handle.contains?(pos)
+        end
+      end
+
+      # ... then test normal handles
+      @diagram.get_shapes.each do |shape|
+        # iterate through all shape's handles
+        if shape.has_style?(Shape::STYLE::SIZE_CHANGE)
+          shape.handles.each do |handle|
+            return handle if handle.visible? && handle.contains?(pos)
+          end
+        end
+      end
+
+      nil
+    end
 
     # Get list of all shapes located at given position
     # @param [Wx::Point] pos Logical position
     # @param [Array<Wx::SF::Shape>] shapes shape list where pointers to all found shapes will be stored
     # @return [Array<Wx::SF::Shape>] shapes shape list
     # @see Wx::SF::ShapeCanvas#dp2lp
-    def get_shapes_at_position(pos, shapes = []) end
+    def get_shapes_at_position(pos, shapes = [])
+      @diagram.get_shapes_at_position(pos, shapes) if @diagram
+      shapes
+    end
 
     # Get list of shapes located inside given rectangle
     # @param [Wx::Rect] rct Examined rectangle
     # @param [Array<Wx::SF::Shape>] shapes shape list where pointers to all found shapes will be stored
     # @return [Array<Wx::SF::Shape>] shapes shape list
-    def get_shapes_inside(rct, shapes = []) end
+    def get_shapes_inside(rct, shapes = [])
+      @diagram.get_shapes_inside(rct, shapes) if @diagram
+      shapes
+    end
 
     # Get list of selected shapes.
     # @param [Array<Wx::SF::Shape>] selection shape list where pointers to all selected shapes will be stored
     # @return [Array<Wx::SF::Shape>] shapes shape list
-    def get_selected_shapes(selection = []) end
+    def get_selected_shapes(selection = [])
+      return selection unless @diagram
+
+      @diagram.get_shapes.each do |shape|
+        selection << shape if shape.selected?
+      end
+      selection
+    end
 
     # Get box bounding all shapes in the canvas.
     # @return [Wx::Rect] Total bounding box
     def get_total_bounding_box
-
+      virt_rct = nil
+      if @diagram
+        # calculate total bounding box (includes all shapes)
+        @diagram.get_shapes.each_with_index do |shape, ix|
+            if ix == 0
+              virt_rct = shape.get_bounding_box
+            else
+              virt_rct.union(shape.get_bounding_box)
+            end
+        end
+      end
+      virt_rct || Wx::Rect.new
     end
 
     # Get bounding box of all selected shapes.
     # @return [Wx::Rect] Selection bounding box
     def get_selection_bb
-
+      bb_rct = Wx::Rect.new
+      # get selected shapes
+      get_selected_shapes.each do |shape|
+        shape.get_complete_bounding_box(
+          bb_rct,
+          Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN | Shape::BBMODE::CONNECTIONS | Shape::BBMODE::SHADOW)
+      end
+      bb_rct
     end
 
     # Align selected shapes in given directions.
@@ -1042,6 +1156,77 @@ module Wx::SF
     # @param [HALIGN] halign Horizontal alignment
     # @param [VALIGN] valign Vertical alignment
     def align_selected(halign, valign)
+      cnt = 0
+      min_pos = max_pos = nil
+
+      lst_selection = get_selected_shapes
+
+      upd_rct = get_selection_bb
+      upd_rct.inflate(DEFAULT_ME_OFFSET, DEFAULT_ME_OFFSET)
+
+      # find most distant position
+      lst_selection.each do |shape|
+        if shape.is_a?(LineShape)
+          pos = shape.get_absolute_position
+          shape_bb = shape.get_bounding_box
+
+          if cnt == 0
+            min_pos = pos
+            max_pos = Wx::RealPoint.new(pos.x + shape_bb.width, pos.y + shape_bb.height)
+          else
+            min_pos.x = pos.x if pos.x < min_pos.x
+            min_pos.y = pos.y if pos.y < min_pos.y
+            max_pos.x = pos.x + shape_bb.width if (pos.x + shape_bb.width) > max_pos.x
+            max_pos.y = pos.y + shape_bb.height if (pos.y + shape_bb.height) > max_pos.y
+          end
+
+          cnt += 1
+        end
+      end
+
+      # if only one non-line shape is in the selection then alignment has no sense so exit...
+      return if cnt < 2
+
+      # set new positions
+      lst_selection.each do |shape|
+        if shape.is_a?(LineShape)
+          pos = shape.get_absolute_position
+          shape_bb = shape.get_bounding_box
+
+          case halign
+          when HALIGN::LEFT
+            shape.move_to(min_pos.x, pos.y)
+
+          when HALIGN::RIGHT
+            shape.move_to(max_pos.x - shape_bb.width, pos.y)
+
+          when HALIGN::CENTER
+            shape.move_to((max_pos.x + min_pos.x)/2 - shape_bb.width/2, pos.y)
+          end
+
+          case valign
+          when VALIGN::TOP
+            shape.move_to(pos.x, min_pos.y)
+
+          when VALIGN::BOTTOM
+            shape.move_to(pos.x, max_pos.y - shape_bb.height)
+
+          when VALIGN::MIDDLE
+            shape.move_to(pos.x, (max_pos.y + min_pos.y)/2 - shape_bb.height/2)
+          end
+
+          # update the shape and its parent
+          shape.update
+          parent = shape.get_parent_shape
+          parent.update if parent
+        end
+      end
+
+      unless upd_rct.empty?
+        update_multiedit_size
+        save_canvas_state
+        refresh_canvas(false, upd_rct)
+      end
     end
 
     # @!group Style accessors
@@ -1309,13 +1494,29 @@ module Wx::SF
 
     # Set the canvas scale so a whole diagram is visible.
     def set_scale_to_view_all
+      phys_rct = get_client_size
+      virt_rct = get_total_bounding_box
 
+      hz = phys_rct.width.to_f / virt_rct.right
+      vz = phys_rct.height.to_f / virt_rct.bottom
+
+      if hz < vz
+        set_scale(hz < 1 ? hz : 1.0)
+      else
+        set_scale(vz < 1 ? vz : 1.0)
+      end
     end
 
     # Scroll the shape canvas so the given shape will be located in its center.
     # @param [Wx::SF::Shape] shape Pointer to focused shape
     def scroll_to_shape(shape)
+      if shape
+        ux, uy = get_scroll_pixels_per_unit
+        sz_canvas = get_client_size
+        pt_pos = shape.center
 
+        scroll(((pt_pos.x * @settings.scale) - sz_canvas.x/2)/ux, ((pt_pos.y * @settings.scale) - sz_canvas.y/2)/uy)
+      end
     end
 
     # Get canvas working mode.
@@ -1329,7 +1530,12 @@ module Wx::SF
     # Set default hover color.
     # @param [Wx::Colour] col Hover color.
     def set_hover_colour(col)
+      return unless @diagram
 
+      @settings.common_hover_color = col
+
+      # update Hover color in all existing shapes
+      @diagram.get_shapes.each { |shape| shape.set_hover_colour(col) }
     end
     alias :hover_colour= :set_hover_colour
 
@@ -1352,33 +1558,87 @@ module Wx::SF
     # @param [Wx::Point] pos Position which should be updated
     # @return [Wx::Point] Updated position
     def fit_position_to_grid(pos)
-
+      if has_style?(STYLE::GRID_USE)
+        Wx::Point.new(pos.x / @settings.grid_size.x * @settings.grid_size.x,
+          pos.y / @settings.grid_size.y * @settings.grid_size.y)
+      else
+        pos
+      end
     end
 
 	  # Update size of multi selection rectangle
     def update_multiedit_size
+      # calculate bounding box
+      union_rct = nil
+      get_selected_shapes.each_with_index do |shape, ix|
+        if ix == 0
+          union_rct = shape.get_bounding_box
+        else
+          union_rct.union(shape.get_bounding_box)
+        end
+      end
+      union_rct ||= Wx::Rect.new
+      union_rct.inflate(DEFAULT_ME_OFFSET, DEFAULT_ME_OFFSET)
 
+      # draw rectangle
+      @shp_multi_edit.set_relative_position(Wx::RealPoint.new(union_rct.x.to_f, union_rct.y.to_f))
+      @shp_multi_edit.set_rect_size(Wx::RealPoint.new(union_rct.width.to_f, union_rct.height.to_f))
     end
 
 	  # Update scroll window virtual size so it can display all shape canvas
     def update_virtual_size
+      virt_rct = get_total_bounding_box
 
+      # allow user to modify calculated virtual canvas size
+      on_update_virtual_size(virt_rct)
+
+      # update virtual area of the scrolled window if necessary
+      if virt_rct.empty?
+        set_virtual_size(500, 500)
+      else
+        set_virtual_size((virt_rct.right*@settings.scale).to_i, (virt_rct.bottom*@settings.scale).to_i)
+      end
     end
 
 	  # Move all shapes so none of it will be located in negative position
     def move_shapes_from_negatives
-
+      @diagram.move_shapes_from_negatives if @diagram
     end
 
 	  # Center diagram in accordance to the shape canvas extent.
     def center_shapes
-      
+      rct_prev_bb = get_total_bounding_box
+
+      rct_bb = rct_prev_bb.center_in(Wx::Rect.new(Wx::Point.new(0, 0), get_size))
+
+      dx = (rct_bb.left - rct_prev_bb.left).to_f
+      dy = (rct_bb.top - rct_prev_bb.top).to_f
+
+      @current_shapes.each do |shape|
+        shape.move_by(dx, dy) unless shape.get_parent_shape
+      end
+
+      move_shapes_from_negatives
     end
     
     # Validate selection (remove redundantly selected shapes etc...).
     # @param [Array<Wx::SF::Shape>] selection List of selected shapes that should be validated
     def validate_selection(selection)
+      return unless @diagram
 
+      # find child shapes that have parents in the list
+      lst_shapes_to_remove = selection.select { |shape| !selection.include?(shape.get_parent_shape) }
+
+      # remove child shapes with parents from the list
+      lst_shapes_to_remove.each do |shape|
+        shape.select(false)
+        selection.delete(shape)
+      end
+
+      selection.each do |shape|
+        # move selected shapes to the back of the shapes list in the diagram
+        @diagram.move_to_end(shape)
+      end
     end
 
 	  # Function responsible for drawing of the canvas's content to given DC. The default
@@ -1387,25 +1647,146 @@ module Wx::SF
     # @param [Boolean] from_paint Set the argument to true if the dc argument refers to the Wx::PaintDC instance
     # or derived classes (i.e. the function is called as a response to Wx::EVT_PAINT event)
     def draw_content(dc, from_paint)
+      return unless @diagram
 
+      if from_paint
+        # wxRect updRct;
+        bb_rct = Wx::Rect.new
+        #
+        # ShapeList m_lstToDraw;
+        lst_lines_to_draw = []
+
+        # get all existing shapes
+        lst_to_draw = @diagram.get_shapes(Shape, SEARCHMODE::DFS)
+
+        upd_rct = nil
+        # get the update rect list
+        Wx::RegionIterator.for_region(get_update_region) do |region_it|
+          # combine updated rectangles
+          region_it.each do |rct|
+            if upd_rct.nil?
+              upd_rct = dp2lp(rct.inflate(5, 5))
+            else
+              upd_rct.union(dp2lp(rct.inflate(5, 5)))
+            end
+          end
+        end
+        upd_rct ||= Wx::Rect.new
+
+        if @working_mode == MODE::SHAPEMOVE
+          #ShapeList m_lstSelected;
+
+          # draw unselected non line-based shapes first...
+          lst_to_draw.each do |shape|
+            parent_shape = shape.get_parent_shape
+
+            if !shape.is_a?(LineShape) || shape.is_stand_alone
+              if shape.intersects?(upd_rct)
+                if parent_shape
+                  shape.draw(dc, WITHOUTCHILDREN) if !parent_shape.is_a?(LineShape) || parent_shape.is_stand_alone
+                else
+                  shape.draw(dc, WITHOUTCHILDREN)
+                end
+              end
+            else
+              lst_lines_to_draw << shape
+            end
+          end
+
+          # ... and draw connections
+          lst_lines_to_draw.each do |line|
+            line.get_complete_bounding_box(bb_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN | Shape::BBMODE::SHADOW)
+            line.draw(dc, line.get_line_mode == LineShape::LINEMODE::READY) if bb_rct.intersects(upd_rct)
+          end
+        else
+          # draw parent shapes (children are processed by parent objects)
+          lst_to_draw.each do |shape|
+            parent_shape = shape.get_parent_shape
+
+            if !shape.is_a?(LineShape) || shape.is_stand_alone
+              if shape.intersects(upd_rct)
+                if parent_shape
+                  shape.draw(dc, WITHOUTCHILDREN) if !parent_shape.is_a?(LineShape) || shape.is_stand_alone
+                else
+                  shape.draw(dc, WITHOUTCHILDREN)
+                end
+              end
+            else
+              lst_lines_to_draw << shape
+            end
+          end
+
+          # draw connections
+          lst_lines_to_draw.each do |line|
+            line.get_complete_bounding_box(bb_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
+            line.draw(dc, line.get_line_mode == LineShape::LINEMODE::READY) if bb_rct.intersects(upd_rct)
+          end
+        end
+
+        # draw multiselection if necessary
+        @shp_selection.draw(dc) if @shp_selection.visible?
+        @shp_multi_edit.draw(dc) if @shp_multi_edit.visible?
+      else
+        # draw parent shapes (children are processed by parent objects)
+        @diagram.get_top_shapes.each do |shape|
+          shape.draw(dc) if !shape.is_a?(LineShape) || shape.is_stand_alone
+        end
+
+        # draw connections
+        @diagram.get_top_shapes.each do |shape|
+          shape.draw(dc) if shape.is_a?(LineShape) || !shape.is_stand_alone
+        end
+      end
     end
 
 	  # Function responsible for drawing of the canvas's background to given DC. The default
     # implementation draws canvas background and grid.
     # @param [Wx::DC] dc device context where the shapes will be drawn to
-    # @param [Boolean] from_paint Set the argument to true if the dc argument refers to the Wx::PaintDC instance
+    # @param [Boolean] _from_paint Set the argument to true if the dc argument refers to the Wx::PaintDC instance
     # or derived classes (i.e. the function is called as a response to Wx::EVT_PAINT event)
-    def draw_background(dc, from_paint)
+    def draw_background(dc, _from_paint)
+      # erase background
+      if has_style?(STYLE::GRADIENT_BACKGROUND)
+        bcg_size = @settings.grid_size + get_virtual_size
+        if @settings.scale != 1.0
+          dc.gradient_fill_linear(Wx::Rect.new([0, 0], [(bcg_size.x/@settings.scale).to_i, (bcg_size.y/@settings.scale).to_i]),
+                                  @settings.gradient_from, @settings.gradient_to, Wx::SOUTH)
+        else
+          dc.gradient_fill_linear(Wx::Rect.new(Wx::Point.new(0, 0),  bcg_size),
+                                  @settings.gradient_from, @settings.gradient_to, Wx::SOUTH)
+        end
+      else
+        dc.set_background(Wx::Brush.new(@settings.background_color))
+        dc.clear
+      end
 
+      # show grid
+      if has_style?(STYLE::GRID_SHOW)
+        linedist = @settings.grid_size.x * @settings.grid_line_mult
+
+        if (linedist * @settings.scale) > 3
+          grid_rct = Wx::Rect.new([0, 0], @settings.grid_size + get_virtual_size)
+          max_x = (grid_rct.right/@settings.scale).to_i
+          max_y = (grid_rct.bottom/@settings.scale).to_i
+
+          dc.set_pen(Wx::Pen.new(@settings.grid_color, 1, @settings.grid_style))
+          (grid_rct.left..max_x).step(linedist) do |x|
+            dc.draw_line(x, 0, x, max_y)
+          end
+          (grid_rct.top..max_y).step(linedist) do |y|
+            dc.draw_line(0, y, max_x, y)
+          end
+        end
+      end
     end
 
 	  # Function responsible for drawing of the canvas's foreground to given DC. The default
     # do nothing.
-    # @param [Wx::DC] dc device context where the shapes will be drawn to
-    # @param [Boolean] from_paint Set the argument to true if the dc argument refers to the Wx::PaintDC instance
+    # @param [Wx::DC] _dc device context where the shapes will be drawn to
+    # @param [Boolean] _from_paint Set the argument to true if the dc argument refers to the Wx::PaintDC instance
     # or derived classes (i.e. the function is called as a response to Wx::EVT_PAINT event)
-    def draw_foreground(dc, from_paint)
-
+    def draw_foreground(_dc, _from_paint)
+      # do nothing here...
     end
 
     # Get reference to multiselection box
@@ -1416,7 +1797,12 @@ module Wx::SF
 
     # Close and delete all opened text editing controls actually used by editable text shapes 
     def delete_all_text_ctrls
-      
+      return unless @diagram
+
+      @diagram.get_shapes(Wx::SF::EditTextShape).each do |shape|
+        text_ctrl = shape.get_text_ctrl
+        text_ctrl.quit(APPLY_TEXT_CHANGES) if text_ctrl
+      end
     end
 
     # @!group Public event handlers
@@ -1431,7 +1817,193 @@ module Wx::SF
     # @param [Wx::MouseEvent] event Mouse event
     # @see _on_left_down
     def on_left_down(event)
+      # HINT: override it for custom actions...
+      return unless @diagram
 
+      delete_all_text_ctrls
+      set_focus
+    
+      lpos = dp2lp(event.get_position)
+    
+      @can_save_state_on_mouse_up = false
+    
+      case @working_mode
+      when MODE::READY
+        @selected_handle = get_topmost_handle_at_position(lpos)
+
+        if event.control_down && event.shift_down
+          @selection_mode = SELECTIONMODE::REMOVE
+        elsif event.shift_down
+          @selection_mode = SELECTIONMODE::ADD
+        else
+          @selection_mode = SELECTIONMODE::NORMAL
+        end
+
+        if @selected_handle.nil?
+          selected_shape = get_shape_at_position(lpos)
+
+          selected_top_shape = selected_shape
+          while selected_top_shape && selected_top_shape.has_style?(Shape::STYLE::PROPAGATE_SELECTION)
+            selected_top_shape = selected_top_shape.get_parent_shape
+          end
+
+          if selected_shape
+            # perform selection
+            lst_selection = get_selected_shapes
+
+            # cancel previous selections if necessary...
+            if @selection_mode == SELECTIONMODE::NORMAL && (selected_top_shape.nil? || !lst_selection.include?(selected_top_shape))
+              deselect_all
+            end
+            selected_top_shape.select(@selection_mode != SELECTIONMODE::REMOVE) if selected_top_shape
+
+            get_selected_shapes(lst_selection)
+
+            # remove child shapes from the selection
+            validate_selection(lst_selection)
+
+            if lst_selection.size > 1
+              hide_all_handles
+            elsif @selection_mode == SELECTIONMODE::REMOVE && lst_selection.size == 1
+              lst_selection.first.select(true)
+            end
+
+            fit_pos = fit_position_to_grid(lpos)
+
+            # call user defined actions
+            selected_shape.on_left_click(fit_pos)
+
+            # inform selected shapes about begin of dragging...
+            lst_connections = []
+
+            lst_selection.each do |shape|
+              shape.send(:_on_begin_drag, fit_pos)
+
+              # inform also connections assigned to the shape and its children
+              lst_connections.clear
+              append_assigned_connections(shape, lst_connections, true)
+
+              lst_connections.each do |line|
+                line.send(:_on_begin_drag, fit_pos)
+              end
+            end
+
+            if @selection_mode == SELECTIONMODE::NORMAL
+              @shp_multi_edit.show(false)
+              @working_mode = MODE::SHAPEMOVE
+            else
+              if lst_selection.size > 1
+                @shp_multi_edit.show(true)
+                @shp_multi_edit.show_handles(true)
+              else
+                @shp_multi_edit.show(false)
+              end
+              @working_mode = MODE::READY
+            end
+          else
+            if has_style?(STYLE::MULTI_SELECTION)
+              deselect_all if @selection_mode == SELECTIONMODE::NORMAL
+              @selection_start = Wx::RealPoint.new(lpos.x, lpos.y)
+              @shp_selection.show(true)
+              @shp_selection.show_handles(false)
+              @shp_selection.set_relative_position(@selection_start)
+              @shp_selection.set_rect_size(Wx::RealPoint.new(0, 0))
+              @working_mode = MODE::MULTISELECTION
+            else
+              deselect_all
+              @working_mode = MODE::READY
+            end
+          end
+
+          # update canvas
+          invalidate_visible_rect
+        else
+          if @selected_handle.get_parent_shape == @shp_multi_edit
+            if has_style?(STYLE::MULTI_SIZE_CHANGE)
+              @working_mode = MODE::MULTIHANDLEMOVE
+            else
+              @working_mode = MODE::READY
+            end
+          else
+            @working_mode = MODE::HANDLEMOVE
+            case @selected_handle.get_type
+            when Shape::Handle::TYPE::LINESTART
+              line = @selected_handle.get_parent_shape
+              line.set_line_mode(LineShape::LINEMODE::SRCCHANGE)
+              line.set_unfinished_point(lpos)
+
+            when Shape::Handle::TYPE::LINEEND
+              line = @selected_handle.get_parent_shape
+              line.set_line_mode(LineShape::LINEMODE::TRGCHANGE)
+              line.set_unfinished_point(lpos)
+            end
+          end
+          @selected_handle.send(:_on_begin_drag, fit_position_to_grid(lpos))
+        end
+
+      when MODE::CREATECONNECTION
+        # update the line shape being created
+        if @new_line_shape
+          shape_under = get_shape_under_cursor
+          # propagate request for interactive connection if requested
+          while shape_under && shape_under.has_style?(Shape::STYLE::PROPAGATE_INTERACTIVE_CONNECTION)
+            shape_under = shape_under.get_parent_shape
+          end
+          # finish connection's creation process if possible
+          if shape_under && !event.control_down
+            if @new_line_shape.get_trg_shape_id.nil? && (shape_under != @new_line_shape) &&
+                shape_under.get_id && (shape_under.is_connection_accepted(@new_line_shape.class.name))
+              # find out whether the target shape can be connected to the source shape
+              source_shape = @diagram.find_shape(@new_line_shape.get_src_shape_id)
+
+              if source_shape &&
+                  shape_under.is_src_neighbour_accepted(source_shape.class.name) &&
+                  source_shape.is_trg_neighbour_accepted(shape_under.class.name)
+                @new_line_shape.set_trg_shape_id(shape_under.get_id)
+                @new_line_shape.set_ending_connection_point(shape_under.get_nearest_connection_point(lpos.to_real))
+
+                # inform user that the line is completed
+                case on_pre_connection_finished(@new_line_shape)
+                when PRECONNECTIONFINISHEDSTATE::OK
+                when PRECONNECTIONFINISHEDSTATE::FAILED_AND_CANCEL_LINE
+                  @new_line_shape.set_trg_shape_id(nil)
+                  @diagram.remove_shape(@new_line_shape)
+                  @working_mode = MODE::READY
+                  @new_line_shape = nil
+                  return
+                when PRECONNECTIONFINISHEDSTATE::FAILED_AND_CONTINUE_EDIT
+                  @new_line_shape.set_trg_shape_id(nil)
+                  return
+                end
+                @new_line_shape.create_handles
+
+                # switch off the "under-construction" mode
+                @new_line_shape.set_line_mode(LineShape::LINEMODE::READY)
+
+                on_connection_finished(@new_line_shape)
+
+                @new_line_shape.update
+                @new_line_shape.refresh(DELAYED)
+
+                @working_mode = MODE::READY
+                @new_line_shape = nil
+
+                save_canvas_state
+              end
+            end
+          else
+            if @new_line_shape.get_src_shape_id
+              fit_pos = fit_position_to_grid(lpos)
+              @new_line_shape.get_control_points << Wx::RealPoint.new(fit_pos.x, fit_pos.y)
+            end
+          end
+        end
+
+      else
+        @working_mode = MODE::READY
+      end
+    
+      refresh_invalidated_rect
     end
 
     # Event handler called when the canvas is double-clicked by
@@ -1444,7 +2016,25 @@ module Wx::SF
     # @param [Wx::MouseEvent] event Mouse event
     # @see _on_left_double_click
     def on_left_double_click(event)
+      # HINT: override it for custom actions...
 
+      delete_all_text_ctrls
+      set_focus
+
+      lpos = dp2lp(event.get_position)
+
+      if @working_mode == MODE::READY
+        shape = get_shape_under_cursor
+        if shape
+          shape.on_left_double_click(lpos)
+
+          # double click onto a line shape always change its set of
+          # control points so the canvas state should be saved now...
+          save_canvas_state if shape.is_a?(LineShape)
+        end
+      end
+
+      refresh_invalidated_rect
     end
 
     # Event handler called when the left mouse button is released.
@@ -1519,7 +2109,6 @@ module Wx::SF
     # needed for proper management of displayed shape. It is necessary to call
     # this function from overridden methods if the default canvas behaviour
     # should be preserved.
-    # @param event Mouse event
     # @param [Wx::MouseEvent] event Mouse event
     def on_mouse_wheel(event)
 
@@ -1549,10 +2138,10 @@ module Wx::SF
 
     end
 
-    # Event handler called after successful connection creation. The function
+    # Event handler called after (successful or cancelled) connection creation. The function
     # can be overridden if necessary. The default implementation
     # generates Wx::SF::EVT_SF_LINE_DONE event.
-    # @param [Wx::SF::LineShape] connection new connection object
+    # @param [Wx::SF::LineShape,nil] connection new connection object (nil if cancelled)
     # @see start_interactive_connection
     # @see Wx::SF::ShapeEvent
     def on_connection_finished(connection)
@@ -1763,7 +2352,7 @@ module Wx::SF
 
     end
 
-	  # Original private event handler called when the mouse wheel pocition is changed.
+	  # Original private event handler called when the mouse wheel position is changed.
 	  # The handler calls user-overridable event handler function and skips the event
 	  # for next possible processing.
     # @param [Wx::MouseEvent] event Mouse event

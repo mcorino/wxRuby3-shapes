@@ -21,14 +21,7 @@ module Wx::SF
     property :shapes
 
     # Search mode flags for get_shape_at_position method
-    class SEARCHMODE < Wx::Enum
-      # Search for selected shapes only
-      SELECTED = self.new(0)
-      # Search for unselected shapes only
-      UNSELECTED = self.new(1)
-      # Search for both selected and unselected shapes
-      BOTH = self.new(2)
-    end
+    SEARCHMODE = ShapeCanvas::SEARCHMODE
 
     def initialize
       @shapes = []
@@ -40,9 +33,6 @@ module Wx::SF
     end
 
     attr_accessor :shape_canvas
-
-    def get_shapes; @shapes; end
-    private :get_shapes
 
     def set_shapes(list)
       @shapes.replace(list)
@@ -135,6 +125,14 @@ module Wx::SF
     # Remove all shapes from canvas
     def clear
 
+    end
+
+    # Move given shape to the end of the shapes list
+    # @param [Wx::SF::Shape] shape
+    def move_to_end(shape)
+      if (a_shape = @shapes.delete(shape))
+        @shapes << a_shape
+      end
     end
 
     # Move all shapes so none of it will be located in negative position
@@ -234,13 +232,18 @@ module Wx::SF
 
     end
 
+    # Returns the list of top level shapes
+    def get_top_shapes
+      @shapes
+    end
+
 	  # Get list of shapes of given type.
     # @param [Class] shape_info Line object type
 	  # @param [SEARCHMODE] mode Search algorithm
     # @param [Array<Wx::SF::Shape>] shapes shape list where all found shapes will be stored
     # @return [Array<Wx::SF::Shape>] shape list
 	  # @see SEARCHMODE
-    def get_shapes(shape_info, mode = SEARCHMODE::BFS, shapes = [])
+    def get_shapes(shape_info = Wx::SF::Shape, mode = SEARCHMODE::BFS, shapes = [])
 
     end
 
