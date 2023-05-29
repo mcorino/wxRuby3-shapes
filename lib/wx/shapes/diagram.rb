@@ -148,7 +148,7 @@ module Wx::SF
     # Add given shape type to an acceptance list. The acceptance list contains class
     # names of the shapes which can be inserted into this instance of shapes canvas.
     # Note: Keyword 'All' behaves like any class name.
-    # @param [String] type Class name of accepted shape object
+    # @param [String,Class] type Class (name) of accepted shape object
     # @see is_shape_accepted
     def accept_shape(type)
 
@@ -159,7 +159,7 @@ module Wx::SF
     #
     # The function is typically used by the framework for determination whether class type supplied
     # by add_shape or create_shape function can be inserted into shape canvas.
-    # @param [String] type Class name of examined shape object
+    # @param [String,Class] type Class (name) of examined shape object
     # @return [Boolean] true if the shape type is accepted, otherwise false.
     def is_shape_accepted(type)
 
@@ -183,7 +183,7 @@ module Wx::SF
     # names of the shapes which can be inserted into this instance of shapes canvas as a shape without
 	  # any parent (i.e. shape placed directly onto the canvas).
     # Note: Keyword '*' behaves like any class name.
-    # @param [String] type Class name of accepted shape object
+    # @param [String,Class] type Class (name) of accepted shape object
     # @see is_top_shape_accepted
     def accept_top_shape(type)
 
@@ -194,7 +194,7 @@ module Wx::SF
     #
     # The function is typically used by the framework for determination whether class type supplied
     # by add_shape or create_shape function can be inserted directly onto shape canvas.
-    # @param [String] type Class name of examined shape object
+    # @param [String,Class] type Class (name) of examined shape object
     # @return [Boolean] true if the shape type is accepted, otherwise false.
     def is_top_shape_accepted(type)
 
