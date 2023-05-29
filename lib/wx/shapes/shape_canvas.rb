@@ -834,8 +834,10 @@ module Wx::SF
 
           # deserialize shapes
           new_shapes = Wx::SF::Serializable.deserialize(data_obj.get_data_here)
-          # add new shapes to diagram
-          new_shapes.each { |shape| @diagram.add_shape(shape, nil, Wx::Point.new(0, 0), DONT_INITIALIZE, DONT_SAVE_STATE) }
+          # add new shapes to diagram and remove those that are not accepted
+          new_shapes.select! do |shape|
+            ERRCODE::OK == @diagram.add_shape(shape, nil, Wx::Point.new(0, 0), DONT_INITIALIZE, DONT_SAVE_STATE)
+          end
 
           # call user-defined handler
           on_paste(new_shapes)
@@ -1630,13 +1632,15 @@ module Wx::SF
     def validate_selection(selection)
       return unless @diagram
 
-      # find child shapes that have parents in the list
-      lst_shapes_to_remove = selection.select { |shape| !selection.include?(shape.get_parent_shape) }
-
-      # remove child shapes with parents from the list
-      lst_shapes_to_remove.each do |shape|
-        shape.select(false)
-        selection.delete(shape)
+      # find child shapes that have parents in the list and deselect and remove those
+      # so we only have regular toplevel shapes and orphaned child shapes
+      selection.select! do |shape|
+        if selection.include?(shape.get_parent_shape)
+          shape.select(false)
+          false
+        else
+          true
+        end
       end
 
       selection.each do |shape|
@@ -2571,13 +2575,13 @@ module Wx::SF
 
     private
 
-    #  Validate selection so the shapes in the given list can be processed by the clipboard functions
+    # Validate selection so the shapes in the given list can be processed by the clipboard functions
     # @param [Array<Wx::SF::Shape>] selection
     # @param [Boolean] storeprevpos
     def validate_selection_for_clipboard(selection, storeprevpos)
       selection.dup.each do |shape|
         if shape.get_parent_shape
-           # remove child shapes without parent and without STYLE::PARENT_CHANGE style
+           # remove child shapes without parent in the selection and without STYLE::PARENT_CHANGE style
            # defined from the selection
           if !shape.has_style?(Shape::STYLE::PARENT_CHANGE) && !selection.include?(shape.get_parent_shape)
             selection.delete(shape)
@@ -2604,7 +2608,7 @@ module Wx::SF
       lst_children = shape.get_child_shapes(ANY, RECURSIVE)
     
       # get connections assigned to the parent shape
-      lst_connections = @diagram.get_assigned_connections(shape, LineShape, Shape::CONNECTMODE::BOTH) if childrenonly
+      lst_connections = @diagram.get_assigned_connections(shape, LineShape, Shape::CONNECTMODE::BOTH) unless childrenonly
       lst_connections ||= []
       # get connections assigned to its child shape
       lst_children.each do |shape|
@@ -2700,33 +2704,135 @@ module Wx::SF
     # private event handlers
 
 	  # Event handler called when the canvas should be repainted.
-	  # @param [Wx::PaintEvent] event Paint event
-    def _on_paint(event)
+	  # @param [Wx::PaintEvent] _event Paint event
+    def _on_paint(_event)
+      paint_buffered do |paint_dc|
+        if Wx.has_feature?(:USE_GRAPHICS_CONTEXT) && ShapeCanvas.gc_enabled?
+          gdc = Wx::GCDC.new(paint_dc)
 
+          prepare_dc(paint_dc)
+          prepare_dc(gdc)
+
+          # scale  GC
+          gc = gdc.get_graphics_context
+          gc.scale(@settings.scale, @settings.scale)
+
+          draw_background(gdc, FROM_PAINT)
+          draw_content(gdc, FROM_PAINT)
+          draw_foreground(gdc, FROM_PAINT)
+        else
+          Wx::ScaledDC.draw_on(paint_dc, @settings.scale) do |dc|
+            prepare_dc(dc)
+            draw_background(dc, FROM_PAINT)
+            draw_content(dc, FROM_PAINT)
+            draw_foreground(dc, FROM_PAINT)
+          end
+        end
+      end
     end
 
 	  # Event handler called when the canvas should be erased.
-	  # @param [Wx::EraseEvent] event Erase event
-    def _on_erase_background(event)
-
+	  # @param [Wx::EraseEvent] _event Erase event
+    def _on_erase_background(_event)
+      # do nothing to suppress window flickering
     end
 
 	  # Event handler called when the mouse pointer leaves the canvas window.
-	  # @param [Wx::MouseEvent] event Mouse event
-    def _on_leave_window(event)
-
+	  # @param [Wx::MouseEvent] _event Mouse event
+    def _on_leave_window(_event)
+      case @working_mode
+      when MODE::MULTISELECTION
+      when MODE::SHAPEMOVE
+      when MODE::CREATECONNECTION
+      when MODE::HANDLEMOVE
+      when MODE::MULTIHANDLEMOVE
+      else
+        @working_mode = MODE::READY
+      end
+    
+      event.skip
     end
 
 	  # Event handler called when the mouse pointer enters the canvas window.
 	  # @param [Wx::MouseEvent] event Mouse event
     def _on_enter_window(event)
+      @prev_mouse_pos = event.get_position
+    
+      lpos = dp2lp(event.get_position)
+    
+      case @working_mode
+      when MODE::MULTISELECTION
+        unless event.left_is_down
+          update_multiedit_size
+          @shp_multi_edit.show(false)
+          @working_mode = MODE::READY
+    
+          invalidate_visible_rect
+        end
 
+      when MODE::HANDLEMOVE
+        unless event.left_is_down
+          if @selected_handle
+            if @selected_handle.get_parent_shape.is_a?(LineShape)
+              @selected_handle.get_parent_shape.set_line_mode(LineShape::LINEMODE::READY)
+            elsif @selected_handle.get_parent_shape.is_a?(BitmapShape)
+              @selected_handle.get_parent_shape.on_end_handle(@selected_handle)
+            end
+    
+            @selected_handle.send(:_on_end_drag, lpos)
+    
+            save_canvas_state
+            @working_mode = MODE::READY
+            @selected_handle = nil
+    
+            invalidate_visible_rect
+          end
+        end
+
+      when MODE::MULTIHANDLEMOVE
+        unless event.left_is_down
+          if @selected_handle
+            @selected_handle.send(:_on_end_drag, lpos)
+    
+            save_canvas_state
+            @working_mode = MODE::READY
+    
+            invalidate_visible_rect
+          end
+        end
+
+      when MODE::SHAPEMOVE
+        unless event.left_is_down
+          lst_selection = get_selected_shapes
+    
+          move_shapes_from_negatives
+          update_virtual_size
+    
+          if lst_selection.size > 1
+            update_multiedit_size
+            @shp_multi_edit.show(true)
+            @shp_multi_edit.show_handles(true)
+          end
+    
+          lst_selection.each { |shape|  shape.send(:_on_end_drag, lpos) }
+
+          @working_mode = MODE::READY
+    
+          invalidate_visible_rect
+        end
+      end
+    
+      refresh_invalidated_rect
+    
+      event.skip
     end
 
 	  # Event handler called when the canvas size has changed.
 	  # @param [Wx::SizeEvent] event Size event
     def _on_resize(event)
+      refresh(false) if has_style?(STYLE::GRADIENT_BACKGROUND)
 
+      event.skip
     end
     
     # original private event handlers
@@ -2737,7 +2843,9 @@ module Wx::SF
 	  # @param [Wx::MouseEvent] event Mouse event
 	  # @see Wx::SF::ShapeCanvas#on_left_down
     def _on_left_down(event)
+      on_left_down(event)
 
+      event.skip
     end
 
 	  # Original private event handler called when the canvas is double-clicked by
@@ -2746,7 +2854,9 @@ module Wx::SF
     # @param [Wx::MouseEvent] event Mouse event
 	  # @see Wx::SF::ShapeCanvas#on_left_double_click
     def _on_left_double_click(event)
+      on_left_double_click(event)
 
+      event.skip
     end
 
 	  # Original private event handler called when the left mouse button
@@ -2755,7 +2865,9 @@ module Wx::SF
     # @param [Wx::MouseEvent] event Mouse event
     # @see Wx::SF::ShapeCanvas#on_left_up
     def _on_left_up(event)
+      on_left_up(event)
 
+      event.skip
     end
 
 	  # Original private event handler called when the canvas is clicked by
@@ -2764,7 +2876,9 @@ module Wx::SF
     # @param [Wx::MouseEvent] event Mouse event
     # @see Wx::SF::ShapeCanvas#on_right_down
     def _on_right_down(event)
+      on_right_down(event)
 
+      event.skip
     end
 
 	  # Original private event handler called when the canvas is double-clicked by
@@ -2773,7 +2887,9 @@ module Wx::SF
     # @param [Wx::MouseEvent] event Mouse event
     # @see Wx::SF::ShapeCanvas#on_right_double_click
     def _on_right_double_click(event)
+      on_right_double_click(event)
 
+      event.skip
     end
 
 	  # Original private event handler called when the right mouse button
@@ -2782,7 +2898,9 @@ module Wx::SF
     # @param [Wx::MouseEvent] event Mouse event
     # @see Wx::SF::ShapeCanvas#on_right_up
     def _on_right_up(event)
+      on_right_up(event)
 
+      event.skip
     end
 
 	  # Original private event handler called when the mouse pointer is moving above
@@ -2791,7 +2909,14 @@ module Wx::SF
     # @param [Wx::MouseEvent] event Mouse event
     # @see Wx::SF::ShapeCanvas#on_mouse_move
     def _on_mouse_move(event)
+      lpos = dp2lp(event.get_position)
 
+      update_shape_under_cursor_cache(lpos)
+
+      # call user event handler
+      on_mouse_move(event)
+
+      event.skip
     end
 
 	  # Original private event handler called when the mouse wheel position is changed.
@@ -2800,7 +2925,9 @@ module Wx::SF
     # @param [Wx::MouseEvent] event Mouse event
     # @see Wx::SF::ShapeCanvas#on_mouse_wheel
     def _on_mouse_wheel(event)
+      on_mouse_wheel(event) if has_style?(STYLE::PROCESS_MOUSEWHEEL)
 
+      event.skip
     end
 
 	  # Original private event handler called when any key is pressed.
@@ -2809,7 +2936,9 @@ module Wx::SF
 	  # @param [Wx::KeyEvent] event Keyboard event
 	  # @see Wx::SF::ShapeCanvas#on_key_down
     def _on_key_down(event)
+      on_key_down(event)
 
+      event.skip
     end
 
     if Wx.has_feature?(:USE_DRAG_AND_DROP)
@@ -2822,7 +2951,65 @@ module Wx::SF
 	  # @param [Wx::DataObject] data a data object encapsulating dropped data
 	  # @see Wx::SF::CanvasDropTarget
     def _on_drop(x, y, deflt, data)
+      if data && Wx::SF::ShapeDataObject === data
+        lst_new_content = Wx::SF::Serializable.deserialize(data.get_data_here)
+        if lst_new_content && !lst_new_content.empty?
+          lst_parents_to_update = []
+          lpos = dp2lp(Wx::Point.new(x, y))
 
+          dx = 0
+          dy = 0
+          if @dnd_started_here
+            dx = lpos.x - @dnd_started_at.x;
+            dy = lpos.y - @dnd_started_at.y;
+          end
+
+          parent = @diagram.get_shape_at_position(lpos, 1, SEARCHMODE::UNSELECTED)
+
+          # add each shape to diagram keeping only those that are accepted
+          lst_new_content.select! do |shape|
+            shape.move_by(dx, dy)
+
+            # do not reparent connection lines
+            rc = if shape.is_a?(LineShape) && !shape.is_stand_alone
+                   @diagram.add_shape(shape,
+                                      nil,
+                                      lp2dp(shape.get_absolute_position.to_point),
+                                      INITIALIZE,
+                                      DONT_SAVE_STATE)
+                 else
+                   @diagram.add_shape(shape,
+                                      parent,
+                                      lp2dp((shape.get_absolute_position - parent.get_absolute_position).to_point),
+                                      INITIALIZE,
+                                      DONT_SAVE_STATE)
+                 end
+
+            if rc == ERRCODE::OK
+              if shape.is_a?(LineShape) && !shape.is_stand_alone && parent
+                parent.on_child_dropped(shape.get_absolute_position - parent.get_absolute_position, shape)
+                # update each target parent just once
+                lst_parents_to_update << parent unless lst_parents_to_update.include?(parent)
+              end
+              true
+            else
+              false
+            end
+          end
+
+          deselect_all
+
+          lst_parents_to_update.each { |shape| shape.update }
+
+          unless @dnd_started_here
+            save_canvas_state
+            refresh(false)
+          end
+
+          # call user-defined drop handler
+          on_drop(x, y, deflt, lst_new_content)
+        end
+      end
     end
       
     end

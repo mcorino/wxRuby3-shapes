@@ -81,7 +81,27 @@ module Wx::SF
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new connection object. the object is added to the shape canvas automatically.
     # @see start_interactive_connection
     def create_connection(src_id, trg_id, *rest)
+      err = shape = nil
+      if rest.first.is_a?(LineShape)
+        line = rest.shift
+        save_state = rest.empty? ? true : rest.shift
+        err = add_shape(line, nil, Wx::DEFAULT_POSITION, INITIALIZE, DONT_SAVE_STATE)
+        shape = line if err == ERRCODE::OK
+      else
+        line_type = (rest.empty? || !rest.first.is_a?(::Class)) ? LineShape : rest.shift
+        save_state = rest.empty? ? true : rest.shift
+        err, shape = create_shape(line_type, DONT_SAVE_STATE)
+      end
+      if shape
+        shape.set_src_shape_id(src_id)
+        shape.set_trg_shape_id(trg_id)
 
+        if @shape_canvas
+          @shape_canvas.save_canvas_state if save_state
+          shape.refresh
+        end
+      end
+      [err, shape]
     end
 
     # Create new shape and add it to the shape canvas.
@@ -89,7 +109,7 @@ module Wx::SF
     #   @param [Class] shape_info Shape type
     #   @param [Boolean] save_state Set the parameter true if you wish to save canvas state after the operation
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new shape. the object is added to the shape canvas automatically.
-    # @overload add_shape(shape_info, pos, save_state = true)
+    # @overload create_shape(shape_info, pos, save_state = true)
     #   @param [Class] shape_info Shape type
     #   @param [Wx::Point] pos shape position
     #   @param [Boolean] save_state Set the parameter true if you wish to save canvas state after the operation

@@ -2,6 +2,59 @@ require 'wx/shapes'
 
 module SerializerTestMixin
 
+  class PropTest
+
+    include Wx::SF::Serializable
+
+    property :prop_a
+    property prop_b: ->(obj, *val) { obj.instance_variable_set(:@prop_b, val.first) unless val.empty?; obj.instance_variable_get(:@prop_b) }
+    property prop_c: :serialize_prop_c
+    property(:prop_d, :prop_e) do |id, obj, *val|
+      case id
+      when :prop_d
+        obj.instance_variable_set('@prop_d', val.first) unless val.empty?
+        obj.instance_variable_get('@prop_d')
+      when :prop_e
+        obj.instance_variable_set('@prop_e', val.first) unless val.empty?
+        obj.instance_variable_get('@prop_e')
+      end
+    end
+
+    def initialize
+      @prop_a = 'string'
+      @prop_b = 123
+      @prop_c = :symbol
+      @prop_d = 100.123
+      @prop_e = [1,2,3]
+    end
+
+    attr_accessor :prop_a
+
+    def serialize_prop_c(*val)
+      @prop_c = val.first unless val.empty?
+      @prop_c
+    end
+    private :serialize_prop_c
+
+    def ==(other)
+      self.class === other &&
+        @prop_a == other.prop_a &&
+        @prop_b == other.instance_variable_get('@prop_b') &&
+        @prop_c == other.instance_variable_get('@prop_c') &&
+        @prop_d == other.instance_variable_get('@prop_d') &&
+        @prop_e == other.instance_variable_get('@prop_e')
+    end
+  end
+
+  def test_properties
+    obj = PropTest.new
+    obj_serial = obj.serialize
+    obj_new = nil
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
+    assert_instance_of(PropTest, obj_new)
+    assert_equal(obj, obj_new)
+  end
+
   def test_wx_data
     obj = Wx::Point.new(10, 90)
     obj_serial = obj.serialize

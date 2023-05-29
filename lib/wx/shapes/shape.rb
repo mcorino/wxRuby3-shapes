@@ -47,6 +47,7 @@ module Wx::SF
              :h_align, :v_align, :h_border, :v_border,
              :custom_dock_point, :connection_points,
              :user_data
+    property child_shapes: :serialize_child_shapes
 
     class SEARCHMODE < Wx::Enum
       # Depth-First-Search algorithm
@@ -1949,6 +1950,24 @@ module Wx::SF
       @connection_pts.replace(list)
     end
     private :set_connection_points
+
+    def update_child_parents
+      @child_shapes.each do |shape|
+        shape.instance_variable_set(:@parent_shape, self)
+        shape.send(:update_child_parents)
+      end
+    end
+    private :update_child_parents
+
+    # (de-)serialize child shapes. Exclusively for deserialization.
+    def serialize_child_shapes(*val)
+      unless val.empty?
+        @child_shapes = val.first
+        update_child_parents
+      end
+      @child_shapes
+    end
+    private :serialize_child_shapes
 
   end # class Shape
 

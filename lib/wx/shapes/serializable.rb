@@ -18,11 +18,16 @@ module Wx::SF
           @getter = ->(obj) { block.call(@id, obj) }
           @setter = ->(obj, val) { block.call(@id, obj, val) }
         elsif proc
-          ::Kernel.raise ArgumentError, "Invalid property proc #{proc} for #{prop}" unless ::Proc === proc
-          # any property proc should be callable with a single arg (instance)
-          @getter = proc
-          # a property proc combining getter/setter functionality should accept a single or more args (instance + value)
-          @setter = (proc.arity == -2) ? proc : nil
+          ::Kernel.raise ArgumentError, "Invalid property proc #{proc} for #{prop}" unless ::Proc === proc || ::Symbol === proc
+          if ::Proc === proc
+            # any property proc should be callable with a single arg (instance)
+            @getter = proc
+            # a property proc combining getter/setter functionality should accept a single or more args (instance + value)
+            @setter = (proc.arity == -2) ? proc : nil
+          else
+            @getter = ->(obj) { obj.send(proc) }
+            @setter = ->(obj, val) { obj.send(proc, val) }
+          end
         end
       end
 
@@ -160,7 +165,7 @@ module Wx::SF
       #   for setters and "#{prop_id}()" or "get_#{prop_id}" for getters.
       #   @param [Symbol,String] props one or more ids of serializable properties
       # @overload property(hash)
-      #   Specifies one or more serialized properties with associated setter/getter procs/lambda-s.
+      #   Specifies one or more serialized properties with associated setter/getter method ids/procs/lambda-s.
       #   @example
       #     property(
       #       prop_a: ->(obj, *val) {
@@ -170,7 +175,8 @@ module Wx::SF
       #       prop_b: Proc.new { |obj, *val|
       #                 obj.my_prop_b_setter(val.first) unless val.empty?
       #                 obj.my_prop_b_getter
-      #               })
+      #               },
+      #       prop_c: :serialization_method)
       #   Procs with setter support MUST accept 1 or 2 arguments (1 for getter, 2 for setter).
       #   @note Use `*val` to specify the optional value argument for setter requests instead of `val=nil`
       #         to be able to support setting explicit nil values.
