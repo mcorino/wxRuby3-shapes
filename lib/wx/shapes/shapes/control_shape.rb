@@ -1,4 +1,4 @@
-# Wx::SF::TextShape - text shape class
+# Wx::SF::TextShape - control shape class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/shapes/rect_shape'
@@ -25,9 +25,9 @@ module Wx::SF
     #   Default constructor.
     # @overload initialize(pos, size, diagram)
     #   User constructor.
-    #   @param pos Initial position
-    #   @param size Initial size
-    #   @param manager Pointer to parent diagram manager
+    #   @param [Wx::Point] pos Initial position
+    #   @param [Wx::Size] size Initial size
+    #   @param [Wx::SF::Diagram] diagram parent diagram
     def initialize(*args)
 
     end

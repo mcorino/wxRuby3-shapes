@@ -37,7 +37,12 @@ module Wx::SF
     def set_shapes(list)
       @shapes.replace(list)
       @shapes_index.clear
-      @shapes.each { |sh| @shapes_index[sh.id] = sh }
+      @shapes.each do |sh|
+        @shapes_index[sh.id] = sh
+        sh.get_child_shapes(ANY, RECURSIVE).each do |child|
+          @shapes_index[child.id] = child
+        end
+      end
     end
     private :set_shapes
 
@@ -115,7 +120,39 @@ module Wx::SF
     #   @param [Boolean] save_state Set the parameter true if you wish to save canvas state after the operation
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new shape. the object is added to the shape canvas automatically.
     def create_shape(shape_info, *rest)
+      pos = if rest.first.is_a?(Wx::Point)
+              rest.shift
+            elsif @shape_canvas
+              clt_rect = @shape_canvas.get_client_rect
+              Wx::Point.new((clt_rect.right - clt_rect.left)/2,
+                            (clt_rect.bottom - clt_rect.top)/2)
+            else
+              Wx::Point.new
+            end
+      save_state = rest.empty? ? true : rest.shift
+      if shape_info && is_shape_accepted(shape_info)
+        # create shape object from class info
+        shape = shape_info.new
 
+        parent_shape = nil
+        # update given position
+        lpos = pos;
+        lpos = @shape_canvas.fit_position_to_grid(@shape_canvas.dp2lp(pos)) if @shape_canvas
+        # line shapes can be assigned to root only
+        parent_shape = get_shape_at_position(lpos) unless shape.is_a?(LineShape)
+
+        if parent_shape && parent_shape.is_child_accepted(shape_info)
+          err = add_shape(shape, parent_shape, pos - parent_shape.get_absolute_position.to_point, INITIALIZE, save_state)
+        else
+          err = add_shape(shape, nil, pos, INITIALIZE, save_state)
+        end
+
+        parent_shape.update if parent_shape
+
+        [err, shape]
+      else
+        [ERRCODE::NOT_ACCEPTED, nil]
+      end
     end
 
     # Add an existing shape to the canvas.
@@ -126,43 +163,176 @@ module Wx::SF
     # @param [Boolean] save_state true if the canvas state should be saved
     # @return [Wx::SF::ERRCODE] operation result
     def add_shape(shape, parent,  pos, initialize, save_state = true)
+      if shape
+        if shape.is_a?(Shape) && is_shape_accepted(shape.class)
+          if @shape_canvas
+            new_pos = @shape_canvas.fit_position_to_grid(@shape_canvas.dp2lp(pos))
+            shape.set_relative_position(new_pos.to_real)
+          else
+            shape.set_relative_position(pos.to_real)
+          end
 
+          # add shape
+          if parent
+            shape.set_parent_shape(parent)
+          else
+            if is_top_shape_accepted(shape.class)
+              @shapes << shape
+              @shapes_index[shape.id] = shape
+            else
+              return ERRCODE::NOT_ACCEPTED
+            end
+          end
+
+          # initialize added shape
+          if initialize
+            shape.create_handles
+
+            shape.set_hover_colour(@shape_canvas.get_hover_colour) if @shape_canvas
+
+            if has_children(shape)
+                # get shape's children (if exist)
+                lst_children = shape.get_child_shapes(ANY, RECURSIVE)
+                # initialize shape's children
+                lst_children.each do |child|
+                  child.create_handles
+                  child.update
+
+                  child.set_hover_colour(@shape_canvas.get_hover_colour) if @shape_canvas
+
+                  @shapes_index[child.id] = child
+                end
+            end
+          end
+
+          # reset scale of assigned shape canvas (if exists and it is necessary...)
+          if @shape_canvas && shape.is_a?(ControlShape)
+            @shape_canvas.set_scale(1.0)
+          end
+
+          @shape_canvas.save_canvas_state if @shape_canvas && save_state
+
+          @is_modified = true
+
+          ERRCODE::OK
+        else
+          ERRCODE::NOT_ACCEPTED
+        end
+      else
+        ERRCODE::INVALID_INPUT
+      end
     end
 
     # Remove given shape from the shape canvas.
     # @param [Wx::SF::Shape] shape shape object that should be deleted
     # @param [Boolean] refresh Set the parameter to true if you wish to repaint the canvas
     def remove_shape(shape, refresh = true)
+      return unless shape
 
+      parent = shape.get_parent_shape
+
+      # get all shape's children
+      lst_children = shape.get_child_shapes(ANY, RECURSIVE)
+      lst_children << shape # and shape itself
+
+      # retrieve all assigned lines
+      lst_connections = []
+      lst_children.each do |child|
+        get_assigned_connections(child, LineShape, Shape::CONNECTMODE::BOTH, lst_connections)
+      end
+
+      # remove all assigned lines
+      lst_removed_connections = []
+      lst_connections.each do |line|
+        # one connection may be used by the parent and also by his child
+        unless lst_removed_connections.include?(line)
+          lst_removed_connections << line
+          remove_shape(line,false)
+        end
+      end
+
+      # remove the shape and it's children from canvas cache and shape index list
+      lst_children.each do |child|
+        @shapes_index.delete(child.id)
+        @shape_canvas.remove_from_temporaries(shape) if @shape_canvas
+      end
+
+      # remove the shape
+      shape.set_parent_shape(nil) # also removes shape from parent if it had a parent
+      @shapes.delete(shape)
+
+      @is_modified = true
+
+      parent.update if parent
+
+      @shape_canvas.refresh(false) if refresh && @shape_canvas
     end
 
     # Remove shapes from the shape canvas
     # @param [Array<Wx::SF::Shape>] selection List of shapes which should be removed from the canvas
     def remove_shapes(selection)
-
+      selection.each { |shape| remove_shape(shape, false) if contains?(shape) }
     end
+
+    # Returns true if the given shape is part of the diagram, false otherwise
+    # @param [Wx::SF::Shape] shape
+    # @return [Boolean]
+    def contains_shape(shape)
+      @shapes_index.has_key?(shape.id)
+    end
+    alias :contains_shape? :contains_shape
+    alias :contains? :contains_shape
 
     # Remove all shapes from canvas
     def clear
-
-    end
-
-    # Move given shape to the end of the shapes list
-    # @param [Wx::SF::Shape] shape
-    def move_to_end(shape)
-      if (a_shape = @shapes.delete(shape))
-        @shapes << a_shape
+      @shapes.clear
+      @shapes_index.clear
+      if @shape_canvas
+        @shape_canvas.get_multiselection_box.show(false)
+        @shape_canvas.update_virtual_size
       end
     end
 
+    # # Move given shape to the end of the shapes list
+    # # @param [Wx::SF::Shape] shape
+    # def move_to_end(shape)
+    #   if (a_shape = @shapes.delete(shape))
+    #     @shapes << a_shape
+    #   end
+    # end
+
     # Move all shapes so none of it will be located in negative position
     def move_shapes_from_negatives
-
+      min_x = min_y = 0.0
+    
+      # find the maximal negative position value
+      shapes = get_shapes
+    
+      shapes.each_with_index do |shape, ix|
+        shape_pos = shape.get_absolute_position
+        if ix == 0
+          min_x = shape_pos.x
+          min_y = shape_pos.y
+        else
+          min_x = shape_pos.x if shape_pos.x < min_x
+          min_y = shape_pos.y if shape_pos.y < min_y
+        end
+      end
+    
+      # move all parents shape so they (and their children) will be located in the positive values only
+      if min_x < 0.0 || min_y < 0.0
+        shapes.each do |shape|
+          unless shape.get_parent_shape
+            shape.move_by(min_x.to_i.abs, 0) if min_x < 0.0
+            shape.move_by(0, min_y.to_i.abs) if min_y < 0.0
+          end
+        end
+      end
     end
 
     # Update all shapes in the diagram manager
     def update_all
-
+      get_shapes.each { |shape| shape.update unless shape.has_children? }
     end
     
     # Add given shape type to an acceptance list. The acceptance list contains class
@@ -171,7 +341,7 @@ module Wx::SF
     # @param [String,Class] type Class (name) of accepted shape object
     # @see is_shape_accepted
     def accept_shape(type)
-
+      @accepted_shapes << type.to_s
     end
 
     # Tells whether the given shape type is accepted by this canvas instance (it means
@@ -182,7 +352,7 @@ module Wx::SF
     # @param [String,Class] type Class (name) of examined shape object
     # @return [Boolean] true if the shape type is accepted, otherwise false.
     def is_shape_accepted(type)
-
+      @accepted_shapes.include?(type.to_s)
     end
     alias :shape_accepted? :is_shape_accepted
 
@@ -206,7 +376,7 @@ module Wx::SF
     # @param [String,Class] type Class (name) of accepted shape object
     # @see is_top_shape_accepted
     def accept_top_shape(type)
-
+      @accepted_top_shapes << type.to_s
     end
 
     # Tells whether the given shape type is accepted by this canvas instance as a top shape
@@ -217,7 +387,7 @@ module Wx::SF
     # @param [String,Class] type Class (name) of examined shape object
     # @return [Boolean] true if the shape type is accepted, otherwise false.
     def is_top_shape_accepted(type)
-
+      @accepted_top_shapes.include?(type.to_s)
     end
     alias :top_shape_accepted? :is_top_shape_accepted
 
@@ -238,7 +408,7 @@ module Wx::SF
     # @param [Wx::SF::Serializable::ID] id Shape's ID
     # @return [Wx::SF::Shape] shape if exists, otherwise nil
     def find_shape(id)
-
+      @shapes_index[id]
     end
 
 	  # Get list of connections assigned to given parent shape.
@@ -249,12 +419,31 @@ module Wx::SF
     # @return [Array<Wx::SF::Shape>] shape list
 	  # @see Wx::SF::Shape::CONNECTMODE
     def get_assigned_connections(parent, shape_info, mode, lines = [])
+      return unless parent && parent.get_id
 
+      # lines are all toplevel so we do not have to search recursively...
+      lst_lines = @shapes.select { |shape| shape.is_a?(shape_info) }
+
+      lst_lines.each do |line|
+        case mode
+        when Shape::CONNECTMODE::STARTING
+          lines << line if line.get_src_shape_id == parent.get_id
+        when Shape::CONNECTMODE::ENDING
+          lines << line if line.get_trg_shape_id == parent.get_id
+        when Shape::CONNECTMODE::BOTH
+          lines << line if line.get_src_shape_id == parent.get_id || line.get_trg_shape_id == parent.get_id
+        end
+      end
+      lines
     end
 
     # Returns the list of top level shapes
     def get_top_shapes
       @shapes
+    end
+
+    def get_all_shapes
+      @shapes_index.values
     end
 
 	  # Get list of shapes of given type.
@@ -264,7 +453,13 @@ module Wx::SF
     # @return [Array<Wx::SF::Shape>] shape list
 	  # @see SEARCHMODE
     def get_shapes(shape_info = Wx::SF::Shape, mode = SEARCHMODE::BFS, shapes = [])
-
+      @shapes.each do |shape|
+        shapes << shape if shape.is_a?(shape_info)
+        shape.get_children_recursively(shape_info, mode, shapes) if mode == SEARCHMODE::DFS
+      end
+      if mode == SEARCHMODE::BFS
+        @shapes.each { |shape| shape.get_children_recursively(shape_info, mode, shapes) }
+      end
     end
 
 	  # Get shape at given logical position
@@ -276,7 +471,34 @@ module Wx::SF
     # @see Wx::SF::ShapeCanvas::dp2lp
     # @see Wx::SF::ShapeCanvas#get_shape_under_cursor
     def get_shape_at_position(pos, zorder = 1, mode = SEARCHMODE::BOTH)
+      # sort shapes list in the way that the line shapes will be at the top of the list
+      shapes = get_shapes.sort! do |s1, s2|
+        s1.is_a?(LineShape) ? (s2.is_a?(LineShape) ? 0 : -1) : (s2.is_a?(LineShape) ? 1 : 0)
+      end
 
+      # find the topmost shape according to the given rules
+      counter = 1
+      shapes.each do |shape|
+        if shape.visible? && shape.active? && shape.contains?(pos)
+          case mode
+          when SEARCHMODE::SELECTED
+            if shape.selected?
+              return shape if counter == zorder
+              counter += 1
+            end
+          when SEARCHMODE::UNSELECTED
+            unless shape.selected?
+              return shape if counter == zorder
+              counter += 1
+            end
+          when SEARCHMODE::BOTH
+            return shape if counter == zorder
+            counter += 1
+          end
+        end
+      end
+
+      nil
     end
 
 	  # Get list of all shapes located at given position
@@ -285,7 +507,9 @@ module Wx::SF
     # @return [Array<Wx::SF::Shape>] shape list
     # @see Wx::SF::ShapeCanvas::dp2lp
     def get_shapes_at_position(pos, shapes = [])
-
+      get_shapes.each do |shape|
+        shapes << shape if shape.visible? && shape.active? && shape.contains?(pos)
+      end
     end
 
 	  # Get list of shapes located inside given rectangle
@@ -293,7 +517,9 @@ module Wx::SF
     # @param [Array<Wx::SF::Shape>] shapes shape list where all found shapes will be stored
     # @return [Array<Wx::SF::Shape>] shape list
     def get_shapes_inside(rct, shapes = [])
-
+      get_shapes.each do |shape|
+        shapes << shape if shape.visible? && shape.active? && shape.intersects?(rct)
+      end
     end
 
 	  # Determines whether the diagram contains some shapes.
@@ -322,19 +548,65 @@ module Wx::SF
     # @return [Array<Wx::SF::Shape>] shape list
     # @see Wx::SF::Shape::CONNECTMODE
     def get_neighbours(parent, shape_info, condir, direct = true, neighbours = [])
-
+      if parent
+        parent.get_neighbours(shape_info, condir, direct, neighbours)
+      else
+        @shapes.each do |shape|
+          shape.get_neighbours(shape_info, condir, direct, neighbours)
+        end
+      end
     end
 
     private
 
     # Update connection shapes after importing/dropping of new shapes
-    def update_connections
-
+    def check_new_shapes(new_shapes)
+      # deserializing will create unique ids synchronized across all deserialized shapes
+      # lines and both connected shapes should have matching ids
+      # we will remove any lines for which one or both connected shapes are missing (not copied)
+      new_shapes.select! do |shape|
+        if shape.is_a?(LineShape)
+          # so that lines with both connected shapes will have matching ids
+          # we will remove any lines for which one or both connected shapes are missing (not copied)
+          if @shapes_index.has_key?(shape.get_src_shape_id) && @shapes_index.has_key?(shape.get_trg_shape_id)
+            shape.create_handles
+            true # keep
+          else
+            # remove from diagram
+            @shapes_index.delete(shape.get_id)
+            @shapes.delete(shape)
+            false # remove from new_shapes
+          end
+        else
+          true # keep
+        end
+      end
+      # deserializing will create unique ids synchronized across all deserialized shapes
+      # so that grids and shapes linked to it's cells should have matching ids
+      # we will clear any cells for which shapes are missing (not copied)
+      update_grids(new_shapes) unless new_shapes.empty?
     end
 
     # Update grid shapes after importing/dropping of new shapes
-    def update_grids
-
+    def update_grids(new_shapes)
+      # deserializing will create unique ids synchronized across all deserialized shapes
+      # so that grids and shapes linked to it's cells will have matching ids
+      # we will clear any cells for which shapes are missing (not copied)
+      new_shapes.each do |shape|
+        if shape.is_a?(GridShape)
+          grid.each_cell do |row, col, id|
+            grid.clear_cell(row, col) unless @shapes_index.has_key?(id)
+          end
+        elsif shape.has_children?
+          shape.get_children_recursively(nil, Shape::SEARCHMODE::DFS).each do |child|
+            if shape.is_a?(GridShape)
+              grid.each_cell do |row, col, id|
+                grid.clear_cell(row, col) unless @shapes_index.has_key?(id)
+              end
+            end
+          end
+        end
+      end
     end
 
   end

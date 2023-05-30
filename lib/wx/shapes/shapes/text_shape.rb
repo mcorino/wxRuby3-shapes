@@ -11,9 +11,9 @@ module Wx::SF
     #   Default constructor.
     # @overload initialize(pos, size, diagram)
     #   User constructor.
-    #   @param pos Initial position
-    #   @param size Initial size
-    #   @param manager Pointer to parent diagram manager
+    #   @param [Wx::Point] pos Initial position
+    #   @param [Wx::Size] size Initial size
+    #   @param [Wx::SF::Diagram] diagram parent diagram
     def initialize(*args)
 
     end

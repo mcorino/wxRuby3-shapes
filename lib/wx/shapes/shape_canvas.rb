@@ -839,6 +839,9 @@ module Wx::SF
             ERRCODE::OK == @diagram.add_shape(shape, nil, Wx::Point.new(0, 0), DONT_INITIALIZE, DONT_SAVE_STATE)
           end
 
+          # verify newly added shapes (may remove shapes from list)
+          @diagram.send(:check_new_shapes, new_shapes)
+
           # call user-defined handler
           on_paste(new_shapes)
 
@@ -1005,9 +1008,8 @@ module Wx::SF
       sel_line = unsel_line = top_line = nil
 
       @topmost_shape_under_cursor = nil
-      @current_shapes.clear
 
-      @current_shapes.concat(@diagram.get_shapes) if @diagram
+      @current_shapes.replace(@diagram.get_all_shapes) if @diagram
 
       @current_shapes.each do |shape|
         if shape.visible? && shape.active? && shape.contains?(lpos)
@@ -1643,10 +1645,11 @@ module Wx::SF
         end
       end
 
-      selection.each do |shape|
-        # move selected shapes to the back of the shapes list in the diagram
-        @diagram.move_to_end(shape)
-      end
+      # MCO - do not think this is useful
+      # selection.each do |shape|
+      #   # move selected shapes to the back of the shapes list in the diagram
+      #   @diagram.move_to_end(shape)
+      # end
     end
 
 	  # Function responsible for drawing of the canvas's content to given DC. The default
@@ -2948,7 +2951,7 @@ module Wx::SF
 	  # @param [Integer] x X-coordinate of a position the data was dropped to
 	  # @param [Integer] y Y-coordinate of a position the data was dropped to
 	  # @param [Wx::DragResult] deflt Drag result
-	  # @param [Wx::DataObject] data a data object encapsulating dropped data
+	  # @param [Wx::ShapeDataObject] data a data object encapsulating dropped data
 	  # @see Wx::SF::CanvasDropTarget
     def _on_drop(x, y, deflt, data)
       if data && Wx::SF::ShapeDataObject === data
@@ -2969,7 +2972,6 @@ module Wx::SF
           # add each shape to diagram keeping only those that are accepted
           lst_new_content.select! do |shape|
             shape.move_by(dx, dy)
-
             # do not reparent connection lines
             rc = if shape.is_a?(LineShape) && !shape.is_stand_alone
                    @diagram.add_shape(shape,
@@ -2984,16 +2986,18 @@ module Wx::SF
                                       INITIALIZE,
                                       DONT_SAVE_STATE)
                  end
+            rc == ERRCODE::OK # keep or remove?
+          end
 
-            if rc == ERRCODE::OK
-              if shape.is_a?(LineShape) && !shape.is_stand_alone && parent
-                parent.on_child_dropped(shape.get_absolute_position - parent.get_absolute_position, shape)
-                # update each target parent just once
-                lst_parents_to_update << parent unless lst_parents_to_update.include?(parent)
-              end
-              true
-            else
-              false
+          # verify newly added shapes (may remove shapes from list)
+          @diagram.send(:check_new_shapes, lst_new_content)
+
+          # notify parents and collect for update
+          lst_new_content.each do |shape|
+            if (parent_shape = shape.get_parent_shape)
+              parent_shape.on_child_dropped(shape.get_absolute_position - parent_shape.get_absolute_position,
+                                            shape)
+              lst_parents_to_update << parent_shape unless lst_parents_to_update.include?(parent_shape)
             end
           end
 
