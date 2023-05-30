@@ -190,43 +190,48 @@ module Wx::SF
     end
 
     # Default values
-    # Note: GUI objects like colours, brushes, pens etc. need a running Wx::App
-    #       before initializing so we use lambdas here to delay creation.
     module DEFAULT
       # Default value of Wx::SF::CanvasSettings @background_color data member
-      SHAPECANVAS_BACKGROUNDCOLOR = ->() { Wx::Colour.new(240, 240, 240) }
+      BACKGROUNDCOLOR = Wx::Colour.new(240, 240, 240) if Wx::App.is_main_loop_running
+      Wx.add_delayed_constant(self, :BACKGROUNDCOLOR) { Wx::Colour.new(240, 240, 240) }
       # Default value of Wx::SF::CanvasSettings @grid_size data member
-      SHAPECANVAS_GRIDSIZE = Wx::Size.new(10, 10)
+      GRIDSIZE = Wx::Size.new(10, 10)
       # Default value of Wx::SF::CanvasSettings @grid_line_mult data member
-      SHAPECANVAS_GRIDLINEMULT = 1
+      GRIDLINEMULT = 1
       # Default value of Wx::SF::CanvasSettings @grid_color data member
-      SHAPECANVAS_GRIDCOLOR = ->() { Wx::Colour.new(200, 200, 200) }
+      GRIDCOLOR = Wx::Colour.new(200, 200, 200) if Wx::App.is_main_loop_running
+      Wx.add_delayed_constant(self, :GRIDCOLOR) { Wx::Colour.new(200, 200, 200) }
       # Default value of Wx::SF::CanvasSettings @grid_style data member
-      SHAPECANVAS_GRIDSTYLE = Wx::PenStyle::PENSTYLE_SOLID
+      GRIDSTYLE = Wx::PenStyle::PENSTYLE_SOLID
       # Default value of Wx::SF::CanvasSettings @common_hover_color data member
-      SHAPECANVAS_HOVERCOLOR = ->() { Wx::Colour.new(120, 120, 255) }
+      HOVERCOLOR = Wx::Colour.new(120, 120, 255) if Wx::App.is_main_loop_running
+      Wx.add_delayed_constant(self, :HOVERCOLOR) { Wx::Colour.new(120, 120, 255) }
       # Default value of Wx::SF::CanvasSettings @gradient_from data member
-      SHAPECANVAS_GRADIENT_FROM = ->() { Wx::Colour.new(240, 240, 240) }
+      GRADIENT_FROM = Wx::Colour.new(240, 240, 240) if Wx::App.is_main_loop_running
+      Wx.add_delayed_constant(self, :GRADIENT_FROM) { Wx::Colour.new(240, 240, 240) }
       # Default value of Wx::SF::CanvasSettings @gradient_to data member
-      SHAPECANVAS_GRADIENT_TO = ->() { Wx::Colour.new(200, 200, 255) }
+      GRADIENT_TO = Wx::Colour.new(200, 200, 255) if Wx::App.is_main_loop_running
+      Wx.add_delayed_constant(self, :GRADIENT_TO) { Wx::Colour.new(200, 200, 255) }
       # Default value of Wx::SF::CanvasSettings @style data member
-      SHAPECANVAS_STYLE = STYLE::DEFAULT_CANVAS_STYLE
+      STYLE = STYLE::DEFAULT_CANVAS_STYLE
       # Default value of Wx::SF::CanvasSettings @shadow_offset data member
-      SHAPECANVAS_SHADOWOFFSET = Wx::RealPoint.new(4, 4)
+      SHADOWOFFSET = Wx::RealPoint.new(4, 4)
       # Default shadow colour 
-      SHAPECANVAS_SHADOWCOLOR = ->() { Wx::Colour.new(150, 150, 150, 128) }
+      SHADOWCOLOR = Wx::Colour.new(150, 150, 150, 128) if Wx::App.is_main_loop_running
+      Wx.add_delayed_constant(self, :SHADOWCOLOR) { Wx::Colour.new(150, 150, 150, 128) }
       # Default value of Wx::SF::CanvasSettings @shadow_fill data member
-      SHAPECANVAS_SHADOWBRUSH = ->() { Wx::Brush.new(SHAPECANVAS_SHADOWCOLOR.call, Wx::BrushStyle::BRUSHSTYLE_SOLID) }
+      SHADOWBRUSH = Wx::Brush.new(SHADOWCOLOR.call, Wx::BrushStyle::BRUSHSTYLE_SOLID) if Wx::App.is_main_loop_running
+      Wx.add_delayed_constant(self, :SHADOWBRUSH) { Wx::Brush.new(SHADOWCOLOR.call, Wx::BrushStyle::BRUSHSTYLE_SOLID) }
       # Default value of Wx::SF::CanvasSettings @print_h_align data member
-      SHAPECANVAS_PRINT_HALIGN = HALIGN::CENTER
+      PRINT_HALIGN = HALIGN::CENTER
       # Default value of Wx::SF::CanvasSettings @print_v_align data member
-      SHAPECANVAS_PRINT_VALIGN = VALIGN::MIDDLE
+      PRINT_VALIGN = VALIGN::MIDDLE
       # Default value of Wx::SF::CanvasSettings @print_mode data member
-      SHAPECANVAS_PRINT_MODE = PRINTMODE::FIT_TO_MARGINS
+      PRINT_MODE = PRINTMODE::FIT_TO_MARGINS
       # Default value of Wx::SF::CanvasSettings @min_scale data member
-      SHAPECANVAS_SCALE_MIN = 0.1
+      SCALE_MIN = 0.1
       # Default value of Wx::SF::CanvasSettings @max_scale data member
-      SHAPECANVAS_SCALE_MAX = 5.0
+      SCALE_MAX = 5.0
     end
 
     # Auxiliary serializable class encapsulating the canvas properties.
@@ -243,22 +248,22 @@ module Wx::SF
 
       def initialize
         @scale = 1.0
-        @min_scale = SHAPECANVAS_SCALE_MIN
-        @max_scale = SHAPECANVAS_SCALE_MAX
-        @background_color = SHAPECANVAS_BACKGROUNDCOLOR.call
-        @common_hover_color = SHAPECANVAS_HOVERCOLOR.call
-        @grid_size = SHAPECANVAS_GRIDSIZE
-        @grid_line_mult = SHAPECANVAS_GRIDLINEMULT
-        @grid_color = SHAPECANVAS_GRIDCOLOR.call
-        @grid_style = SHAPECANVAS_GRIDSTYLE
-        @gradient_from = SHAPECANVAS_GRADIENT_FROM.call
-        @gradient_to = SHAPECANVAS_GRADIENT_TO.call
-        @style = SHAPECANVAS_STYLE
-        @shadow_offset = SHAPECANVAS_SHADOWOFFSET
-        @shadow_fill = SHAPECANVAS_SHADOWBRUSH.call
-        @print_h_align = SHAPECANVAS_PRINT_HALIGN
-        @print_v_align = SHAPECANVAS_PRINT_VALIGN
-        @print_mode = SHAPECANVAS_PRINT_MODE
+        @min_scale = SCALE_MIN
+        @max_scale = SCALE_MAX
+        @background_color = BACKGROUNDCOLOR
+        @common_hover_color = HOVERCOLOR
+        @grid_size = GRIDSIZE
+        @grid_line_mult = GRIDLINEMULT
+        @grid_color = GRIDCOLOR
+        @grid_style = GRIDSTYLE
+        @gradient_from = GRADIENT_FROM
+        @gradient_to = GRADIENT_TO
+        @style = STYLE
+        @shadow_offset = SHADOWOFFSET
+        @shadow_fill = SHADOWBRUSH
+        @print_h_align = PRINT_HALIGN
+        @print_v_align = PRINT_VALIGN
+        @print_mode = PRINT_MODE
         @accepted_shapes = ::Set.new
       end
 
@@ -1715,7 +1720,7 @@ module Wx::SF
             parent_shape = shape.get_parent_shape
 
             if !shape.is_a?(LineShape) || shape.is_stand_alone
-              if shape.intersects(upd_rct)
+              if shape.intersects?(upd_rct)
                 if parent_shape
                   shape.draw(dc, WITHOUTCHILDREN) if !parent_shape.is_a?(LineShape) || shape.is_stand_alone
                 else

@@ -149,8 +149,7 @@ module Wx::SF
       HOVERCOLOUR = Wx::Colour.new(120, 120, 255) if Wx::App.is_main_loop_running
       Wx.add_delayed_constant(self, :HOVERCOLOUR) { Wx::Colour.new(120, 120, 255) }
       # Default value of Wx::SF::Shape @relativePosition data member
-      POSITION = Wx::RealPoint.new(0, 0) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :POSITION) { Wx::RealPoint.new(0, 0) }
+      POSITION = Wx::RealPoint.new(0, 0)
       # Default value of Wx::SF::Shape @vAlign data member
       VALIGN = VALIGN::NONE
       # Default value of Wx::SF::Shape @hAlign data member
@@ -322,33 +321,30 @@ module Wx::SF
     # can be overridden if necessary.
     # @param [Wx::Point] pos Examined point
     # @return [Boolean] true if the point is inside the shape area, otherwise false
-    def contains(pos)
+    def contains?(pos)
       # HINT: overload it for custom actions...
 
       get_bounding_box.contains(pos)
     end
-    alias :contains? :contains
 
     # Test whether the shape is completely inside given rectangle. The function
     # can be overridden if necessary.
     # @param [Wx::Rect] rct Examined rectangle
     # @return [Boolean] true if the shape is completely inside given rectangle, otherwise false
-    def is_inside(rct)
+    def inside?(rct)
       # HINT: overload it for custom actions...
 
       rct.contains(get_bounding_box)
     end
-    alias inside? :is_inside
 
     # Test whether the given rectangle intersects the shape.
     # @param [Wx::Rect] rct Examined rectangle
     # @return [Boolean] true if the examined rectangle intersects the shape, otherwise false
-    def intersects(rct)
+    def intersects?(rct)
       # HINT: overload it for custom actions...
 
       rct.intersects(get_bounding_box)
     end
-    alias intersects? :intersects
 
     # Get the shape's absolute position in the canvas (calculated as a summation
     # of all relative positions in the shapes' hierarchy. The function can be overridden if necessary.
@@ -363,7 +359,6 @@ module Wx::SF
         @relative_position
       end
     end
-    alias absolute_position :get_absolute_position
 
     # Get intersection point of the shape border and a line leading from
     # 'start' point to 'finish' point.  Default implementation does nothing. The function can be overridden if necessary.
@@ -374,7 +369,6 @@ module Wx::SF
       # HINT: overload it for custom actions...
       Wx::RealPoint.new
     end
-    alias :border_point :get_border_point
 
     # Get shape's center. Default implementation does nothing. The function can be overridden if necessary.
     # @return [Wx::RealPoint] Center point
@@ -384,8 +378,6 @@ module Wx::SF
       bb = get_bounding_box
       Wx::RealPoint.new(bb.left + bb.width/2, bb.top + bb.height/2)
     end
-
-    alias :center :get_center
 
     # Function called by the framework responsible for creation of shape handles
     # at the creation time. Default implementation does nothing. The function can be overridden if necessary.
@@ -549,7 +541,7 @@ module Wx::SF
         end
 
         if shape.has_style?(STYLE::POSITION_CHANGE) && (shape.get_v_align == VALIGN::NONE || shape.get_h_align == HALIGN::NONE)
-          shape.set_relative_position(shape.relative_position.x*x, shape.relative_position.y*y)
+          shape.set_relative_position(shape.get_relative_position.x*x, shape.get_relative_position.y*y)
         end
 
         # re-align shapes which have set any alignment mode
@@ -709,10 +701,9 @@ module Wx::SF
     end
 
     # Function returns true if the shape is selected, otherwise returns false
-    def is_selected
+    def selected?
       @selected
     end
-    alias :selected? :is_selected
 
     # Set the shape as a selected/deselected one
     # @param [Boolean] state Selection state (true is selected, false is deselected)
@@ -735,7 +726,6 @@ module Wx::SF
       @relative_position.x = x
       @relative_position.y = y
     end
-    alias :relative_position= :set_relative_position
 
     # Get shape's relative position.
     # @return [Wx::RealPoint] Current relative position
@@ -743,7 +733,6 @@ module Wx::SF
     def get_relative_position
       @relative_position
     end
-    alias :relative_position :get_relative_position
 
 	  # Set vertical alignment of this shape inside its parent
 	  # @param [VALIGN] val Alignment type
@@ -830,23 +819,21 @@ module Wx::SF
 	  # Determine whether this shape is ancestor of given child shape.
 	  # @param [Wx::SF::Shape] child child shape.
 	  # @return true if this shape is parent of given child shape, otherwise false
-    def is_ancestor(child)
+    def ancestor?(child)
       lst_children = get_child_shapes(nil, RECURSIVE)
 
       lst_children.include?(child)
     end
-    alias :ancestor? :is_ancestor
 
 	  # Determine whether this shape is descendant of given parent shape.
 	  # @param [Wx::SF::Shape] parent parent shape
 	  # @return true if this shape is a child of given parent shape, otherwise false
-    def is_descendant(parent)
+    def descendant?(parent)
       return false unless parent
       lst_children = parent.get_child_shapes(nil, RECURSIVE)
 
       lst_children.include?(self)
     end
-    alias :descendant? :is_descendant
 
     # Associate user data with the shape.
     # If the data object is properly set then its marked properties will be serialized
@@ -877,11 +864,10 @@ module Wx::SF
 
 	  # Get the shape's visibility status
     # @return [Boolean] true if the shape is visible, otherwise false
-    def is_visible
+    def visible?
       @visible
     end
-    alias :visible? :is_visible
-    alias :visibility :is_visible
+   alias :visibility :visible?
 
 	  # Show/hide shape
     # @param [Boolean] show Set the parameter to true if the shape should be visible, otherwise use false
@@ -907,11 +893,10 @@ module Wx::SF
 	  # Function returns value of a shape's activation flag.
 	  # Non-active shapes are visible, but don't receive (process) any events.
     # @return [Boolean] true if the shape is active, otherwise false
-    def is_active
+    def active?
       @active
     end
-    alias :active? :is_active
-    alias :active :is_active
+    alias :active :active?
 
 	  # Shape's activation/deactivation
 	  # Deactivated shapes are visible, but don't receive (process) any events.

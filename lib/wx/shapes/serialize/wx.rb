@@ -60,3 +60,20 @@ class Wx::Brush
   property :colour, :style
 
 end
+
+# need to add this Enum explicitly as it was initially defined before we extended the Wx::Enum class above
+class Wx::PenStyle
+
+  property :value => ->(enum) { enum.to_i }
+
+  include Wx::SF::Serializable
+
+end
+
+class Wx::Pen
+
+  include Wx::SF::Serializable
+
+  property :colour, :width, :style
+
+end

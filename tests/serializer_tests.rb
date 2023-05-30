@@ -86,6 +86,12 @@ module SerializerTestMixin
     assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_instance_of(Wx::Colour, obj_new)
     assert_equal(obj, obj_new)
+
+    obj = Wx::Pen.new('black')
+    obj_serial = obj.serialize
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
+    assert_instance_of(Wx::Pen, obj_new)
+    assert_equal(obj, obj_new)
   end
 
   def test_core
