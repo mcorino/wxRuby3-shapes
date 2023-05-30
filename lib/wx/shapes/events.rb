@@ -377,7 +377,7 @@ module Wx::SF
   EVT_SF_SHAPE_HANDLE = Wx::EvtHandler.register_class(ShapeHandleEvent, nil, 'evt_sf_shape_handle', 0)
   EVT_SF_SHAPE_HANDLE_END = Wx::EvtHandler.register_class(ShapeHandleEvent, nil, 'evt_sf_shape_handle_end', 0)
   EVT_SF_SHAPE_KEYDOWN = Wx::EvtHandler.register_class(ShapeKeyEvent, nil, 'evt_sf_shape_key_down', 0)
-  EVT_SF_SHAPE_MOUSE_ENTER = Wx::EvtHandler.register_class(ShapeMouseEventf, nil, 'evt_sf_shape_mouse_enter', 0)
+  EVT_SF_SHAPE_MOUSE_ENTER = Wx::EvtHandler.register_class(ShapeMouseEvent, nil, 'evt_sf_shape_mouse_enter', 0)
   EVT_SF_SHAPE_MOUSE_OVER = Wx::EvtHandler.register_class(ShapeMouseEvent, nil, 'evt_sf_shape_mouse_over', 0)
   EVT_SF_SHAPE_MOUSE_LEAVE = Wx::EvtHandler.register_class(ShapeMouseEvent, nil, 'evt_sf_shape_mouse_leave', 0)
   EVT_SF_SHAPE_CHILD_DROP = Wx::EvtHandler.register_class(ShapeChildDropEvent, nil, 'evt_sf_shape_child_drop', 0)

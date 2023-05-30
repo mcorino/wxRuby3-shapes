@@ -212,7 +212,7 @@ module Wx::SF
       # Default value of Wx::SF::CanvasSettings @style data member
       SHAPECANVAS_STYLE = STYLE::DEFAULT_CANVAS_STYLE
       # Default value of Wx::SF::CanvasSettings @shadow_offset data member
-      SHAPECANVAS_SHADOWOFFSET = Wx::RealPoint(4, 4)
+      SHAPECANVAS_SHADOWOFFSET = Wx::RealPoint.new(4, 4)
       # Default shadow colour 
       SHAPECANVAS_SHADOWCOLOR = ->() { Wx::Colour.new(150, 150, 150, 128) }
       # Default value of Wx::SF::CanvasSettings @shadow_fill data member

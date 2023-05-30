@@ -146,10 +146,10 @@ module Wx::SF
       # Default value of Wx::SF::Shape @active data member
       ACTIVITY = true
       # Default value of Wx::SF::Shape @hoverColor data member
-      HOVERCOLOUR = Wx::Colour.new(120, 120, 255) if Wx.is_main_loop_running
+      HOVERCOLOUR = Wx::Colour.new(120, 120, 255) if Wx::App.is_main_loop_running
       Wx.add_delayed_constant(self, :HOVERCOLOUR) { Wx::Colour.new(120, 120, 255) }
       # Default value of Wx::SF::Shape @relativePosition data member
-      POSITION = Wx::RealPoint.new(0, 0) if Wx.is_main_loop_running
+      POSITION = Wx::RealPoint.new(0, 0) if Wx::App.is_main_loop_running
       Wx.add_delayed_constant(self, :POSITION) { Wx::RealPoint.new(0, 0) }
       # Default value of Wx::SF::Shape @vAlign data member
       VALIGN = VALIGN::NONE
@@ -160,7 +160,7 @@ module Wx::SF
       # Default value of Wx::SF::Shape @hBorder data member
       HBORDER = 0.0
       # Default value of Wx::SF::Shape @style data member
-      DEFAULT_STYLE = STYLE::DEFAULT_STYLE
+      DEFAULT_STYLE = STYLE::DEFAULT_SHAPE_STYLE
       # Default value of Wx::SF::Shape @customDockPoint data member
       DOCK_POINT = -3
     end
