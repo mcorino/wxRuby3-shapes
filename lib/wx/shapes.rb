@@ -4,6 +4,7 @@
 require 'wx/core'
 
 require 'wx/shapes/version'
+require 'wx/shapes/core'
 require 'wx/shapes/wx'
 require 'wx/shapes/serializable'
 require 'wx/shapes/connection_point'

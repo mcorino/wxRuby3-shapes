@@ -2700,7 +2700,7 @@ module Wx::SF
     #  Store previous shape's position modified in validate_selection_for_clipboard() function
     # @param [Wx::SF::Shape] shape
     def store_prev_position(shape)
-      @prev_positions[shape] = Wx::RealPoint.new(*shape.get_relative_position.to_ary)
+      @prev_positions[shape] = shape.get_relative_position.dup
     end
 
     #  Restore previously stored shape positions and clear the storage
