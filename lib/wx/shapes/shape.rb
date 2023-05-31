@@ -220,11 +220,11 @@ module Wx::SF
     #   @param [Wx::Point] pos Initial relative position
     #   @param [Diagram] diagram containing diagram
     def initialize(*args)
-      pos, diagram = *args
+      pos, diagram = args
       ::Kernel.raise ArgumentError, "Invalid arguments pos: #{pos}, diagram: #{diagram}" unless
-        args.empty? || (Wx::RealPoint === pos && Wx::SF::Diagram === diagram)
+        args.empty? || (Wx::RealPoint === pos && (diagram.nil? || Wx::SF::Diagram === diagram))
 
-      @id = args.empty? ? nil : Serializable::ID.new
+      @id = Serializable::ID.new
       @diagram = diagram
       @parent_shape = nil
       @child_shapes = []

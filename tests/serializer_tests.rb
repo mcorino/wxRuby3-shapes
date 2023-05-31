@@ -418,4 +418,24 @@ module SerializerTestMixin
     end
   end
 
+  def test_shape
+    obj = Wx::SF::Shape.new
+    obj.set_relative_position(Wx::RealPoint.new(100, 99))
+    obj_serial = obj.serialize
+    obj_new = nil
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
+    assert_instance_of(Wx::SF::Shape, obj_new)
+    assert_equal(obj.get_relative_position, obj_new.get_relative_position)
+  end
+
+  def test_line_shape
+    obj = Wx::SF::LineShape.new(Wx::RealPoint.new(100, 100), Wx::RealPoint.new(400, 400))
+    obj_serial = obj.serialize
+    obj_new = nil
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
+    assert_instance_of(Wx::SF::LineShape, obj_new)
+    assert_equal(obj.get_src_point, obj_new.get_src_point)
+    assert_equal(obj.get_trg_point, obj_new.get_trg_point)
+  end
+
 end
