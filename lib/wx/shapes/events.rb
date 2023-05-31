@@ -7,9 +7,9 @@ module Wx::SF
   class ShapeEvent < Wx::Event
     # Constructor
     # @param [Integer] evt_type
-    # @param [Integer] id
+    # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, id = 0)
-      super(evt_type, id)
+      super(evt_type, id.to_i)
       @shape = nil
       @vetoed = false
     end
@@ -45,7 +45,7 @@ module Wx::SF
   class ShapeKeyEvent < Wx::Event
     # Constructor
     # @param [Integer] evt_type
-    # @param [Integer] id
+    # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, id = 0)
       super(evt_type, id)
       @shape = nil
@@ -85,7 +85,7 @@ module Wx::SF
   class ShapeMouseEvent < Wx::Event
     # Constructor
     # @param [Integer] evt_type
-    # @param [Integer] id
+    # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, id = 0)
       super(evt_type, id)
       @shape = nil
@@ -125,7 +125,7 @@ module Wx::SF
   class ShapeTextEvent < Wx::Event
     # Constructor
     # @param [Integer] evt_type
-    # @param [Integer] id
+    # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, id = 0)
       super(evt_type, id)
       @shape = nil
@@ -165,7 +165,7 @@ module Wx::SF
   class ShapeHandleEvent < Wx::Event
     # Constructor
     # @param [Integer] evt_type
-    # @param [Integer] id
+    # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, id = 0)
       super(evt_type, id)
       @shape = nil
@@ -211,7 +211,7 @@ module Wx::SF
     # @param [Integer] y
     # @param [Wx::SF::ShapeCanvas] target
     # @param [Wx::DragResult] def_result
-    # @param [Integer] id
+    # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, x = 0, y = 0, target = nil, def_result = Wx::DragResult::DragNone, id = 0)
       super(evt_type, id)
       @dropped_shapes = []
@@ -284,7 +284,7 @@ module Wx::SF
     # Constructor
     # @param [Integer] evt_type
     # @param [Wx::SF::ShapeCanvas] target
-    # @param [Integer] id
+    # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, target = nil, id = 0)
       super(evt_type, id)
       @pasted_shapes = []
@@ -324,7 +324,7 @@ module Wx::SF
   class ShapeChildDropEvent < Wx::Event
     # Constructor
     # @param [Integer] evt_type
-    # @param [Integer] id
+    # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, id = 0)
       super(evt_type, id)
       @shape = nil

@@ -58,22 +58,25 @@ module Wx::SF
 
       # Get current handle position.
       # @return [Wx::Point] Handle position
-      def position
+      def get_position
         @currPos
       end
+      alias :position :get_position
 
       # Get current handle delta (difference between current and previous position).
       # @return [Wx::Point] Handle delta
-      def delta
+      def get_delta
         @currPos - @prevPos
       end
+      alias :delta :get_delta
 
       # Get current total handle delta (difference between current and starting position
       # stored at the beginning of the dragging process).
       # @return [Wx::Point] Total handle delta
-      def total_delta
+      def get_total_delta
         @currPos - @startPos
       end
+      alias :total_delta :get_total_delta
 
       # Show/hide handle
       # @param [Boolean] show true if the handle should be visible (active), otherwise false

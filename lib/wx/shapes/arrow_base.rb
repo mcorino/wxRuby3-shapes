@@ -72,3 +72,7 @@ module Wx::SF
   end
 
 end
+
+Dir[File.join(__dir__, 'arrows', '*.rb')].each do |f|
+  require "wx/shapes/arrows/#{File.basename(f, '.rb')}"
+end

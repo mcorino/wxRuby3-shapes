@@ -221,7 +221,7 @@ module Wx::SF
       Wx.add_delayed_constant(self, :SHADOWCOLOR) { Wx::Colour.new(150, 150, 150, 128) }
       # Default value of Wx::SF::CanvasSettings @shadow_fill data member
       SHADOWBRUSH = Wx::Brush.new(SHADOWCOLOR.call, Wx::BrushStyle::BRUSHSTYLE_SOLID) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :SHADOWBRUSH) { Wx::Brush.new(SHADOWCOLOR.call, Wx::BrushStyle::BRUSHSTYLE_SOLID) }
+      Wx.add_delayed_constant(self, :SHADOWBRUSH) { Wx::Brush.new(Wx::Colour.new(150, 150, 150, 128), Wx::BrushStyle::BRUSHSTYLE_SOLID) }
       # Default value of Wx::SF::CanvasSettings @print_h_align data member
       PRINT_HALIGN = HALIGN::CENTER
       # Default value of Wx::SF::CanvasSettings @print_v_align data member

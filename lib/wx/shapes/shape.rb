@@ -220,6 +220,20 @@ module Wx::SF
       @accepted_trg_neighbours = ::Set.new
     end
 
+    # Get the shape's id
+    # @return [Wx::SF::Serializable::ID]
+    def get_id
+      @id
+    end
+    alias :id :get_id
+
+    # Set the shape's id. Deserialization only.
+    # @param [Wx::SF::Serializable::ID] id
+    def set_id(id)
+      @id = id
+    end
+    private :set_id
+
     # Set managing diagram
     # @param [Wx::SF::Diagram] diagram
     def set_diagram(diagram)
@@ -233,6 +247,12 @@ module Wx::SF
       @diagram
     end
     alias :diagram :get_diagram
+
+    # Get the shape canvas of the parent diagram
+    # @return [Wx::SF::ShapeCanvas,nil]
+    def get_parent_canvas
+      @diagram ? @diagram.get_shape_canvas : nil
+    end
 
     # Add a child shape
     # @param [Wx::SF::Shape] shape
@@ -1183,7 +1203,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_LEFT_DOWN, self.id.to_i)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_LEFT_DOWN, self.id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1201,7 +1221,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_RIGHT_DOWN, self.id.to_i)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_RIGHT_DOWN, self.id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1219,7 +1239,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_LEFT_DCLICK, self.id.to_i)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_LEFT_DCLICK, self.id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1237,7 +1257,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_RIGHT_DCLICK, self.id.to_i)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_RIGHT_DCLICK, self.id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1255,7 +1275,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_DRAG_BEGIN, self.id.to_i)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_DRAG_BEGIN, self.id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1273,7 +1293,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_DRAG, self.id.to_i)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_DRAG, self.id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1291,7 +1311,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_DRAG_END, self.id.to_i)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_DRAG_END, self.id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1308,7 +1328,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeHandleEvent.new(Wx::SF::EVT_SF_SHAPE_HANDLE_BEGIN, self.id.to_i)
+        evt = Wx::SF::ShapeHandleEvent.new(Wx::SF::EVT_SF_SHAPE_HANDLE_BEGIN, self.id)
         evt.set_shape(self)
         evt.set_handle(handle)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1325,7 +1345,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeHandleEvent.new(Wx::SF::EVT_SF_SHAPE_HANDLE, self.id.to_i)
+        evt = Wx::SF::ShapeHandleEvent.new(Wx::SF::EVT_SF_SHAPE_HANDLE, self.id)
         evt.set_shape(self)
         evt.set_handle(handle)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1342,7 +1362,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeHandleEvent.new(Wx::SF::EVT_SF_SHAPE_HANDLE_END, self.id.to_i)
+        evt = Wx::SF::ShapeHandleEvent.new(Wx::SF::EVT_SF_SHAPE_HANDLE_END, self.id)
         evt.set_shape(self)
         evt.set_handle(handle)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1359,7 +1379,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_ENTER, self.id.to_i)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_ENTER, self.id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1376,7 +1396,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_OVER, self.id.to_i)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_OVER, self.id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1393,7 +1413,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_LEAVE, self.id.to_i)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_LEAVE, self.id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1413,7 +1433,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeKeyEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_LEAVE, self.id.to_i)
+        evt = Wx::SF::ShapeKeyEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_LEAVE, self.id)
         evt.set_shape(self)
         evt.set_key_code(key)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1433,7 +1453,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeChildDropEvent.new(Wx::SF::EVT_SF_SHAPE_CHILD_DROP, self.id.to_i)
+        evt = Wx::SF::ShapeChildDropEvent.new(Wx::SF::EVT_SF_SHAPE_CHILD_DROP, self.id)
         evt.set_shape(self)
         evt.set_child_shape(child)
         get_shape_canvas.get_event_handler.process_event(evt)

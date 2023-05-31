@@ -387,15 +387,16 @@ module Wx::SF
 	  # Get the shape's absolute position in the canvas.
 	  # @return [Wx::RealPoint] Shape's position
     def get_absolute_position
+      get_dock_point_position(@dock_point)
     end
 
 	  # Get intersection point of the shape border and a line leading from
 	  # 'start_pt' point to 'end_pt' point. The function can be overridden if necessary.
-	  # @param [Wx::RealPoint] start_pt Starting point of the virtual intersection line
-    # @param [Wx::RealPoint] end_pt Ending point of the virtual intersection line
+	  # @param [Wx::RealPoint] _start_pt Starting point of the virtual intersection line
+    # @param [Wx::RealPoint] _end_pt Ending point of the virtual intersection line
 	  # @return [Wx::RealPoint] Intersection point
-    def get_border_point(start_pt, end_pt)
-
+    def get_border_point(_start_pt, _end_pt)
+      get_absolute_position
     end
 
 	  # Test whether the given point is inside the shape. The function
@@ -403,7 +404,8 @@ module Wx::SF
     # @param pos Examined point
     # @return TRUE if the point is inside the shape area, otherwise FALSE
     def contains?(pos)
-
+      return true if @mode != LINEMODE::UNDERCONSTRUCTION && get_hit_linesegment(pos) >= 0
+      false
     end
 
 	  # Move the shape to the given absolute position. The function
@@ -411,7 +413,9 @@ module Wx::SF
 	  # @param [Float] x X coordinate
 	  # @param [Float] y Y coordinate
     def move_to(x, y)
-
+      move_by(x - @prev_position.x, y - @prev_position.y)
+      @prev_position.x = x
+      @prev_position.y = y
     end
 
 	  # Move the shape by the given offset. The function
@@ -419,13 +423,33 @@ module Wx::SF
 	  # @param [Float] x X offset
 	  # @param [Float] y Y offset
     def move_by(x, y)
+      @lst_points.each do |pt|
+        pt.x += x
+        pt.y += y
+      end
 
+      if @stand_alone
+        @src_point += [x, y]
+        @trg_point += [x, y]
+      end
+
+      update unless @child_shapes.empty?
+
+      get_diagram.set_modified if get_diagram
     end
 
 	  # Function called by the framework responsible for creation of shape handles
-    # at the creation time. The function can be overridden if neccesary.
+    # at the creation time. The function can be overridden if necessary.
     def create_handles
-
+      # first clear all previously used handles and then create new ones
+      @handles.clear
+    
+      # create control points handles
+      @lst_points.size.times { |i| add_handle(Shape::Handle::TYPE::LINECTRL, i) }
+    
+      # create border handles
+      add_handle(Shape::Handle::TYPE::LINESTART)
+      add_handle(Shape::Handle::TYPE::LINEEND)
     end
 
 	  # Event handler called during dragging of the shape handle.
@@ -434,7 +458,24 @@ module Wx::SF
 	  # The function is called by the framework (by the shape canvas).
 	  # @param [Wx::SF::Shape::Handle] handle Reference to dragged handle
     def on_handle(handle)
+      case handle.type
+      when Shape::Handle::TYPE::LINECTRL
+        pt = @lst_points.find { |p| p.id == handle.id }
+        if pt
+          pt.x = handle.get_position.x
+          pt.y = handle.get_position.y
+        end
 
+      when Shape::Handle::TYPE::LINEEND
+        @unfinished_point = handle.get_position
+        @trg_point = handle.get_position.to_real if @stand_alone
+
+      when Shape::Handle::TYPE::LINESTART
+        @unfinished_point = handle.get_position
+        @src_point = handle.get_position.to_real if @stand_alone
+      end
+    
+      super
     end
 
 	  # Event handler called when the user finished dragging of the shape handle.
@@ -444,7 +485,28 @@ module Wx::SF
 	  # Default implementation does nothing.
     # @param [Wx::SF::Shape::Handle] handle Reference to dragged handle
     def on_end_handle(handle)
+      # update percentual offset of the line's ending points
+      parent = get_parent_canvas.get_shape_under_cursor
+    
+      if parent && !@stand_alone
+        bb_rect = parent.get_bounding_box
+    
+        case handle.type
+        when Shape::Handle::TYPE::LINESTART
+          if parent.id == @src_shape_id
+            @src_offset.x = (handle.get_position.x - bb_rect.left).to_f / bb_rect.width
+            @src_offset.y = (handle.get_position.y - bb_rect.top).to_f / bb_rect.height
+          end
 
+        when Shape::Handle::TYPE::LINEEND
+          if parent.id == @trg_shape_id
+            @trg_offset.x = (handle.get_position.x - bb_rect.left).to_f / bb_rect.width
+            @trg_offset.y = (handle.get_position.y - bb_rect.top).to_f / bb_rect.height
+          end
+        end
+      end
+    
+      super
     end
 
 	  # Event handler called at the beginning of the shape dragging process.
@@ -454,7 +516,9 @@ module Wx::SF
     # @param [Wx::Point] pos Current mouse position
 	  # @see Wx::SF::ShapeCanvas
     def on_begin_drag(pos)
+      @prev_position = get_absolute_position
 
+      super
     end
 
 	  # Event handler called when the shape is double-clicked by
@@ -464,7 +528,46 @@ module Wx::SF
     # @param [Wx::Point] pos Current mouse position
 	  # @see Wx::SF::ShapeCanvas
     def on_left_double_click(pos)
-
+      # HINT: override it for custom actions
+    
+      if get_parent_canvas
+        # remove existing handle if exist otherwise create a new one at the
+        # given position
+        handle = get_parent_canvas.get_topmost_handle_at_position(pos)
+        if handle && handle.get_parent_shape == self
+          if handle.type == Shape::Handle::TYPE::LINECTRL
+            if has_style?(STYLE::EMIT_EVENTS)
+              evt = Wx::SF::ShapeHandleEvent.new(EVT_SF_LINE_HANDLE_REMOVE, id)
+              evt.set_shape(self)
+              evt.set_handle(handle)
+              get_parent_canvas.get_event_handler.process_event(evt)
+            end
+    
+            @lst_points.delete_if { |pt| pt.id == handle.id }
+    
+            create_handles
+            show_handles(true)
+          end
+        else
+          index = get_hit_linesegment(pos)
+          if index > -1
+            @lst_points.insert(index, Wx::RealPoint.new(pos.x, pos.y))
+    
+            create_handles
+            show_handles(true)
+    
+            if has_style?(STYLE::EMIT_EVENTS)
+              handle = get_parent_canvas.get_topmost_handle_at_position(pos)
+              if handle
+                evt = ShapeHandleEvent.new(EVT_SF_LINE_HANDLE_ADD, id)
+                evt.set_shape(this)
+                evt.set_handle(handle)
+                get_parent_canvas.get_event_handler.process_event(evt)
+              end
+            end
+          end
+        end
+      end
     end
 
 	  # Scale the shape size by in both directions. The function can be overridden if necessary
@@ -473,7 +576,13 @@ module Wx::SF
     # @param [Float] y Vertical scale factor
     # @param [Boolean] children true if the shape's children should be scaled as well, otherwise the shape will be updated after scaling via update() function.
     def scale(x, y, children = WITHCHILDREN)
-
+      @lst_points.each do |pt|
+        pt.x *= x
+        pt.y *= y
+      end
+    
+      # call default function implementation (needed for scaling of shape's children)
+      super
     end
 
     protected
@@ -481,14 +590,18 @@ module Wx::SF
 	  # Draw the shape in the normal way. The function can be overridden if necessary.
 	  # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_normal(dc)
-
+      dc.with_pen(@pen) do
+        draw_complete_line(dc)
+      end
     end
 
 	  # Draw the shape in the hower mode (the mouse cursor is above the shape).
     # The function can be overridden if necessary.
 	  # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_hover(dc)
-
+      dc.with_pen(Wx::Pen.new(@hover_color, 1)) do
+        draw_complete_line(dc)
+      end
     end
 
 	  # Draw the shape in the highlighted mode (another shape is dragged over this
@@ -496,20 +609,114 @@ module Wx::SF
     # The function can be overridden if necessary.
 	  # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_highlighted(dc)
-
+      dc.with_pen(Wx::Pen.new(@hover_color, 2)) do
+        draw_complete_line(dc)
+      end
     end
 
     # Draw completed line.
     # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_complete_line(dc)
+      return unless diagram
+    
+      case @mode
+      when LINEMODE::READY
+        # draw basic line parts
+        src = trg = nil
+        @lst_points.each_with_index do |pt, i|
+          src, trg = get_line_segment(i)
+          dc.draw_line(src.to_point, trg.to_point)
+        end
+        # draw target arrow
+        @trg_arrow.draw(src, trg, dc) if @trg_arrow
+        # draw source arrow
+        if @src_arrow
+          src, trg = get_line_segment(0)
+          @src_arrow.draw(trg, src, dc)
+        end
 
+      when LINEMODE::UNDERCONSTRUCTION
+        # draw basic line parts
+        src = trg = nil
+        @lst_points.each_with_index do |pt, i|
+          src, trg = get_line_segment(i)
+          dc.draw_line(src.to_point, trg.to_point)
+        end
+        # draw unfinished line segment if any (for interactive line creation)
+        dc.with_pen(Wx::Pen.new(Wx::BLACK, 1, Wx::PENSTYLE_DOT)) do
+          if @lst_points.size > 0
+            dc.draw_line(trg, @unfinished_point)
+          else
+            src_shape = diagram.find_shape(@src_shape_id)
+            if src_shape
+              if src_shape.get_connection_points.empty?
+                dc.draw_line((src_shape.get_border_point(src_shape.get_center, @unfinished_point.to_real)).to_point,
+                             @unfinished_point)
+              else
+                dc.draw_line(get_mod_src_point.to_point, @unfinished_point)
+              end
+            end
+          end
+        end
+
+      when LINEMODE::SRCCHANGE
+        # draw basic line parts
+        src = trg = nil
+        @lst_points.each_with_index do |pt, i|
+          src, trg = get_line_segment(i)
+          dc.draw_line(src.to_point, trg.to_point)
+        end
+
+        # draw linesegment being updated
+        src, trg = get_line_segment(0)
+
+        dc.set_pen(Wx::Pen(Wx::BLACK, 1, Wx::PENSTYLE_DOT)) unless @stand_alone
+        dc.draw_line(@unfinished_point, trg.to_point)
+        dc.set_pen(Wx::NULL_PEN) unless @stand_alone
+
+      when LINEMODE::TRGCHANGE
+        # draw basic line parts
+        src = trg = nil
+        if @lst_points.empty?
+          trg = get_src_point
+        else
+          @lst_points.each_with_index do |pt, i|
+            src, trg = get_line_segment(i)
+            dc.draw_line(src.to_point, trg.to_point)
+          end
+        end
+        # draw linesegment being updated
+        dc.set_pen(Wx::Pen(Wx::BLACK, 1, Wx::PENSTYLE_DOT)) unless @stand_alone
+        dc.draw_line(trg.to_point, @unfinished_point)
+        dc.set_pen(Wx::NULL_PEN) unless @stand_alone
+      end
     end
 
     # Get index of the line segment intersecting the given point.
 	  # @param [Wx::Point] pos Examined point
 	  # @return [Integer] Zero-based index of line segment located under the given point
     def get_hit_linesegment(pos)
+      return -1 unless get_bounding_box.contains?(pos)
 
+      # Get all polyline segments
+      @lst_points.size.times do |i|
+        src, trg = get_line_segment(i)
+    
+        # calculate line segment bounding box
+        ls_bb = Wx::Rect.new(src.to_point, trg.to_point)
+        ls_bb.inflate(2)
+    
+        # convert line segment to its parametric form
+        a = trg.y - src.y
+        b = src.x - trg.x
+        c = -a*src.x - b*src.y
+    
+        # calculate distance of the line and give point
+        d = (a*pos.x + b*pos.y + c)/::Math.sqrt(a*a + b*b)
+        return i if d.to_i.abs <= 5 && ls_bb.contains?(pos)
+      end
+    
+      -1
     end
 
     # Set line shape's working mode.
@@ -536,13 +743,45 @@ module Wx::SF
     # Get modified starting line point .
 	  # @return [Wx::RealPoint] Modified starting line point
     def get_mod_src_point
-
+      src_shape = diagram.find_shape(@src_shape_id)
+      return Wx::RealPoint.new unless src_shape
+    
+      if @src_offset != DEFAULT::OFFSET
+        bb_rct = src_shape.get_bounding_box
+        mod_point = src_shape.get_absolute_position
+    
+        mod_point.x += bb_rct.width.to_f * @src_offset.x
+        mod_point.y += bb_rct.height.to_f * @src_offset.y
+      else
+        mod_point = src_shape.get_center
+      end
+    
+      conn_pt = src_shape.get_nearest_connection_point(mod_point)
+      mod_point = conn_pt.get_connection_point if conn_pt
+    
+      mod_point
     end
 
     # Get modified ending line point .
 	  # @return [Wx::RealPoint] Modified ending line point
     def get_mod_trg_point
+      trg_shape = diagram.find_shape(@trg_shape_id)
+      return Wx::RealPoint.new unless trg_shape
 
+      if @trg_offset != DEFAULT::OFFSET
+        bb_rct = trg_shape.get_bounding_box
+        mod_point = trg_shape.get_absolute_position
+
+        mod_point.x += bb_rct.width.to_f * @trg_offset.x
+        mod_point.y += bb_rct.height.to_f * @trg_offset.y
+      else
+        mod_point = trg_shape.get_center
+      end
+
+      conn_pt = trg_shape.get_nearest_connection_point(mod_point)
+      mod_point = conn_pt.get_connection_point if conn_pt
+
+      mod_point
     end
 
     private
