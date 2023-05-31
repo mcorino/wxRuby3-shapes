@@ -164,6 +164,56 @@ module Wx::SF
       DOCK_POINT = -3
     end
 
+    class << self
+      # Returns intersection point of two lines (if any)
+      # @param [Wx::RealPoint] from1
+      # @param [Wx::RealPoint] to1
+      # @param [Wx::RealPoint] from2
+      # @param [Wx::RealPoint] to2
+      # @return [Wx::RealPoint,nil] intersection point or nil
+      def lines_intersection(from1, to1, from2, to2)
+        i = Wx::RealPoint.new
+        # double a1, b1, c1, a2, b2, c2, ka, kb
+
+        # bug in GCC ???
+        # volatile double xi, yi
+
+         # create line 1 info
+        a1 = to1.y - from1.y
+        b1 = from1.x - to1.x
+        c1 = -a1*from1.x - b1*from1.y
+
+        # create line 2 info
+        a2 = to2.y - from2.y
+        b2 = from2.x - to2.x
+        c2 = -a2*from2.x - b2*from2.y
+
+        # check, whether the lines are parallel...
+        ka = a1 / a2
+        kb = b1 / b2
+
+        return nil if(ka == kb)
+
+        # find intersection point
+        if Wx::PLATFORM == 'WXMSW'
+          xi = (((b1*c2 - c1*b2) / (a1*b2 - a2*b1)) + 0.5).floor
+          yi = ((-(a1*c2 - a2*c1) / (a1*b2 - a2*b1)) + 0.5).floor
+        else
+          xi = (b1*c2 - c1*b2) / (a1*b2 - a2*b1)
+          yi = -(a1*c2 - a2*c1) / (a1*b2 - a2*b1)
+        end
+
+        if( ((from1.x - xi)*(xi - to1.x) >= 0) &&
+          ((from2.x - xi)*(xi - to2.x) >= 0) &&
+          ((from1.y - yi)*(yi - to1.y) >= 0) &&
+          ((from2.y - yi)*(yi - to2.y) >= 0) )
+            return Wx::RealPoint.new(xi, yi)
+        end
+
+        nil
+      end
+    end
+
     # @overload initialize()
     #   default constructor
     # @overload initialize(pos, manager)
