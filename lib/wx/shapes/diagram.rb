@@ -595,13 +595,13 @@ module Wx::SF
       new_shapes.each do |shape|
         if shape.is_a?(GridShape)
           grid.each_cell do |row, col, id|
-            grid.clear_cell(row, col) unless @shapes_index.has_key?(id)
+            grid.clear_cell(row, col) unless id.nil? || @shapes_index.has_key?(id)
           end
         elsif shape.has_children?
           shape.get_children_recursively(nil, Shape::SEARCHMODE::DFS).each do |child|
             if shape.is_a?(GridShape)
               grid.each_cell do |row, col, id|
-                grid.clear_cell(row, col) unless @shapes_index.has_key?(id)
+                grid.clear_cell(row, col) unless id.nil? || @shapes_index.has_key?(id)
               end
             end
           end

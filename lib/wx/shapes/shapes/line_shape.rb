@@ -149,9 +149,19 @@ module Wx::SF
     end
     alias :src_arrow :get_src_arrow
 
-    # @param [Wx::SF::ArrowBase] arrow
-    def set_src_arrow(pt)
-      @src_arrow = pt
+    # Set source arrow
+    # @overload set_src_arrow(arrow)
+    #   @param [Wx::SF::ArrowBase] arrow
+    #   @return [Wx::SF::ArrowBase,nil] the new source arrow object if invalid
+    # @overload set_src_arrow(arrow_klass)
+    #   @param [Class] arrow_klass
+    #   @return [Wx::SF::ArrowBase,nil] the new source arrow object if invalid
+    def set_src_arrow(arg)
+      if (arg.is_a?(::Class) && arg < ArrowBase) || arg.is_a?(ArrowBase)
+        @src_arrow = arg.is_a?(ArrowBase) ? arg : arg.new
+        @src_arrow.set_parent_shape(self)
+      end
+      nil
     end
     alias :src_arrow= :set_src_arrow
 
@@ -161,9 +171,19 @@ module Wx::SF
     end
     alias :trg_arrow :get_trg_arrow
 
-    # @param [Wx::SF::ArrowBase] arrow
-    def set_trg_arrow(pt)
-      @trg_arrow = pt
+    # Set target arrow
+    # @overload set_trg_arrow(arrow)
+    #   @param [Wx::SF::ArrowBase] arrow
+    #   @return [Wx::SF::ArrowBase,nil] the new source arrow object if invalid
+    # @overload set_trg_arrow(arrow_klass)
+    #   @param [Class] arrow_klass
+    #   @return [Wx::SF::ArrowBase,nil] the new source arrow object if invalid
+    def set_trg_arrow(arg)
+      if (arg.is_a?(::Class) && arg < ArrowBase) || arg.is_a?(ArrowBase)
+        @trg_arrow = arg.is_a?(ArrowBase) ? arg : arg.new
+        @trg_arrow.set_parent_shape(self)
+      end
+      nil
     end
     alias :trg_arrow= :set_trg_arrow
 

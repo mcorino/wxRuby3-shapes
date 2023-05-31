@@ -26,7 +26,7 @@ module Wx::SF
     #   Default constructor.
     # @overload initialize(pos, size, rows, cols, cell_space, diagram)
     #   User constructor.
-    #   @param [Wx::Point] pos Initial position
+    #   @param [Wx::RealPoint] pos Initial position
     #   @param [Wx::Size] size Initial size
     #   @param [Integer] cols Number of grid rows
     #   @param [Integer] rows Number of grid columns
@@ -39,8 +39,11 @@ module Wx::SF
         @cols = DEFAULT::COLS
         @cell_space = DEFAULT::CELLSPACE
       else
-        pos, size, @rows, @cols, @cell_space, diagram = args
+        pos, size, rows, cols, cell_space, diagram = args
         super(pos, size, diagram)
+        @rows = rows || 0
+        @cols = cols || 0
+        @cell_space = cell_space || 0
       end
       @cells = []
     end
@@ -125,7 +128,7 @@ module Wx::SF
     #   @param [Integer] col Zero-based column index
     #   @return [Shape] shape object stored in specified grid cell if exists, otherwise nil
     def get_managed_shape(*args)
-      index = args.size == 1 ? args.first : args[0]*args[1]
+      index = args.size == 1 ? args.first : (args[0]*@cols)+args[1]
       if index>=0 && index<@cells.size && @cells[index]
         return @child_shapes.find { |child| @cells[index] == child.id }
       end
@@ -189,7 +192,7 @@ module Wx::SF
             @rows = @cells.size / @cols
           end
 
-          true
+          return true
         end
       else
         index, shape = args
@@ -209,6 +212,8 @@ module Wx::SF
           if @cells.size > (@rows * @cols)
             @rows = @cells.size / @cols
           end
+
+          return true
         end
       end
       false

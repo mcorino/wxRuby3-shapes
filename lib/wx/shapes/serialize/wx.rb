@@ -53,6 +53,15 @@ class Wx::Colour
 
 end
 
+# need to add this Enum explicitly as it was initially defined before we extended the Wx::Enum class above
+class Wx::BrushStyle
+
+  property :value => ->(enum) { enum.to_i }
+
+  include Wx::SF::Serializable
+
+end
+
 class Wx::Brush
 
   include Wx::SF::Serializable

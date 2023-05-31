@@ -57,6 +57,12 @@ module Wx::SF::Serializable
     end
     protected :from_serialized
 
+    # Always returns false for IDs.
+    # @return [Boolean]
+    def list_serialize_disabled?
+      false
+    end
+
     def to_s
       "Wx::SF::Serializable::ID<#{object_id}>"
     end
