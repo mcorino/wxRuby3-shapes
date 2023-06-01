@@ -314,7 +314,7 @@ module Wx::SF
     # @param [Symbol, String] format data format of source
     # @return [Object] deserialized object
     def self.deserialize(source, format: Serializable.default_format)
-      self[format].load(::IO === source ? source.read : source)
+      self[format].load(::IO === source || source.respond_to?(:read) ? source.read : source)
     end
 
     def self.included(base)

@@ -18,7 +18,7 @@ module Wx::SF
 
     include Serializable
 
-    property :shapes
+    property :shapes, :accepted_shapes, :accepted_top_shapes
 
     # Search mode flags for get_shape_at_position method
     SEARCHMODE = ShapeCanvas::SEARCHMODE
@@ -448,16 +448,16 @@ module Wx::SF
 
 	  # Get list of shapes of given type.
     # @param [Class] shape_info Line object type
-	  # @param [SEARCHMODE] mode Search algorithm
+	  # @param [Shape::SEARCHMODE] mode Search algorithm
     # @param [Array<Wx::SF::Shape>] shapes shape list where all found shapes will be stored
     # @return [Array<Wx::SF::Shape>] shape list
-	  # @see SEARCHMODE
-    def get_shapes(shape_info = Wx::SF::Shape, mode = SEARCHMODE::BFS, shapes = [])
+	  # @see Shape::SEARCHMODE
+    def get_shapes(shape_info = Wx::SF::Shape, mode = Shape::SEARCHMODE::BFS, shapes = [])
       @shapes.each do |shape|
         shapes << shape if shape.is_a?(shape_info)
-        shape.get_children_recursively(shape_info, mode, shapes) if mode == SEARCHMODE::DFS
+        shape.get_children_recursively(shape_info, mode, shapes) if mode == Shape::SEARCHMODE::DFS
       end
-      if mode == SEARCHMODE::BFS
+      if mode == Shape::SEARCHMODE::BFS
         @shapes.each { |shape| shape.get_children_recursively(shape_info, mode, shapes) }
       end
     end
@@ -607,6 +607,18 @@ module Wx::SF
           end
         end
       end
+    end
+
+    # Set accepted shapes. Deserialization only.
+    # @param [Array<String>] shp_names
+    def set_accepted_shapes(shp_names)
+      @accepted_shapes.merge(shp_names)
+    end
+
+    # Set accepted top shapes. Deserialization only.
+    # @param [Array<String>] shp_names
+    def set_accepted_top_shapes(shp_names)
+      @accepted_top_shapes.merge(shp_names)
     end
 
   end

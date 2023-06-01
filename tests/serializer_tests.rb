@@ -478,4 +478,15 @@ module SerializerTestMixin
     assert_nil(obj_new.get_managed_shape(1, 2))
   end
 
+  def test_canvas
+    frame = Wx::Frame.new(nil)
+    frame.set_size([800, 600])
+    frame.client_rect
+    canvas = Wx::SF::ShapeCanvas.new(Wx::SF::Diagram.new, frame)
+    io = StringIO.new
+    assert_nothing_raised { canvas.save_canvas(io, compact: false) }
+    io.rewind
+    assert_nothing_raised {  canvas.load_canvas(io) }
+  end
+
 end

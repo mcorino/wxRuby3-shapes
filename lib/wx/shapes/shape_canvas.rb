@@ -2,6 +2,10 @@
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/shape_data_object'
+require 'wx/shapes/canvas_history'
+
+require 'tempfile'
+require 'fileutils'
 
 module Wx::SF
 
@@ -213,7 +217,7 @@ module Wx::SF
       GRADIENT_TO = Wx::Colour.new(200, 200, 255) if Wx::App.is_main_loop_running
       Wx.add_delayed_constant(self, :GRADIENT_TO) { Wx::Colour.new(200, 200, 255) }
       # Default value of Wx::SF::CanvasSettings @style data member
-      STYLE = STYLE::DEFAULT_CANVAS_STYLE
+      CANVAS_STYLE = STYLE::DEFAULT_CANVAS_STYLE
       # Default value of Wx::SF::CanvasSettings @shadow_offset data member
       SHADOWOFFSET = Wx::RealPoint.new(4, 4)
       # Default shadow colour 
@@ -234,46 +238,6 @@ module Wx::SF
       SCALE_MAX = 5.0
     end
 
-    # Auxiliary serializable class encapsulating the canvas properties.
-    class Settings
-
-      include Serializable
-
-      include DEFAULT
-
-      property :scale, :min_scale, :max_scale, :background_color, :common_hover_color,
-               :grid_size, :grid_line_mult, :grid_color, :grid_style,
-               :gradient_from, :gradient_to, :style, :shadow_offset, :shadow_fill,
-               :print_h_align, :print_v_align, :print_mode, :accepted_shapes
-
-      def initialize
-        @scale = 1.0
-        @min_scale = SCALE_MIN
-        @max_scale = SCALE_MAX
-        @background_color = BACKGROUNDCOLOR
-        @common_hover_color = HOVERCOLOR
-        @grid_size = GRIDSIZE
-        @grid_line_mult = GRIDLINEMULT
-        @grid_color = GRIDCOLOR
-        @grid_style = GRIDSTYLE
-        @gradient_from = GRADIENT_FROM
-        @gradient_to = GRADIENT_TO
-        @style = STYLE
-        @shadow_offset = SHADOWOFFSET
-        @shadow_fill = SHADOWBRUSH
-        @print_h_align = PRINT_HALIGN
-        @print_v_align = PRINT_VALIGN
-        @print_mode = PRINT_MODE
-        @accepted_shapes = ::Set.new
-      end
-
-      attr_accessor :scale, :min_scale, :max_scale, :background_color, :common_hover_color,
-                    :grid_size, :grid_line_mult, :grid_color, :grid_style,
-                    :gradient_from, :gradient_to, :style, :shadow_offset, :shadow_fill,
-                    :print_h_align, :print_v_align, :print_mode, :accepted_shapes
-
-    end
-
     class << self
 
       def gc_enabled?
@@ -288,6 +252,105 @@ module Wx::SF
           Wx.log_warning(%Q{Couldn't enable Graphics context due to missing USE_GRAPHICS_CONTEXT})
         end
       end
+
+      TLS_LOADING_VERSION_KEY = :loading_version.freeze
+      private_constant :TLS_LOADING_VERSION_KEY
+
+      def compat_loading?
+        !!::Thread::current[TLS_LOADING_VERSION_KEY]
+      end
+
+      def compat_loading_version
+        ::Thread::current[TLS_LOADING_VERSION_KEY]
+      end
+
+      def set_compat_loading(ver_info)
+        ::Thread::current[TLS_LOADING_VERSION_KEY] = ver_info
+      end
+
+      def reset_compat_loading
+        ::Thread::current[TLS_LOADING_VERSION_KEY] = nil
+      end
+
+    end
+
+    # Auxiliary serializable class encapsulating canvas version info
+    # and providing version check on loading.
+    class Version
+
+      class Exception < SFException; end
+
+      VersionInfo = ::Struct.new(:major, :minor, :release) do
+        def to_s
+          "#{major}.#{minor}.#{release}"
+        end
+      end
+
+      include Serializable
+
+      property :version_info
+
+      def initialize
+        # get version numbers as [major, minor, release]
+        @version_info = VersionInfo.new(*Wx::SF::VERSION.split(/\D/).shift(3).collect { |s| s.to_i })
+      end
+
+      attr_reader :version_info
+
+      # Deserialization only.
+      def set_version_info(ver_info)
+        if @version_info.major < ver_info.major ||
+            (@version_info.major == ver_info.major && @version_info.minor < ver_info.minor)
+          ::Kernel.raise Version::Exception, "Incompatible Wx::SF diagram version #{ver_info} cannot be loaded (current Wx::SF version #{@version_info})."
+        elsif @version_info.major > ver_info.major ||
+            (@version_info.major == ver_info.major && @version_info.minor > ver_info.minor)
+          # this should normally work but may give trouble
+          # set compat loading info
+          ShapeCanvas.set_compat_loading(ver_info)
+        else
+          # this should never give any trouble
+        end
+      end
+      private :set_version_info
+
+    end
+
+    # Auxiliary serializable class encapsulating the canvas properties.
+    class Settings
+
+      include Serializable
+
+      include DEFAULT
+
+      property :scale, :min_scale, :max_scale, :background_color, :common_hover_color,
+               :grid_size, :grid_line_mult, :grid_color, :grid_style,
+               :gradient_from, :gradient_to, :style, :shadow_offset, :shadow_fill,
+               :print_h_align, :print_v_align, :print_mode
+
+      def initialize
+        @scale = 1.0
+        @min_scale = SCALE_MIN
+        @max_scale = SCALE_MAX
+        @background_color = BACKGROUNDCOLOR
+        @common_hover_color = HOVERCOLOR
+        @grid_size = GRIDSIZE
+        @grid_line_mult = GRIDLINEMULT
+        @grid_color = GRIDCOLOR
+        @grid_style = GRIDSTYLE
+        @gradient_from = GRADIENT_FROM
+        @gradient_to = GRADIENT_TO
+        @style = CANVAS_STYLE
+        @shadow_offset = SHADOWOFFSET
+        @shadow_fill = SHADOWBRUSH
+        @print_h_align = PRINT_HALIGN
+        @print_v_align = PRINT_VALIGN
+        @print_mode = PRINT_MODE
+      end
+
+      attr_accessor :scale, :min_scale, :max_scale, :background_color, :common_hover_color,
+                    :grid_size, :grid_line_mult, :grid_color, :grid_style,
+                    :gradient_from, :gradient_to, :style, :shadow_offset, :shadow_fill,
+                    :print_h_align, :print_v_align, :print_mode
 
     end
 
@@ -321,6 +384,7 @@ module Wx::SF
       @prev_mouse_pos = Wx::Point.new
       @prev_positions = {}
 
+      @settings = Settings.new
       @canvas_history = CanvasHistory.new(self)
 
       if diagram
@@ -364,7 +428,7 @@ module Wx::SF
     end
 
     def create(parent, id = -1, pos = Wx::DEFAULT_POSITION, size = Wx::DEFAULT_SIZE, style = (Wx::HSCROLL | Wx::VSCROLL), name = "Wx::ScrolledWindow")
-      # NOTE: user must call Wx::SF::ShapeCanvas::SetDiagramManager() to complete
+      # NOTE: user must call Wx::SF::ShapeCanvas#set_diagram() to complete
       # canvas initialization!
 
       # perform basic window initialization
@@ -377,7 +441,7 @@ module Wx::SF
 
       # initialize selection rectangle
       @shp_selection = MultiSelRect.new
-      @shp_selection.set_id(nil)
+      @shp_selection.send(:set_id, nil)
       @shp_selection.create_handles
       @shp_selection.select(true)
       @shp_selection.show(false)
@@ -385,7 +449,7 @@ module Wx::SF
 
       # initialize multi-edit rectangle
       @shp_multi_edit = MultiSelRect.new
-      @shp_multi_edit.set_id(nil)
+      @shp_multi_edit.send(:set_id, nil)
       @shp_multi_edit.create_handles
       @shp_multi_edit.select(true)
       @shp_multi_edit.show(false)
@@ -412,12 +476,13 @@ module Wx::SF
       #     return true
     end
 
+    attr_reader :settings
+
     # Returns the shape diagram which shapes are displayed on this canvas.
     # @return [Wx::SF::Diagram]
     def get_diagram
       @diagram
     end
-
     alias :diagram :get_diagram
 
     # Set the shape diagram to display on this canvas
@@ -428,17 +493,84 @@ module Wx::SF
       @shp_multi_edit.set_diagram(@diagram)
       @diagram.shape_canvas = self if @diagram
     end
-
     alias :diagram= :set_diagram
 
-    # Load serialized canvas content (diagrams) from given file.
-    # @param [String] file Full file name
-    def load_canvas(file)
+    # Load serialized canvas content (diagrams).
+    # @overload load_canvas(file)
+    #   @param [String] file Full file name
+    #   @return [self]
+    # @overload load_canvas(io)
+    #   @param [IO] io IO object
+    #   @return [self]
+    def load_canvas(io)
+      # get IO stream to read from
+      begin
+        ios = io.is_a?(::String) ? File.open(io, 'r') : io
+        ver_info, @settings, @diagram = Serializable.deserialize(ios)
+      rescue SFException
+        ::Kernel.raise
+      rescue ::Exception
+        ::Kernel.raise SFException, "Failed to load canvas: #{$!.message}"
+      ensure
+        ShapeCanvas.reset_compat_loading
+        ios.close if io.is_a?(::String) && ios
+      end
+      self
     end
 
-    # Save  canvas content (diagrams) to given file.
-    # @param [String] file Full file name
-    def save_canvas(file)
+    # Save  canvas content (diagrams).
+    # @overload save_canvas(file)
+    #   @param [String] file Full file name
+    #   @param [Boolean] compact specifies whether to write content in compact mode (true) or not (false)
+    #   @return [self]
+    # @overload save_canvas(io)
+    #   @param [IO] io IO object
+    #   @param [Boolean] compact specifies whether to write content in compact mode (true) or not (false)
+    #   @return [self]
+    def save_canvas(io, compact: true)
+      ::Kernel.raise RuntimeError, "No diagram to save" unless @diagram
+      # get IO stream to write to
+      ios = io.is_a?(::String) ? Tempfile.new(File.basename(io, '.*')) : io
+      # write canvas data to temp file
+      begin
+        [Version.new, @settings, @diagram].serialize(ios, pretty: !compact)
+      rescue SFException
+        ::Kernel.raise
+      rescue Exception
+        ::Kernel.raise SFException, "Error writing canvas: #{$!.message}"
+      end
+      if io.is_a?(::String)
+        ios.close(false) # close but keep temp file
+        full_path = File.absolute_path(io)
+        if File.exist?(full_path)
+          # create temporary backup
+          ftmp = Tempfile.new(File.basename(io))
+          ftmp_name = ftmp.path.dup
+          ftmp.close(true) # close AND unlink
+          FileUtils::mv(full_path, ftmp_name) # backup existing file
+          # replace original
+          begin
+            # rename newly generated file
+            FileUtils.mv(ios.path, full_path)
+            # preserve file mode
+            FileUtils.chmod(File.lstat(ftmp_name).mode, full_path)
+          rescue Exception
+            # restore backup
+            FileUtils.mv(ftmp_name, full_path)
+            ::Kernel.raise SFException, "Unable to save canvas file #{io}: #{$!.message}"
+          end
+          # remove backup
+          FileUtils.rm_f(ftmp_name)
+        else
+          begin
+            # rename newly generated file
+            FileUtils.mv(ios.path, full_path)
+          rescue Exception
+            ::Kernel.raise SFException, "Unable to save canvas file #{io}: #{$!.message}"
+          end
+        end
+      end
+      self
     end
 
     # Export canvas content to image file.

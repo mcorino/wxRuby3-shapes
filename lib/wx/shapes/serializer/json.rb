@@ -149,7 +149,7 @@ module Wx::SF
       def self.dump(obj, io=nil, pretty: false)
         obj.extend(HashInstancePatch) if obj.is_a?(::Hash)
         if pretty
-          if io
+          if io || io.respond_to?(:write)
             io.write(::JSON.pretty_generate(obj))
             io
           else
