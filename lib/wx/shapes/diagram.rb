@@ -28,8 +28,8 @@ module Wx::SF
       @shapes_index = {}
       @shape_canvas = nil
       @is_modified = false
-      @accepted_shapes = ::Set.new
-      @accepted_top_shapes = ::Set.new
+      @accepted_shapes = ::Set.new(['*'])
+      @accepted_top_shapes = ::Set.new(['*'])
     end
 
     attr_accessor :shape_canvas
@@ -352,7 +352,7 @@ module Wx::SF
     # @param [String,Class] type Class (name) of examined shape object
     # @return [Boolean] true if the shape type is accepted, otherwise false.
     def is_shape_accepted(type)
-      @accepted_shapes.include?(type.to_s)
+      @accepted_shapes.include?(type.to_s) || @accepted_shapes.include?('*')
     end
     alias :shape_accepted? :is_shape_accepted
 
@@ -387,7 +387,7 @@ module Wx::SF
     # @param [String,Class] type Class (name) of examined shape object
     # @return [Boolean] true if the shape type is accepted, otherwise false.
     def is_top_shape_accepted(type)
-      @accepted_top_shapes.include?(type.to_s)
+      @accepted_top_shapes.include?(type.to_s) || @accepted_top_shapes.include?('*')
     end
     alias :top_shape_accepted? :is_top_shape_accepted
 
@@ -460,6 +460,7 @@ module Wx::SF
       if mode == Shape::SEARCHMODE::BFS
         @shapes.each { |shape| shape.get_children_recursively(shape_info, mode, shapes) }
       end
+      shapes
     end
 
 	  # Get shape at given logical position

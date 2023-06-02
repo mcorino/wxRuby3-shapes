@@ -1524,7 +1524,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::SHOW_HANDLES)
-        @handles.each { |h| h.draw(dc) }
+        @handles.each { |h| h.send(:draw, dc) }
       end
     end
 
@@ -1682,9 +1682,9 @@ module Wx::SF
       # first, get bounding box of the current shape
       if (mask & BBMODE::SELF) != 0
         if rct.is_empty
-          rct = get_bounding_box.inflate(@h_border.abs, @v_border.abs)
+          rct = get_bounding_box.inflate([@h_border.abs, @v_border.abs])
         else
-          rct.union(get_bounding_box.inflate(@h_border.abs, @v_border.abs))
+          rct.union(get_bounding_box.inflate([@h_border.abs, @v_border.abs]))
 
           # add also shadow offset if necessary
           if (mask & BBMODE::SHADOW) != 0 && has_style?(STYLE::SHOW_SHADOW) && get_parent_canvas

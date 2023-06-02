@@ -241,6 +241,9 @@ module Wx::SF
     class << self
 
       def gc_enabled?
+        if @gc_enabled.nil?
+          @gc_enabled = Wx.has_feature?(:USE_GRAPHICS_CONTEXT)
+        end
         @gc_enabled
       end
 
@@ -793,9 +796,9 @@ module Wx::SF
     # @param [Wx::Rect] rct Refreshed region (rectangle)
     def refresh_canvas(erase, rct)
       lpos = dp2lp(Wx::Point.new(0, 0))
-      upd_rct = Wx::Rect.new(rct)
+      upd_rct = rct.dup
 
-      upd_rct.inflate((20/@settings.scale).to_i, (20/@settings.scale).to_i)
+      upd_rct.inflate([(20/@settings.scale).to_i, (20/@settings.scale).to_i])
       upd_rct.offset([-lpos.x, -lpos.y])
 
       refresh_rect(Wx::Rect.new((upd_rct.x*@settings.scale).to_i,
@@ -810,7 +813,7 @@ module Wx::SF
     # @param [Wx::Rect] rct Rectangle to be invalidated
     def invalidate_rect(rct)
       if @invalidate_rect.nil?
-        @invalidate_rect = Wx::Rect.new(rct)
+        @invalidate_rect = rct.dup
       else
         @invalidate_rect.union(rct)
       end
@@ -824,7 +827,7 @@ module Wx::SF
     # Refresh all canvas rectangles marked as invalidated.
     # @see Wx::SF::ShapeCanvas::invalidate_rect
     def refresh_invalidated_rect
-      unless @invalidate_rect.nil? && @invalidate_rect.empty?
+      unless @invalidate_rect.nil? || @invalidate_rect.empty?
         refresh_canvas(false, @invalidate_rect)
         @invalidate_rect = nil
       end
@@ -1307,7 +1310,7 @@ module Wx::SF
       lst_selection = get_selected_shapes
 
       upd_rct = get_selection_bb
-      upd_rct.inflate(DEFAULT_ME_OFFSET, DEFAULT_ME_OFFSET)
+      upd_rct.inflate([DEFAULT_ME_OFFSET, DEFAULT_ME_OFFSET])
 
       # find most distant position
       lst_selection.each do |shape|
@@ -1723,7 +1726,7 @@ module Wx::SF
         end
       end
       union_rct ||= Wx::Rect.new
-      union_rct.inflate(DEFAULT_ME_OFFSET, DEFAULT_ME_OFFSET)
+      union_rct.inflate([DEFAULT_ME_OFFSET, DEFAULT_ME_OFFSET])
 
       # draw rectangle
       @shp_multi_edit.set_relative_position(Wx::RealPoint.new(union_rct.x.to_f, union_rct.y.to_f))
@@ -1805,7 +1808,7 @@ module Wx::SF
         lst_lines_to_draw = []
 
         # get all existing shapes
-        lst_to_draw = @diagram.get_shapes(Shape, SEARCHMODE::DFS)
+        lst_to_draw = @diagram.get_shapes(Shape, Shape::SEARCHMODE::DFS)
 
         upd_rct = nil
         # get the update rect list
@@ -1813,17 +1816,15 @@ module Wx::SF
           # combine updated rectangles
           region_it.each do |rct|
             if upd_rct.nil?
-              upd_rct = dp2lp(rct.inflate(5, 5))
+              upd_rct = dp2lp(rct.inflate([5, 5]))
             else
-              upd_rct.union(dp2lp(rct.inflate(5, 5)))
+              upd_rct.union(dp2lp(rct.inflate([5, 5])))
             end
           end
         end
         upd_rct ||= Wx::Rect.new
 
         if @working_mode == MODE::SHAPEMOVE
-          #ShapeList m_lstSelected
-
           # draw unselected non line-based shapes first...
           lst_to_draw.each do |shape|
             parent_shape = shape.get_parent_shape
@@ -2878,8 +2879,8 @@ module Wx::SF
     end
 
 	  # Event handler called when the mouse pointer leaves the canvas window.
-	  # @param [Wx::MouseEvent] _event Mouse event
-    def _on_leave_window(_event)
+	  # @param [Wx::MouseEvent] event Mouse event
+    def _on_leave_window(event)
       case @working_mode
       when MODE::MULTISELECTION
       when MODE::SHAPEMOVE
