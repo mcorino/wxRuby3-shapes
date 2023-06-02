@@ -819,7 +819,7 @@ module Wx::SF
       if @invalidate_rect.nil?
         @invalidate_rect = rct.dup
       else
-        @invalidate_rect.union(rct)
+        @invalidate_rect.union!(rct)
       end
     end
 
@@ -1282,7 +1282,7 @@ module Wx::SF
             if ix == 0
               virt_rct = shape.get_bounding_box
             else
-              virt_rct.union(shape.get_bounding_box)
+              virt_rct.union!(shape.get_bounding_box)
             end
         end
       end
@@ -1726,7 +1726,7 @@ module Wx::SF
         if ix == 0
           union_rct = shape.get_bounding_box
         else
-          union_rct.union(shape.get_bounding_box)
+          union_rct.union!(shape.get_bounding_box)
         end
       end
       union_rct ||= Wx::Rect.new
@@ -1822,7 +1822,7 @@ module Wx::SF
             if upd_rct.nil?
               upd_rct = dp2lp(rct.inflate([5, 5]))
             else
-              upd_rct.union(dp2lp(rct.inflate([5, 5])))
+              upd_rct.union!(dp2lp(rct.inflate([5, 5])))
             end
           end
         end
@@ -2405,7 +2405,7 @@ module Wx::SF
 
             @new_line_shape.get_complete_bounding_box(upd_line_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
 
-            line_rct.union(upd_line_rct)
+            line_rct.union!(upd_line_rct)
 
             invalidate_rect(line_rct)
           end

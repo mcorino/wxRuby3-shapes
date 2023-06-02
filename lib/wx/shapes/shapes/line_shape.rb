@@ -367,12 +367,12 @@ module Wx::SF
           if line_rct.empty?
             line_rct = Wx::Rect.new(prev_pt.to_point, pt.to_point)
           else
-            line_rct.union(Wx::Rect.new(prev_pt.to_point, pt.to_point))
+            line_rct.union!(Wx::Rect.new(prev_pt.to_point, pt.to_point))
           end
           prev_pt = pt
         end
     
-        line_rct.union(Wx::Rect.new(prev_pt.to_point, get_trg_point.to_point))
+        line_rct.union!(Wx::Rect.new(prev_pt.to_point, get_trg_point.to_point))
       else
         # include starting point
         pt = get_src_point
@@ -380,7 +380,7 @@ module Wx::SF
         if line_rct.empty?
           line_rct = Wx::Rect.new(pt.x.to_i, pt.y.to_i, 1, 1)
         else
-          line_rct.union(Wx::Rect.new(pt.x.to_i, pt.y.to_i, 1, 1))
+          line_rct.union!(Wx::Rect.new(pt.x.to_i, pt.y.to_i, 1, 1))
         end
     
         # include ending point
@@ -388,7 +388,7 @@ module Wx::SF
         if line_rct.empty?
           line_rct = Wx::Rect.new(pt.x.to_i, pt.y.to_i, 1, 1)
         else
-          line_rct.union(Wx::Rect.new(pt.x.to_i, pt.y.to_i, 1, 1))
+          line_rct.union!(Wx::Rect.new(pt.x.to_i, pt.y.to_i, 1, 1))
         end
       end
     
@@ -397,7 +397,7 @@ module Wx::SF
         if line_rct.empty?
           line_rct = Wx::Rect.new(@unfinished_point.x, @unfinished_point.y, 1, 1)
         else
-          line_rct.union(Wx::Rect.new(@unfinished_point.x, @unfinished_point.y, 1, 1))
+          line_rct.union!(Wx::Rect.new(@unfinished_point.x, @unfinished_point.y, 1, 1))
         end
       end
     

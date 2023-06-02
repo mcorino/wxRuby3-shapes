@@ -1684,7 +1684,7 @@ module Wx::SF
         if rct.is_empty
           rct = get_bounding_box.inflate([@h_border.abs, @v_border.abs])
         else
-          rct.union(get_bounding_box.inflate([@h_border.abs, @v_border.abs]))
+          rct.union!(get_bounding_box.inflate([@h_border.abs, @v_border.abs]))
 
           # add also shadow offset if necessary
           if (mask & BBMODE::SHADOW) != 0 && has_style?(STYLE::SHOW_SHADOW) && get_parent_canvas
@@ -1715,7 +1715,7 @@ module Wx::SF
         lst_lines = get_assigned_connections(Wx::SF::LineShape, CONNECTMODE::BOTH)
 
         lst_lines.each do |line|
-          # rct.union(line.get_bounding_box)
+          # rct.union!(line.get_bounding_box)
           lst_children << line
 
           # get children of the connections
@@ -1857,7 +1857,7 @@ module Wx::SF
         curr_bb = get_complete_bounding_box(Wx::Rect.new, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
 
         # update canvas
-        refresh_rect(prev_bb.union(curr_bb), DELAYED)
+        refresh_rect(prev_bb.union!(curr_bb), DELAYED)
 
         @first_move = false
       end
@@ -1932,7 +1932,7 @@ module Wx::SF
         if !f_refresh_all
           curr_bb = get_complete_bounding_box(Wx::Rect.new, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
 
-          prev_bb.union(curr_bb)
+          prev_bb.union!(curr_bb)
           refresh_rect(prev_bb, DELAYED)
         else
           canvas.refresh(false)
@@ -1973,7 +1973,7 @@ module Wx::SF
       end
 
       # refresh shape
-      refresh_rect(curr_bb.union(prev_bb), DELAYED)
+      refresh_rect(curr_bb.union!(prev_bb), DELAYED)
     end
 
     # Sets accepted children. Exclusively for deserialization.

@@ -203,14 +203,14 @@ module Wx::SF
           child.get_complete_bounding_box(ch_bb, BBMODE::SELF | BBMODE::CHILDREN)
         end
       end
-    
+
       unless ch_bb.empty?
         unless shp_bb.contains?(ch_bb)
           dx = ch_bb.left - shp_bb.left
           dy = ch_bb.top - shp_bb.top
     
           # resize parent shape
-          shp_bb.union(ch_bb)
+          shp_bb.union!(ch_bb)
           move_to(shp_bb.get_position.x, shp_bb.get_position.y)
           @size = Wx::RealPoint.new(shp_bb.get_size.x.to_f, shp_bb.get_size.y.to_f)
           if has_style?(STYLE::EMIT_EVENTS)
