@@ -190,11 +190,11 @@ module Wx::SF
           else
             if is_top_shape_accepted(shape.class)
               @shapes << shape
-              @shapes_index[shape.id] = shape
             else
               return ERRCODE::NOT_ACCEPTED
             end
           end
+          @shapes_index[shape.id] = shape
           shape.set_diagram(self)
 
           # initialize added shape
@@ -306,13 +306,13 @@ module Wx::SF
       end
     end
 
-    # # Move given shape to the end of the shapes list
-    # # @param [Wx::SF::Shape] shape
-    # def move_to_end(shape)
-    #   if (a_shape = @shapes.delete(shape))
-    #     @shapes << a_shape
-    #   end
-    # end
+    # Move given shape to the end of the shapes list
+    # @param [Wx::SF::Shape] shape
+    def move_to_end(shape)
+      if (a_shape = @shapes.delete(shape))
+        @shapes << a_shape
+      end
+    end
 
     # Move all shapes so none of it will be located in negative position
     def move_shapes_from_negatives
@@ -486,10 +486,17 @@ module Wx::SF
     # @see Wx::SF::ShapeCanvas#get_shape_under_cursor
     def get_shape_at_position(pos, zorder = 1, mode = SEARCHMODE::BOTH)
       # sort shapes list in the way that the line shapes will be at the top of the list
-      shapes = get_shapes.sort! do |s1, s2|
-        s1.is_a?(LineShape) ? (s2.is_a?(LineShape) ? 0 : -1) : (s2.is_a?(LineShape) ? 1 : 0)
+      # and all non-line shapes get listed in reversed order as returned from get_shapes (for z order)
+      ins_pos = 0
+      shapes = get_shapes.inject([]) do |list, shape|
+        if shape.is_a?(LineShape)
+          list.prepend(shape)
+          ins_pos += 1
+        else
+          list.insert(ins_pos, shape)
+        end
+        list
       end
-
       # find the topmost shape according to the given rules
       counter = 1
       shapes.each do |shape|

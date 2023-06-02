@@ -1789,11 +1789,10 @@ module Wx::SF
         end
       end
 
-      # MCO - do not think this is useful
-      # selection.each do |shape|
-      #   # move selected shapes to the back of the shapes list in the diagram
-      #   @diagram.move_to_end(shape)
-      # end
+      selection.each do |shape|
+        # move selected shapes to the back of the shapes list in the diagram
+        @diagram.move_to_end(shape)
+      end
     end
 
 	  # Function responsible for drawing of the canvas's content to given DC. The default

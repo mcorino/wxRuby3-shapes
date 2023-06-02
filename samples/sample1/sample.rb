@@ -98,7 +98,7 @@ class SFSample1Frame < Wx::Frame
     @canvas.evt_sf_shape_drag { |evt| self.on_shape_mouse_event(evt) }
     @canvas.evt_sf_shape_drag_end { |evt| self.on_shape_mouse_event(evt) }
   
-    @canvas.evt_sf_shape_mouse_enter { |evt| self.on_shape_mouse_event(evt) }
+    @canvas.evt_sf_shape_mouse_enter { |evt| self.on_shape_mouse_enter_event(evt) }
     @canvas.evt_sf_shape_mouse_over { |evt| self.on_shape_mouse_event(evt) }
     @canvas.evt_sf_shape_mouse_leave { |evt| self.on_shape_mouse_event(evt) }
   
@@ -195,6 +195,12 @@ class SFSample1Frame < Wx::Frame
   end
 
   # event handlers for shapes
+
+  def on_shape_mouse_enter_event(event)
+    # if @log_menu.is_checked(ID::MenuLogMouseEvent)
+      @text_log.append_text("#{@event_type_info[event.get_event_type]}, ID: #{event.get_id}, Mouse position: #{event.get_mouse_position.x},#{event.get_mouse_position.y}\n")
+    # end
+  end
 
   def on_shape_mouse_event(event)
     if @log_menu.is_checked(ID::MenuLogMouseEvent)

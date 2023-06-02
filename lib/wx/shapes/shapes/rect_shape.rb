@@ -237,7 +237,6 @@ module Wx::SF
     # @param [Boolean] children true if the shape's children should be scaled as well, otherwise the shape will be updated after scaling via update() function.
     def scale(x, y, children = WITHCHILDREN)
       # HINT: overload it for custom actions...
-    
       if x > 0 && y > 0
         set_rect_size(@size.x * x, @size.y * y)
     

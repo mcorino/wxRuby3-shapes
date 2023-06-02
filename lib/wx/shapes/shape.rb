@@ -889,19 +889,14 @@ module Wx::SF
 	  # @param [Wx::SF::Shape] child child shape.
 	  # @return true if this shape is parent of given child shape, otherwise false
     def ancestor?(child)
-      lst_children = get_child_shapes(nil, RECURSIVE)
-
-      lst_children.include?(child)
+      @child_shapes.include?(child) || @child_shapes.any? { |c| c.ancestor?(child) }
     end
 
 	  # Determine whether this shape is descendant of given parent shape.
 	  # @param [Wx::SF::Shape] parent parent shape
 	  # @return true if this shape is a child of given parent shape, otherwise false
     def descendant?(parent)
-      return false unless parent
-      lst_children = parent.get_child_shapes(nil, RECURSIVE)
-
-      lst_children.include?(self)
+      parent && parent.ancestor?(self)
     end
 
     # Associate user data with the shape.
@@ -1507,6 +1502,14 @@ module Wx::SF
         evt.set_child_shape(child)
         get_shape_canvas.get_event_handler.process_event(evt)
       end
+    end
+
+    def to_s
+      "#<#{self.class}:#{id.to_i}#{parent_shape ? " parent=#{parent_shape.id.to_i}" : ''}>"
+    end
+
+    def inspect
+      to_s
     end
 
     protected
