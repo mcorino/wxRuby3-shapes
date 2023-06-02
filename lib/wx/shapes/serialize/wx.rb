@@ -15,6 +15,9 @@ class Wx::RealPoint
 
   properties :x, :y
 
+  def to_s
+    "#<Wx::RealPoint:#{Wx::ptr_addr(self)} (#{x}, #{y})>"
+  end
 end
 
 class Wx::Size

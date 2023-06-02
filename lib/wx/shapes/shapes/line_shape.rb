@@ -58,19 +58,21 @@ module Wx::SF
       if args.empty?
         super()
         @src_shape_id = @trg_shape_id = DEFAULT::UNKNOWNID
-        @src_point = @trg_point = DEFAULT::POINT
+        @src_point = DEFAULT::POINT.dup
+        @trg_point = DEFAULT::POINT.dup
         @stand_alone = DEFAULT::STANDALONE
         @lst_points = []
       else
         src, trg, path, diagram = args
-        super(Shape::DEFAULT::POSITION, diagram)
+        super(Shape::DEFAULT::POSITION.dup, diagram)
         if src.is_a?(Wx::RealPoint) && trg.is_a?(Wx::RealPoint)
           @src_point = src
           @trg_point = trg
           @src_shape_id = @trg_shape_id = DEFAULT::UNKNOWNID
           @stand_alone = true
         elsif src.is_a?(Wx::SF::Serializable::ID) && trg.is_a?(Wx::SF::Serializable::ID)
-          @src_point = @trg_point = DEFAULT::POINT
+          @src_point = DEFAULT::POINT.dup
+          @trg_point = DEFAULT::POINT.dup
           @src_shape_id = src
           @trg_shape_id = trg
           @stand_alone = false
@@ -88,7 +90,8 @@ module Wx::SF
       @dock_point = DEFAULT::DOCKPOINT
       @pen = DEFAULT::PEN
 
-      @src_offset = @trg_offset = DEFAULT::OFFSET
+      @src_offset = DEFAULT::OFFSET.dup
+      @trg_offset = DEFAULT::OFFSET.dup
 
       @mode = LINEMODE::READY
       @prev_position = Wx::RealPoint.new

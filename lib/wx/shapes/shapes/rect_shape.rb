@@ -34,7 +34,7 @@ module Wx::SF
         pos, size, diagram = args
         super(pos, diagram)
       end
-      @size = size ? size : DEFAULT::SIZE
+      @size = size ? size : DEFAULT::SIZE.dup
       @fill = DEFAULT::FILL
       @border = DEFAULT::BORDER
       @prev_size = @prev_position = Wx::RealPoint

@@ -336,14 +336,14 @@ module Wx::SF
         @max_scale = SCALE_MAX
         @background_color = BACKGROUNDCOLOR
         @common_hover_color = HOVERCOLOR
-        @grid_size = GRIDSIZE
+        @grid_size = GRIDSIZE.dup
         @grid_line_mult = GRIDLINEMULT
         @grid_color = GRIDCOLOR
         @grid_style = GRIDSTYLE
         @gradient_from = GRADIENT_FROM
         @gradient_to = GRADIENT_TO
         @style = CANVAS_STYLE
-        @shadow_offset = SHADOWOFFSET
+        @shadow_offset = SHADOWOFFSET.dup
         @shadow_fill = SHADOWBRUSH
         @print_h_align = PRINT_HALIGN
         @print_v_align = PRINT_VALIGN
