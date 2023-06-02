@@ -36,7 +36,7 @@ module Wx::SF
       end
       @size = size ? size : DEFAULT::SIZE
       @fill = DEFAULT::FILL
-      @pen = DEFAULT::BORDER
+      @border = DEFAULT::BORDER
       @prev_size = @prev_position = Wx::RealPoint
     end
 

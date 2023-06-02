@@ -32,7 +32,19 @@ module Wx::SF
       @accepted_top_shapes = ::Set.new(['*'])
     end
 
-    attr_accessor :shape_canvas
+    # Returns the shape canvas.
+    # @return [Wx::SF::ShapeCanvas]
+    def get_shape_canvas
+      @shape_canvas
+    end
+    alias :shape_canvas :get_shape_canvas
+
+    # Set the shape canvas.
+    # @param [Wx::SF::ShapeCanvas] canvas
+    def set_shape_canvas(canvas)
+      @shape_canvas = canvas
+    end
+    alias :shape_canvas= :set_shape_canvas
 
     def set_shapes(list)
       @shapes.replace(list)
@@ -179,6 +191,7 @@ module Wx::SF
             if is_top_shape_accepted(shape.class)
               @shapes << shape
               @shapes_index[shape.id] = shape
+              shape.set_diagram(self)
             else
               return ERRCODE::NOT_ACCEPTED
             end
@@ -254,7 +267,7 @@ module Wx::SF
       # remove the shape and it's children from canvas cache and shape index list
       lst_children.each do |child|
         @shapes_index.delete(child.id)
-        @shape_canvas.remove_from_temporaries(shape) if @shape_canvas
+        @shape_canvas.send(:remove_from_temporaries, shape) if @shape_canvas
       end
 
       # remove the shape
@@ -620,6 +633,10 @@ module Wx::SF
     # @param [Array<String>] shp_names
     def set_accepted_top_shapes(shp_names)
       @accepted_top_shapes.merge(shp_names)
+    end
+
+    public def inspect
+      "#<Wx::SF::Diagram:#{object_id}>"
     end
 
   end

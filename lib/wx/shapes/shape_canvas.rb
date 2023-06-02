@@ -639,18 +639,18 @@ module Wx::SF
       end
     end
 
-    def _start_interactive_connection(lpos, src_shape_id)
+    def _start_interactive_connection(lpos, src_shape_id, cpt)
       if @new_line_shape
         @working_mode = MODE::CREATECONNECTION
-        @new_line_shape.set_line_mode(LineShape::LINEMODE::UNDERCONSTRUCTION)
+        @new_line_shape.send(:set_line_mode, LineShape::LINEMODE::UNDERCONSTRUCTION)
 
         @new_line_shape.set_src_shape_id(src_shape_id)
 
         # switch on the "under-construction" mode
-        @new_line_shape.set_unfinished_point(lpos)
+        @new_line_shape.send(:set_unfinished_point, lpos)
         # assign starting point of new line shapes to the nearest connection point of
         # connected shape if exists
-        @new_line_shape.set_starting_connection_point(shape_under.get_nearest_connection_point(lpos.to_real))
+        @new_line_shape.set_starting_connection_point(cpt)
         ERRCODE::OK
       else
         ERRCODE::NOT_CREATED
@@ -696,7 +696,7 @@ module Wx::SF
         end
         pos = args.shift
       when ::Class
-        shape_info, pos = args
+        shape_info, pos = args.shift(2)
         shape_klass = shape_info.name
       end
       ::Kernel.raise ArgumentError, "Invalid arguments #{args}" unless args.empty?
@@ -707,14 +707,16 @@ module Wx::SF
       if @working_mode == MODE::READY && ((shape_info && shape_info < Wx::SF::LineShape) || (shape.is_a?(Wx::SF::LineShape)))
 
         if connection_point
+
           if @diagram.contains?(shape)
             @new_line_shape = shape
           else
             @new_line_shape = @diagram.add_shape(shape, nil, Wx::DEFAULT_POSITION, INITIALIZE, DONT_SAVE_STATE)
           end
-          return _start_interactive_connection(lpos, connection_point.get_parent_shape.id)
+          return _start_interactive_connection(lpos, connection_point.get_parent_shape.id, connection_point)
 
         else
+
           shape_under = get_shape_at_position(lpos)
           if shape_info
             # propagate request for interactive connection if requested
@@ -727,16 +729,18 @@ module Wx::SF
             if shape && @diagram.contains?(shape)
               @new_line_shape = shape
             else
-              @new_line_shape = if shape
-                                  @diagram.add_shape(shape, nil, Wx::DEFAULT_POSITION, INITIALIZE, DONT_SAVE_STATE)
-                                else
-                                  @diagram.create_shape(shape_info, DONT_SAVE_STATE)
-                                end
+              if shape
+                err = @diagram.add_shape(shape, nil, Wx::DEFAULT_POSITION, INITIALIZE, DONT_SAVE_STATE)
+              else
+                err, shape = @diagram.create_shape(shape_info, DONT_SAVE_STATE)
+              end
+              @new_line_shape =  (err == ERRCODE::OK ? shape : nil)
             end
-            return _start_interactive_connection(lpos, shape_under.id)
+            return _start_interactive_connection(lpos, shape_under.id, shape_under.get_nearest_connection_point(lpos.to_real))
           else
             return ERRCODE::NOT_ACCEPTED
           end
+
         end
       end
       ERRCODE::INVALID_INPUT
@@ -1829,10 +1833,10 @@ module Wx::SF
           lst_to_draw.each do |shape|
             parent_shape = shape.get_parent_shape
 
-            if !shape.is_a?(LineShape) || shape.is_stand_alone
+            if !shape.is_a?(LineShape) || shape.stand_alone?
               if shape.intersects?(upd_rct)
                 if parent_shape
-                  shape.draw(dc, WITHOUTCHILDREN) if !parent_shape.is_a?(LineShape) || parent_shape.is_stand_alone
+                  shape.draw(dc, WITHOUTCHILDREN) if !parent_shape.is_a?(LineShape) || parent_shape.stand_alone?
                 else
                   shape.draw(dc, WITHOUTCHILDREN)
                 end
@@ -1852,10 +1856,10 @@ module Wx::SF
           lst_to_draw.each do |shape|
             parent_shape = shape.get_parent_shape
 
-            if !shape.is_a?(LineShape) || shape.is_stand_alone
+            if !shape.is_a?(LineShape) || shape.stand_alone?
               if shape.intersects?(upd_rct)
                 if parent_shape
-                  shape.draw(dc, WITHOUTCHILDREN) if !parent_shape.is_a?(LineShape) || shape.is_stand_alone
+                  shape.draw(dc, WITHOUTCHILDREN) if !parent_shape.is_a?(LineShape) || shape.stand_alone?
                 else
                   shape.draw(dc, WITHOUTCHILDREN)
                 end
@@ -1878,12 +1882,12 @@ module Wx::SF
       else
         # draw parent shapes (children are processed by parent objects)
         @diagram.get_top_shapes.each do |shape|
-          shape.draw(dc) if !shape.is_a?(LineShape) || shape.is_stand_alone
+          shape.draw(dc) if !shape.is_a?(LineShape) || shape.stand_alone?
         end
 
         # draw connections
         @diagram.get_top_shapes.each do |shape|
-          shape.draw(dc) if shape.is_a?(LineShape) || !shape.is_stand_alone
+          shape.draw(dc) if shape.is_a?(LineShape) || !shape.stand_alone?
         end
       end
     end
@@ -2397,7 +2401,7 @@ module Wx::SF
             upd_line_rct = Wx::Rect.new
             @new_line_shape.get_complete_bounding_box(line_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
 
-            @new_line_shape.set_unfinished_point(fit_position_to_grid(lpos))
+            @new_line_shape.send(:set_unfinished_point, fit_position_to_grid(lpos))
             @new_line_shape.update
 
             @new_line_shape.get_complete_bounding_box(upd_line_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
@@ -2610,10 +2614,10 @@ module Wx::SF
     def on_text_change(shape)
       # HINT: override it for custom actions...
     
-      # ... standard implementation generates the Wx::EVT_SF_TEXT_CHANGE event.
+      # ... standard implementation generates the Wx::SF::EVT_SF_TEXT_CHANGE event.
       id = shape ? shape.get_id : nil
 
-      event = ShapeTextEvent.new(Wx::EVT_SF_TEXT_CHANGE, id)
+      event = ShapeTextEvent.new(Wx::SF::EVT_SF_TEXT_CHANGE, id)
       event.set_shape(shape)
       event.set_text(shape.get_text)
       process_event(event)
@@ -2628,10 +2632,10 @@ module Wx::SF
     def on_connection_finished(connection)
       # HINT: override to perform user-defined actions...
     
-      # ... standard implementation generates the Wx::EVT_SF_LINE_DONE event.
+      # ... standard implementation generates the Wx::SF::EVT_SF_LINE_DONE event.
       id = connection ? connection.get_id : -1
 
-      event = ShapeEvent.new(Wx::EVT_SF_LINE_DONE, id)
+      event = ShapeEvent.new(Wx::SF::EVT_SF_LINE_DONE, id)
       event.set_shape(connection)
       process_event(event)
     end
@@ -2649,10 +2653,10 @@ module Wx::SF
     def on_pre_connection_finished(connection)
       # HINT: override to perform user-defined actions...
     
-      # ... standard implementation generates the Wx::EVT_SF_LINE_DONE event.
+      # ... standard implementation generates the Wx::SF::EVT_SF_LINE_DONE event.
       id = connection ? connection.get_id : -1
     
-      event = ShapeEvent.new(Wx::EVT_SF_LINE_BEFORE_DONE, id)
+      event = ShapeEvent.new(Wx::SF::EVT_SF_LINE_BEFORE_DONE, id)
       event.set_shape(connection)
       process_event(event)
 
@@ -2675,11 +2679,11 @@ module Wx::SF
     def on_drop(x, y, deflt, dropped)
       # HINT: override it for custom actions...
     
-      # ... standard implementation generates the Wx::EVT_SF_ON_DROP event.
+      # ... standard implementation generates the Wx::SF::EVT_SF_ON_DROP event.
       return unless has_style?(STYLE::DND)
     
       # create the drop event and process it
-      event = ShapeDropEvent.new(Wx::EVT_SF_ON_DROP, x, y, self, deflt, Wx::ID_ANY)
+      event = ShapeDropEvent.new(Wx::SF::EVT_SF_ON_DROP, x, y, self, deflt, Wx::ID_ANY)
       event.set_dropped_shapes(dropped)
       process_event(event)
     end
@@ -2695,11 +2699,11 @@ module Wx::SF
     def on_paste(pasted)
       # HINT: override it for custom actions...
     
-      # ... standard implementation generates the Wx::EVT_SF_ON_PASTE event.
+      # ... standard implementation generates the Wx::SF::EVT_SF_ON_PASTE event.
       return unless has_style?(STYLE::CLIPBOARD)
     
       # create the drop event and process it
-      event = ShapePasteEvent.new(Wx::EVT_SF_ON_PASTE, self, Wx::ID_ANY)
+      event = ShapePasteEvent.new(Wx::SF::EVT_SF_ON_PASTE, self, Wx::ID_ANY)
       event.set_pasted_shapes(pasted)
       process_event(event)
     end
@@ -3111,7 +3115,7 @@ module Wx::SF
           lst_new_content.select! do |shape|
             shape.move_by(dx, dy)
             # do not reparent connection lines
-            rc = if shape.is_a?(LineShape) && !shape.is_stand_alone
+            rc = if shape.is_a?(LineShape) && !shape.stand_alone?
                    @diagram.add_shape(shape,
                                       nil,
                                       lp2dp(shape.get_absolute_position.to_point),
@@ -3155,7 +3159,11 @@ module Wx::SF
     end
       
     end
-    
+
+    def inspect
+      "#<Wx::SF::ShapeCanvas:#{object_id}>"
+    end
+
   end # class ShapeCanvas
 
 end

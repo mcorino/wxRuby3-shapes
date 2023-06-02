@@ -71,6 +71,10 @@ module Wx::SF::Serializable
       to_s
     end
 
+    def to_i
+      object_id
+    end
+
   end
 
   serializables << ID

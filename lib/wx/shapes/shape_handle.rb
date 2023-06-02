@@ -34,39 +34,51 @@ module Wx::SF
         @parent_shape = parent
         @type = type
         @id = id
-        @startPos = Wx::Point.new
-        @prevPos = Wx::Point.new
-        @currPos = Wx::Point.new
+        @start_pos = Wx::Point.new
+        @prev_pos = Wx::Point.new
+        @curr_pos = Wx::Point.new
 
         @visible = false
         @mouse_over = false
       end
-
-      # Get or set Handle type
-      # @param [TYPE] type Handle type to set
-      # @return [TYPE] Handle type
-      attr_accessor :type
-
-      # Get parent shape.
-      # @return [Wx::Shape] parent shape
-      attr_reader :parent_shape
 
       # Set or get handle's ID.
       # @param [Integer] id Handle's ID
       # @return [Integer] Handle's ID
       attr_accessor :id
 
+      # Get Handle type
+      # @return [TYPE] Handle type
+      def get_type
+        @type
+      end
+      alias :type :get_type
+
+      # Set Handle type
+      # @param [TYPE] type Handle type to set
+      def set_type(type)
+        @type = type
+      end
+      alias :type= :set_type
+
+      # Get parent shape.
+      # @return [Wx::Shape] parent shape
+      def get_parent_shape
+        @parent_shape
+      end
+      alias :parent_shape :get_parent_shape
+
       # Get current handle position.
       # @return [Wx::Point] Handle position
       def get_position
-        @currPos
+        @curr_pos
       end
       alias :position :get_position
 
       # Get current handle delta (difference between current and previous position).
       # @return [Wx::Point] Handle delta
       def get_delta
-        @currPos - @prevPos
+        @curr_pos - @prev_pos
       end
       alias :delta :get_delta
 
@@ -74,7 +86,7 @@ module Wx::SF
       # stored at the beginning of the dragging process).
       # @return [Wx::Point] Total handle delta
       def get_total_delta
-        @currPos - @startPos
+        @curr_pos - @start_pos
       end
       alias :total_delta :get_total_delta
 
@@ -92,14 +104,14 @@ module Wx::SF
       # Refresh (repaint) the handle
       # @return [void]
       def refresh
-        @parent_shape.refresh(SF::DELAYED) if @parent_shape
+        @parent_shape.refresh(DELAYED) if @parent_shape
       end
 
       # Find out whether given point is inside the handle.
       # @param [Wx::Point,Array(Integer,Integer)] pos Examined point
       # @return [Boolean] true if the point is inside the handle, otherwise false
       def contains(pos)
-        handle_rect.contains(pos)
+        handle_rect.contains?(pos)
       end
       alias contains? :contains
 
@@ -120,7 +132,7 @@ module Wx::SF
       # Draw handle in the normal way.
       # @param [Wx::DC] dc Device context where the handle will be drawn
       def draw_normal(dc)
-        dc.with_pen(Wx::PLATFORM == 'WXGTK' ? Wx::TRANSPARENT_PEN : Wx::BLACK_PEN) do |dc|
+        dc.with_pen(Wx::PLATFORM == 'WXGTK' ? Wx::TRANSPARENT_PEN : Wx::BLACK_PEN) do
           if Wx.has_feature?(:USE_GRAPHICS_CONTEXT)
             if ShapeCanvas::gc_enabled?
               dc.brush = Wx::Brush.new(Wx::Colour.new(0, 0, 0, 128))
@@ -164,30 +176,30 @@ module Wx::SF
       # @return [Wx::Rect] Handle rectangle
       def handle_rect
         if @parent_shape
-          brct = @parent_shape.bounding_box
+          brct = @parent_shape.get_bounding_box
           case @type
           when TYPE::LEFTTOP
             hrct = Wx::Rect.new(brct.top_left, Wx::Size.new(7,7))
           when TYPE::TOP
-            hrct = Wx::Rect.new(wxPoint(brct.left + brct.width/2, brct.top), Wx::Size.new(7,7))
+            hrct = Wx::Rect.new(Wx::Point.new(brct.left + brct.width/2, brct.top), Wx::Size.new(7,7))
           when TYPE::RIGHTTOP
             hrct = Wx::Rect.new(brct.top_right, Wx::Size.new(7,7))
           when TYPE::RIGHT
-            hrct = Wx::Rect.new(wxPoint(brct.right, brct.top + brct.height/2), Wx::Size.new(7,7))
+            hrct = Wx::Rect.new(Wx::Point.new(brct.right, brct.top + brct.height/2), Wx::Size.new(7,7))
           when TYPE::RIGHTBOTTOM
             hrct = Wx::Rect.new(brct.bottom_right, Wx::Size.new(7,7))
           when TYPE::BOTTOM
-            hrct = Wx::Rect.new(wxPoint(brct.left + brct.width/2, brct.bottom), Wx::Size.new(7,7))
+            hrct = Wx::Rect.new(Wx::Point.new(brct.left + brct.width/2, brct.bottom), Wx::Size.new(7,7))
           when TYPE::LEFTBOTTOM
             hrct = Wx::Rect.new(brct.bottom_left, Wx::Size.new(7,7))
           when TYPE::LEFT
-            hrct = Wx::Rect.new(wxPoint(brct.left, brct.top + brct.height/2), Wx::Size.new(7,7))
+            hrct = Wx::Rect.new(Wx::Point.new(brct.left, brct.top + brct.height/2), Wx::Size.new(7,7))
           when TYPE::LINECTRL
-            pt = @parent_shape.control_points.item(@id).data
-            hrct = Wx::Rect.new(wxPoint(pt.x.to_i, pt.y.to_i), Wx::Size.new(7,7))
+            pt = @parent_shape.get_control_points.item(@id).data
+            hrct = Wx::Rect.new(Wx::Point.new(pt.x.to_i, pt.y.to_i), Wx::Size.new(7,7))
           when TYPE::LINEEND, TYPE::LINESTART
             pt = @type == TYPE::LINESTART ? @parent_shape.src_point : @parent_shape.trg_point
-            hrct = Wx::Rect.new(wxPoint(pt.x.to_i, pt.y.to_i), Wx::Size.new(7,7))
+            hrct = Wx::Rect.new(Wx::Point.new(pt.x.to_i, pt.y.to_i), Wx::Size.new(7,7))
           else
             hrct = Wx::Rect.new
           end
@@ -222,7 +234,7 @@ module Wx::SF
       # Event handler called when the handle is started to be dragged.
       # @param [Wx::Point] pos Current mouse position
       def _on_begin_drag(pos)
-        @prevPos = @startPos = @currPos = pos
+        @prev_pos = @start_pos = @curr_pos = pos
         @parent_shape.on_begin_handle(self) if @parent_shape
       end
 
@@ -230,43 +242,43 @@ module Wx::SF
       # @param [Wx::Point] pos Current mouse position
       def _on_dragging(pos)
         if @visible && @parent_shape && @parent_shape.contains_style(Shape::STYLE::SIZE_CHANGE)
-          if pos != @prevPos
-            prevRct = @parent_shape.bounding_box
+          if pos != @prev_pos
+            prev_rct = @parent_shape.get_bounding_box
 
-            @currPos = pos
+            @curr_pos = pos
 
             case @type
             when TYPE::LEFTTOP
-              @parent_shape._on_handle(self) if (pos.x < prevRct.right) && (pos.y < prevRct.bottom)
+              @parent_shape.send(:_on_handle, self) if (pos.x < prev_rct.right) && (pos.y < prev_rct.bottom)
 
             when TYPE::TOP
-              @parent_shape._on_handle(self) if (pos.y < prevRct.bottom)
+              @parent_shape.send(:_on_handle, self) if (pos.y < prev_rct.bottom)
 
             when TYPE::RIGHTTOP
-              @parent_shape._on_handle(self) if ((pos.x > prevRct.left) && (pos.y < prevRct.bottom))
+              @parent_shape.send(:_on_handle, self) if ((pos.x > prev_rct.left) && (pos.y < prev_rct.bottom))
 
             when TYPE::RIGHT
-              @parent_shape._on_handle(self) if (pos.x > prevRct.left)
+              @parent_shape.send(:_on_handle, self) if (pos.x > prev_rct.left)
 
             when TYPE::RIGHTBOTTOM
-              @parent_shape._on_handle(self) if ((pos.x > prevRct.left) && (pos.y > prevRct.top))
+              @parent_shape.send(:_on_handle, self) if ((pos.x > prev_rct.left) && (pos.y > prev_rct.top))
 
             when TYPE::BOTTOM
-              @parent_shape._on_handle(self) if (pos.y > prevRct.top)
+              @parent_shape.send(:_on_handle, self) if (pos.y > prev_rct.top)
 
             when TYPE::LEFTBOTTOM
-              @parent_shape._on_handle(self) if ((pos.x < prevRct.right) && (pos.y > prevRct.top))
+              @parent_shape.send(:_on_handle, self) if ((pos.x < prev_rct.right) && (pos.y > prev_rct.top))
 
             when TYPE::LEFT
-              @parent_shape._on_handle(self) if (pos.x < prevRct.right)
+              @parent_shape.send(:_on_handle, self) if (pos.x < prev_rct.right)
 
             when TYPE::LINESTART, TYPE::LINEEND, TYPE::LINECTRL
-              @parent_shape._on_handle(self)
+              @parent_shape.send(:_on_handle, self)
 
             end
           end
 
-          @prevPos = pos
+          @prev_pos = pos
         end
       end
 

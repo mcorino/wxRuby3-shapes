@@ -319,11 +319,12 @@ module Wx::SF
     private :remove_child
 
     # Set parent shape object
-    # @param [Wx::SF::Shape] shape
-    def set_parent_shape(shape)
+    # @param [Wx::SF::Shape] parent
+    def set_parent_shape(parent)
       @parent_shape.send(:remove_child, self) if @parent_shape
-      shape.send(:add_child, self) if shape
-      @parent_shape = shape
+      parent.send(:add_child, self) if parent
+      @diagram = parent ? parent.get_diagram : nil
+      @parent_shape = parent
     end
     alias :parent_shape= :set_parent_shape
 
@@ -394,7 +395,7 @@ module Wx::SF
     def contains?(pos)
       # HINT: overload it for custom actions...
 
-      get_bounding_box.contains(pos)
+      get_bounding_box.contains?(pos)
     end
 
     # Test whether the shape is completely inside given rectangle. The function
@@ -404,7 +405,7 @@ module Wx::SF
     def inside?(rct)
       # HINT: overload it for custom actions...
 
-      rct.contains(get_bounding_box)
+      rct.contains?(get_bounding_box)
     end
 
     # Test whether the given rectangle intersects the shape.
@@ -1246,7 +1247,7 @@ module Wx::SF
 	  # the left mouse button. The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_LEFT_DOWN event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_LEFT_DOWN event.
 	  # @param [Wx::Point] pos Current mouse position
 	  # @see Wx::SF::ShapeCanvas
     def on_left_click(pos)
@@ -1264,7 +1265,7 @@ module Wx::SF
 	  # the right mouse button. The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_RIGHT_DOWN event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_RIGHT_DOWN event.
 	  # @param [Wx::Point] pos Current mouse position
 	  # @see Wx::SF::ShapeCanvas
     def on_right_click(pos)
@@ -1282,7 +1283,7 @@ module Wx::SF
 	  # the left mouse button. The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_LEFT_DCLICK event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_LEFT_DCLICK event.
 	  # @param [Wx::Point] pos Current mouse position
 	  # @see Wx::SF::ShapeCanvas
     def on_left_double_click(pos)
@@ -1300,7 +1301,7 @@ module Wx::SF
 	  # the right mouse button. The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_RIGHT_DCLICK event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_RIGHT_DCLICK event.
 	  # @param [Wx::Point] pos Current mouse position
 	  # @see Wx::SF::ShapeCanvas
     def on_right_double_click(pos)
@@ -1318,7 +1319,7 @@ module Wx::SF
 	  # The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_DRAG_BEGIN event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_DRAG_BEGIN event.
     # @param [Wx::Point] pos Current mouse position
 	  # @see Wx::SF::ShapeCanvas
     def on_begin_drag(pos)
@@ -1336,7 +1337,7 @@ module Wx::SF
 	  # The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_DRAG event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_DRAG event.
 	  # @param [Wx::Point] pos Current mouse position
 	  # @see Wx::SF::ShapeCanvas
     def on_dragging(pos)
@@ -1354,7 +1355,7 @@ module Wx::SF
 	  # The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_DRAG_END event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_DRAG_END event.
 	  # @param [Wx::Point] pos Current mouse position
 	  # @see Wx::SF::ShapeCanvas
     def on_end_drag(pos)
@@ -1372,7 +1373,7 @@ module Wx::SF
 	  # The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_HANDLE_BEGIN event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_HANDLE_BEGIN event.
 	  # @param [Wx::SF::Shape::Handle] handle dragged handle
     def on_begin_handle(handle)
       # HINT: overload it for custom actions...
@@ -1389,7 +1390,7 @@ module Wx::SF
 	  # The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_HANDLE event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_HANDLE event.
     # @param [Wx::SF::Shape::Handle] handle dragged handle
     def on_handle(handle)
       # HINT: overload it for custom actions...
@@ -1406,7 +1407,7 @@ module Wx::SF
 	  # The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_HANDLE_END event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_HANDLE_END event.
     # @param [Wx::SF::Shape::Handle] handle dragged handle
     def on_end_handle(handle)
       # HINT: overload it for custom actions...
@@ -1423,7 +1424,7 @@ module Wx::SF
 	  # The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_MOUSE_ENTER event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_MOUSE_ENTER event.
 	  # @param [Wx::Point] pos Current mouse position
     def on_mouse_enter(pos)
       # HINT: overload it for custom actions...
@@ -1440,7 +1441,7 @@ module Wx::SF
 	  # The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_MOUSE_OVER event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_MOUSE_OVER event.
 	  # @param [Wx::Point] pos Current mouse position
     def on_mouse_over(pos)
       # HINT: overload it for custom actions...
@@ -1457,7 +1458,7 @@ module Wx::SF
 	  # The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_MOUSE_LEAVE event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_MOUSE_LEAVE event.
 	  # @param [Wx::Point] pos Current mouse position
     def on_mouse_leave(pos)
       # HINT: overload it for custom actions...
@@ -1474,7 +1475,7 @@ module Wx::SF
 	  # The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_KEYDOWN event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_KEYDOWN event.
 	  # @param [Integer] key The key code
 	  # @return The function must return true if the default event routine should be called
 	  #         as well, otherwise false
@@ -1483,7 +1484,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeKeyEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_LEAVE, self.id)
+        evt = Wx::SF::ShapeKeyEvent.new(Wx::SF::EVT_SF_SHAPE_KEYDOWN, self.id)
         evt.set_shape(self)
         evt.set_key_code(key)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1496,7 +1497,7 @@ module Wx::SF
 	  # shape is accepted as a child of this shape). The function can be overridden if necessary.
 	  #
 	  # The function is called by the framework (by the shape canvas).
-	  # Default implementation emits Wx::EVT_SF_SHAPE_CHILD_DROP event.
+	  # Default implementation emits Wx::SF::EVT_SF_SHAPE_CHILD_DROP event.
 	  # @param [Wx::RealPoint] _pos Relative position of dropped shape
 	  # @param [Wx::SF::Shape] child dropped shape
     def on_child_dropped(_pos, child)
@@ -1674,8 +1675,8 @@ module Wx::SF
     # @return [Wx::Rect] bounding rectangle
 	  # @see BBMODE
     def _get_complete_bounding_box(rct, mask = BBMODE::ALL, processed = ::Set.new)
-      return if @diagram
-      return if processed.include?(self)
+      return rct if @diagram
+      return rct if processed.include?(self)
 
       processed << self
 
@@ -1796,11 +1797,11 @@ module Wx::SF
           end
         end
 
-        if contains(pos) && f_update_shape
+        if contains?(pos) && f_update_shape
           if !@mouse_over
             @mouse_over = true
             on_mouse_enter(pos)
-            refresh(STYLE::DELAYED)
+            refresh(DELAYED)
           else
             on_mouse_over(pos)
           end
@@ -1808,7 +1809,7 @@ module Wx::SF
           if @mouse_over
             @mouse_over = false
             on_mouse_leave(pos)
-            refresh(STYLE::DELAYED)
+            refresh(DELAYED)
           end
         end
       end
@@ -1899,8 +1900,8 @@ module Wx::SF
         f_refresh_all = false
 
         if canvas.has_style?(Wx::SF::ShapeCanvas::STYLE::GRID_USE)
-          dx = canvas.get_grid.x
-          dy = canvas.get_grid.y
+          dx = canvas.get_grid_size.x
+          dy = canvas.get_grid_size.y
         end
 
         lst_selection = canvas.get_selected_shapes

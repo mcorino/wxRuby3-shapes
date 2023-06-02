@@ -47,7 +47,7 @@ module Wx::SF
     # @param [Integer] evt_type
     # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, id = 0)
-      super(evt_type, id)
+      super(evt_type, id.to_i)
       @shape = nil
       @key_code = 0
     end
@@ -87,7 +87,7 @@ module Wx::SF
     # @param [Integer] evt_type
     # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, id = 0)
-      super(evt_type, id)
+      super(evt_type, id.to_i)
       @shape = nil
       @mouse_pos = Wx::DEFAULT_POSITION
     end
@@ -127,7 +127,7 @@ module Wx::SF
     # @param [Integer] evt_type
     # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, id = 0)
-      super(evt_type, id)
+      super(evt_type, id.to_i)
       @shape = nil
       @text = ''
     end
@@ -167,7 +167,7 @@ module Wx::SF
     # @param [Integer] evt_type
     # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, id = 0)
-      super(evt_type, id)
+      super(evt_type, id.to_i)
       @shape = nil
       @handle = nil
     end
@@ -213,7 +213,7 @@ module Wx::SF
     # @param [Wx::DragResult] def_result
     # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, x = 0, y = 0, target = nil, def_result = Wx::DragResult::DragNone, id = 0)
-      super(evt_type, id)
+      super(evt_type, id.to_i)
       @dropped_shapes = []
       @drop_position = Wx::Point.new(x, y)
       @drop_target = target
@@ -286,7 +286,7 @@ module Wx::SF
     # @param [Wx::SF::ShapeCanvas] target
     # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, target = nil, id = 0)
-      super(evt_type, id)
+      super(evt_type, id.to_i)
       @pasted_shapes = []
       @drop_target = target
     end
@@ -326,7 +326,7 @@ module Wx::SF
     # @param [Integer] evt_type
     # @param [Wx::SF::Serializable::ID, Integer] id
     def initialize(evt_type = Wx::EVT_NULL, id = 0)
-      super(evt_type, id)
+      super(evt_type, id.to_i)
       @shape = nil
       @child = nil
     end
