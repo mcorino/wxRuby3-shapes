@@ -323,7 +323,6 @@ module Wx::SF
     def set_parent_shape(parent)
       @parent_shape.send(:remove_child, self) if @parent_shape
       parent.send(:add_child, self) if parent
-      @diagram = parent ? parent.get_diagram : nil
       @parent_shape = parent
     end
     alias :parent_shape= :set_parent_shape
@@ -1675,7 +1674,7 @@ module Wx::SF
     # @return [Wx::Rect] bounding rectangle
 	  # @see BBMODE
     def _get_complete_bounding_box(rct, mask = BBMODE::ALL, processed = ::Set.new)
-      return rct if @diagram
+      return rct unless @diagram
       return rct if processed.include?(self)
 
       processed << self
@@ -1730,7 +1729,7 @@ module Wx::SF
 
         # now, call this function for all children recursively...
         lst_children.each do |child|
-          child._get_complete_bounding_box(rct, mask, processed)
+          child.send(:_get_complete_bounding_box, rct, mask, processed)
         end
       end
       rct

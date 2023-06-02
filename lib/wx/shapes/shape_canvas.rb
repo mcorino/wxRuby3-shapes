@@ -2201,7 +2201,6 @@ module Wx::SF
     # @see _on_left_up
     def on_left_up(event)
       # HINT: override it for custom actions...
-    
       lpos = dp2lp(event.get_position)
     
       case @working_mode
@@ -2532,9 +2531,8 @@ module Wx::SF
     # @see _on_key_down
     def on_key_down(event)
       # HINT: override it for custom actions...
-    
       return unless @diagram
-    
+
       lst_selection = get_selected_shapes
     
       case event.get_key_code
@@ -2806,7 +2804,7 @@ module Wx::SF
       parent_shape = get_shape_at_position(parentpos, 1, SEARCHMODE::UNSELECTED)
 
       parent_shape = nil if parent_shape && !parent_shape.is_child_accepted(shape.class)
-    
+
       # set new parent
       if shape.has_style?(Shape::STYLE::PARENT_CHANGE) && !shape.is_a?(LineShape)
         prev_parent = shape.get_parent_shape

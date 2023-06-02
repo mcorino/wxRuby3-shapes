@@ -49,12 +49,12 @@ class SFSample1Frame < Wx::Frame
       file_menu.append(ID::MenuQuit, "&Quit\tAlt-F4", "Quit the application")
       mbar.append(file_menu, "&File")
   
-      log_menu = Wx::Menu.new
-      log_menu.append_check_item(ID::MenuLogMouseEvent, "Log &mouse events")
-      log_menu.append_check_item(ID::MenuLogHandleEvent, "Log &handle events")
-      log_menu.append_check_item(ID::MenuLogKeyEvent, "Log &keyboard events")
-      log_menu.append_check_item(ID::MenuLogChildDropEvent, "Log &child drop event")
-      mbar.append(log_menu, "&Log")
+      @log_menu = Wx::Menu.new
+      @log_menu.append_check_item(ID::MenuLogMouseEvent, "Log &mouse events")
+      @log_menu.append_check_item(ID::MenuLogHandleEvent, "Log &handle events")
+      @log_menu.append_check_item(ID::MenuLogKeyEvent, "Log &keyboard events")
+      @log_menu.append_check_item(ID::MenuLogChildDropEvent, "Log &child drop event")
+      mbar.append(@log_menu, "&Log")
   
       help_menu = Wx::Menu.new
       help_menu.append(ID::MenuAbout, "&About\tF1", "Show info about this application")
@@ -197,13 +197,13 @@ class SFSample1Frame < Wx::Frame
   # event handlers for shapes
 
   def on_shape_mouse_event(event)
-    if self.menu_bar.get_menu(1).is_checked(ID::MenuLogMouseEvent)
+    if @log_menu.is_checked(ID::MenuLogMouseEvent)
       @text_log.append_text("#{@event_type_info[event.get_event_type]}, ID: #{event.get_id}, Mouse position: #{event.get_mouse_position.x},#{event.get_mouse_position.y}\n")
     end
   end
 
   def on_shape_handle_event(event)
-    if get_menu_bar.get_menu(1).is_checked(ID::MenuLogHandleEvent) 
+    if @log_menu.is_checked(ID::MenuLogHandleEvent)
       hnd_type =case event.handle.type
                 when Wx::SF::Shape::Handle::LEFTTOP
                   "left-top"
@@ -238,7 +238,7 @@ class SFSample1Frame < Wx::Frame
   end
 
   def on_shape_key_event(event)
-    if get_menu_bar.get_menu(1).is_checked(ID::MenuLogKeyEvent)
+    if @log_menu.is_checked(ID::MenuLogKeyEvent)
       @text_log.append_text("%s, Shape ID: %d, Key code: %d\n" % [
                                     @event_type_info[event.get_event_type],
                                     event.get_id,
@@ -247,7 +247,7 @@ class SFSample1Frame < Wx::Frame
   end
 
   def on_shape_child_drop_event(event)
-    if get_menu_bar.get_menu(1).is_checked(ID::MenuLogChildDropEvent)
+    if @log_menu.is_checked(ID::MenuLogChildDropEvent)
       @text_log.append_text("%s, Shape ID: %d, Child ID: %d\n" % [
                                     @event_type_info[event.get_event_type],
                                     event.get_id,

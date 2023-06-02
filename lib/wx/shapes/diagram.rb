@@ -191,11 +191,11 @@ module Wx::SF
             if is_top_shape_accepted(shape.class)
               @shapes << shape
               @shapes_index[shape.id] = shape
-              shape.set_diagram(self)
             else
               return ERRCODE::NOT_ACCEPTED
             end
           end
+          shape.set_diagram(self)
 
           # initialize added shape
           if initialize
