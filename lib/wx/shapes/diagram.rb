@@ -287,6 +287,16 @@ module Wx::SF
       selection.each { |shape| remove_shape(shape, false) if contains?(shape) }
     end
 
+    # Change shape's parent (possibly making it unparented i.e. toplevel)
+    # @param [Wx::SF::Shape] shape shape to reparent
+    # @param [Wx::SF::Shape,nil] parent new parent or nil
+    # @return [Wx::SF::Shape] re-parented shape
+    def reparent_shape(shape, parent)
+      shape.set_parent_shape(parent)
+      @shapes << shape unless parent # add to toplevel shapes if unparented
+      shape
+    end
+
     # Returns true if the given shape is part of the diagram, false otherwise
     # @param [Wx::SF::Shape] shape
     # @return [Boolean]

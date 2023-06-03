@@ -2243,8 +2243,9 @@ module Wx::SF
         lst_selection = get_selected_shapes
   
         lst_selection.each do |shape|
+          # notify shape
           shape.send(:_on_end_drag, lpos)
-  
+          # reparent based on new position
           reparent_shape(shape, lpos)
         end
   
@@ -2800,6 +2801,7 @@ module Wx::SF
     # @param [Wx::SF::Shape] shape
     # @param [Wx::Point] parentpos
     def reparent_shape(shape, parentpos)
+      return unless @diagram
       # is shape dropped into accepting shape?
       parent_shape = get_shape_at_position(parentpos, 1, SEARCHMODE::UNSELECTED)
 
@@ -2811,18 +2813,20 @@ module Wx::SF
     
         if parent_shape
           if parent_shape.get_parent_shape != shape
+            # update relative position to new parent
             apos = shape.get_absolute_position - parent_shape.get_absolute_position
             shape.set_relative_position(apos)
-
-            shape.set_parent_shape(parent_shape)
-    
+            # reparent
+            @diagram.reparent_shape(shape, parent_shape)
             # notify the parent shape about dropped child
             parent_shape.on_child_dropped(apos, shape)
           end
         else
           if @diagram.is_top_shape_accepted(shape.class)
+            # move relative to previous parent
             shape.move_by(prev_parent.get_absolute_position) if prev_parent
-            shape.set_parent_shape(nil)
+            # reparent
+            @diagram.reparent_shape(shape, parent_shape)
           end
         end
     
