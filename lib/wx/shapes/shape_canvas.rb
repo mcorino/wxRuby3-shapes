@@ -1266,6 +1266,7 @@ module Wx::SF
     def get_selected_shapes(selection = [])
       return selection unless @diagram
 
+      selection.clear
       @diagram.get_shapes.each do |shape|
         selection << shape if shape.selected?
       end
