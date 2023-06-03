@@ -60,6 +60,7 @@ module Wx::SF
       @current_state_index -= 1
       @current_state = @canvas_states[@current_state_index]
       @shape_canvas.set_diagram(Wx::SF::Diagram.deserialize(@current_state))
+      @shape_canvas.update_virtual_size
       @shape_canvas.diagram.set_modified
       @shape_canvas.refresh(false)
     end
@@ -72,6 +73,7 @@ module Wx::SF
       @current_state_index += 1
       @current_state = @canvas_states[@current_state_index]
       @shape_canvas.set_diagram(Wx::SF::Diagram.deserialize(@current_state))
+      @shape_canvas.update_virtual_size
       @shape_canvas.diagram.set_modified
       @shape_canvas.refresh(false)
     end

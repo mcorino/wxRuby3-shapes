@@ -437,6 +437,8 @@ module Wx::SF
       # perform basic window initialization
       super
 
+      set_background_style(Wx::BG_STYLE_PAINT)
+
       # set drop target
       if Wx.has_feature?(:USE_DRAG_AND_DROP)
         set_drop_target(Wx::SF::CanvasDropTarget.new(Wx::SF::ShapeDataObject.new, self))
@@ -506,6 +508,7 @@ module Wx::SF
     #   @param [IO] io IO object
     #   @return [self]
     def load_canvas(io)
+      return self unless @diagram
       # get IO stream to read from
       begin
         ios = io.is_a?(::String) ? File.open(io, 'r') : io
@@ -518,6 +521,13 @@ module Wx::SF
         ShapeCanvas.reset_compat_loading
         ios.close if io.is_a?(::String) && ios
       end
+      set_scale(@settings.scale)
+      save_canvas_state
+      update_virtual_size
+      refresh(false)
+
+      @diagram.set_modified(false)
+
       self
     end
 
@@ -531,7 +541,7 @@ module Wx::SF
     #   @param [Boolean] compact specifies whether to write content in compact mode (true) or not (false)
     #   @return [self]
     def save_canvas(io, compact: true)
-      ::Kernel.raise RuntimeError, "No diagram to save" unless @diagram
+      return self unless @diagram
       # get IO stream to write to
       ios = io.is_a?(::String) ? Tempfile.new(File.basename(io, '.*')) : io
       # write canvas data to temp file
@@ -573,6 +583,9 @@ module Wx::SF
           end
         end
       end
+
+      @diagram.set_modified(false)
+
       self
     end
 
@@ -985,6 +998,8 @@ module Wx::SF
 
           # verify newly added shapes (may remove shapes from list)
           @diagram.send(:check_new_shapes, new_shapes)
+
+          update_virtual_size # update for new shapes
 
           # call user-defined handler
           on_paste(new_shapes)
@@ -1604,7 +1619,25 @@ module Wx::SF
     # Set canvas scale.
     # @param [Float] scale Scale value
     def set_scale(scale)
-      @settings.scale = scale
+      return unless @diagram
+
+      if scale != 1.0
+        if @diagram.get_shapes(ControlShape).empty?
+          Wx.message_box('Cannot change scale of shape canvas containing control (GUI) shapes.', 'wxRuby ShapeFramework', Wx::ICON_WARNING | Wx::OK)
+          scale = 1.0
+        end
+      end
+
+      @settings.scale = scale != 0.0 ? scale : 1.0
+
+      # rescale all bitmap shapes if neccessary
+      unless ShapeCanvas.gc_enabled?
+        @diagram.get_shapes(BitmapShape).each do |bmp|
+          bmp.scale(1, 1)
+        end
+      end
+
+      update_virtual_size
     end
     alias :scale= :set_scale
 
@@ -1917,7 +1950,7 @@ module Wx::SF
       if has_style?(STYLE::GRID_SHOW)
         linedist = @settings.grid_size.x * @settings.grid_line_mult
 
-        if (linedist * @settings.scale) > 3
+        if (linedist * @settings.scale) > 3.0
           grid_rct = Wx::Rect.new([0, 0], @settings.grid_size + get_virtual_size)
           max_x = (grid_rct.right/@settings.scale).to_i
           max_y = (grid_rct.bottom/@settings.scale).to_i
@@ -2131,7 +2164,7 @@ module Wx::SF
                 @new_line_shape.create_handles
 
                 # switch off the "under-construction" mode
-                @new_line_shape.set_line_mode(LineShape::LINEMODE::READY)
+                @new_line_shape.send(:set_line_mode, LineShape::LINEMODE::READY)
 
                 on_connection_finished(@new_line_shape)
 
@@ -2855,18 +2888,18 @@ module Wx::SF
     def _on_paint(_event)
       paint_buffered do |paint_dc|
         if Wx.has_feature?(:USE_GRAPHICS_CONTEXT) && ShapeCanvas.gc_enabled?
-          gdc = Wx::GCDC.new(paint_dc)
+          Wx::GCDC.draw_on(paint_dc) do |gdc|
+            prepare_dc(paint_dc)
+            prepare_dc(gdc)
 
-          prepare_dc(paint_dc)
-          prepare_dc(gdc)
+            # scale  GC
+            gc = gdc.get_graphics_context
+            gc.scale(@settings.scale, @settings.scale)
 
-          # scale  GC
-          gc = gdc.get_graphics_context
-          gc.scale(@settings.scale, @settings.scale)
-
-          draw_background(gdc, FROM_PAINT)
-          draw_content(gdc, FROM_PAINT)
-          draw_foreground(gdc, FROM_PAINT)
+            draw_background(gdc, FROM_PAINT)
+            draw_content(gdc, FROM_PAINT)
+            draw_foreground(gdc, FROM_PAINT)
+          end
         else
           Wx::ScaledDC.draw_on(paint_dc, @settings.scale) do |dc|
             prepare_dc(dc)
@@ -3135,6 +3168,8 @@ module Wx::SF
 
           # verify newly added shapes (may remove shapes from list)
           @diagram.send(:check_new_shapes, lst_new_content)
+
+          update_virtual_size # update for new shapes
 
           # notify parents and collect for update
           lst_new_content.each do |shape|

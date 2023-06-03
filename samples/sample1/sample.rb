@@ -15,9 +15,9 @@ class SFSample1Frame < Wx::Frame
   end
 
   def initialize(title)
-    super(nil, Wx::StandardID::ID_ANY, title)
+    super(nil, Wx::StandardID::ID_ANY, title, size: [800,600])
     
-    set_size([800, 600])
+    # set_size([800, 600])
 
     # initialize event types
     @event_type_info = {
@@ -121,9 +121,6 @@ class SFSample1Frame < Wx::Frame
     @text_log.set_min_size(Wx::Size.new(-1, 150))
 
     main_sizer.add(@text_log, 0, Wx::EXPAND, 0)
-
-    set_sizer(main_sizer)
-    layout
 
     if Wx.has_feature?(:USE_STATUSBAR)
       # create a status bar with some information about the used wxWidgets version
