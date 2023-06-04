@@ -292,7 +292,7 @@ module Wx::SF
             trg_bb = trg_shape.get_bounding_box
             src_bb = src_shape.get_bounding_box
 
-            if trg_bb.contains?(src_center.to_point)
+            if trg_bb.contains?(src_center.x.to_i, src_center.y.to_i)
               if src_center.y > trg_center.y
                 src = Wx::RealPoint.new(src_center.x, src_bb.bottom.to_f)
                 trg = Wx::RealPoint.new(src_center.x, trg_bb.bottom.to_f)
@@ -301,7 +301,7 @@ module Wx::SF
                 trg = Wx::RealPoint.new(src_center.x, trg_bb.top.to_f)
               end
               return [src, trg]
-            elsif src_bb.contains?(trg_center.to_point)
+            elsif src_bb.contains?(trg_center.x.to_i, trg_center.y.to_i)
               if trg_center.y > src_center.y
                 src = Wx::RealPoint.new(trg_center.x, src_bb.bottom.to_f)
                 trg = Wx::RealPoint.new(trg_center.x, trg_bb.bottom.to_f)
@@ -776,7 +776,9 @@ module Wx::SF
     
         # calculate distance of the line and give point
         d = (a*pos.x + b*pos.y + c)/::Math.sqrt(a*a + b*b)
-        return i if d.to_i.abs <= 5 && ls_bb.contains?(pos)
+        # NaN will be the result if src and trg are equal
+        # (which can happen for lines between parent and child shapes)
+        return i if (d.nan? || d.to_i.abs <= 5) && ls_bb.contains?(pos)
       end
     
       -1
