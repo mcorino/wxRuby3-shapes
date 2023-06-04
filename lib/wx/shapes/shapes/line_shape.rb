@@ -383,7 +383,7 @@ module Wx::SF
 	
     # Get starting and ending point of line segment defined by its index.
 	  # @param [Integer] index Index of desired line segment
-	  # @return [Array(Wx::RealPoint,Wx::RealPoint), nil] starting and ending point of line segment or nil if no line segment of given index exists
+	  # @return [Array(Wx::RealPoint,Wx::RealPoint)] starting and ending point of line segment
     def get_line_segment(index)
       if !@lst_points.empty?
         if index == 0
@@ -394,9 +394,9 @@ module Wx::SF
           return @lst_points[index-1, 2].collect {|p| p.dup}
         end
       else
-        get_direct_line if index == 0
+        return get_direct_line if index == 0
       end
-      nil
+      [Wx::RealPoint.new, Wx::RealPoint.new]
     end
     
 	  # Get line's bounding box. The function can be overridden if necessary.
@@ -762,9 +762,9 @@ module Wx::SF
       return -1 unless get_bounding_box.contains?(pos)
 
       # Get all polyline segments
-      @lst_points.size.times do |i|
+      (@lst_points.size+1).times do |i|
         src, trg = get_line_segment(i)
-    
+
         # calculate line segment bounding box
         ls_bb = Wx::Rect.new(src.to_point, trg.to_point)
         ls_bb.inflate(2)
