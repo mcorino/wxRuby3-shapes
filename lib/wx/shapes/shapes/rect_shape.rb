@@ -100,24 +100,23 @@ module Wx::SF
     # @return [Wx::RealPoint] Intersection point
     def get_border_point(start, end_pt)
       # HINT: override it for custom actions ...
-  
+
       # the function calculates intersection of line leading from the shape center to
       # given point with the shape's bounding box
       bb_rct = get_bounding_box
 
       intersection = Shape.lines_intersection(bb_rct.top_left.to_real,
-                                              Wx::RealPoint.new(bb_rct.top_right.x + 1, bb_rct.top_right.y),
+                                              Wx::RealPoint.new(bb_rct.top_right.x + 1.0, bb_rct.top_right.y.to_f),
                                               start, end_pt)
-      intersection ||= Shape.lines_intersection(Wx::RealPoint.new(bb_rct.top_right.x + 1, bb_rct.top_right.y),
-                                                Wx::RealPoint.new(bb_rct.top_right.x + 1, bb_rct.top_right.y + 1),
+      intersection ||= Shape.lines_intersection(Wx::RealPoint.new(bb_rct.top_right.x + 1.0, bb_rct.top_right.y.to_f),
+                                                Wx::RealPoint.new(bb_rct.bottom_right.x + 1.0, bb_rct.bottom_right.y + 1.0),
                                                 start, end_pt)
-      intersection ||= Shape.lines_intersection(Wx::RealPoint.new(bb_rct.top_right.x + 1, bb_rct.top_right.y + 1),
-                                                Wx::RealPoint.new(bb_rct.top_left.x, bb_rct.top_left.y + 1),
+      intersection ||= Shape.lines_intersection(Wx::RealPoint.new(bb_rct.bottom_right.x + 1.0, bb_rct.bottom_right.y + 1.0),
+                                                Wx::RealPoint.new(bb_rct.bottom_left.x.to_f, bb_rct.bottom_left.y + 1.0),
                                                 start, end_pt)
-      intersection ||= Shape.lines_intersection(Wx::RealPoint.new(bb_rct.top_left.x, bb_rct.top_left.y + 1),
+      intersection ||= Shape.lines_intersection(Wx::RealPoint.new(bb_rct.bottom_left.x.to_f, bb_rct.bottom_left.y + 1),
                                                 bb_rct.top_left.to_real,
                                                 start, end_pt)
-
       intersection || get_center
     end
   

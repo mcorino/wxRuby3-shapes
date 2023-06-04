@@ -173,10 +173,6 @@ module Wx::SF
       # @return [Wx::RealPoint,nil] intersection point or nil
       def lines_intersection(from1, to1, from2, to2)
         i = Wx::RealPoint.new
-        # double a1, b1, c1, a2, b2, c2, ka, kb
-
-        # bug in GCC ???
-        # volatile double xi, yi
 
          # create line 1 info
         a1 = to1.y - from1.y
@@ -203,10 +199,10 @@ module Wx::SF
           yi = -(a1*c2 - a2*c1) / (a1*b2 - a2*b1)
         end
 
-        if( ((from1.x - xi)*(xi - to1.x) >= 0) &&
-          ((from2.x - xi)*(xi - to2.x) >= 0) &&
-          ((from1.y - yi)*(yi - to1.y) >= 0) &&
-          ((from2.y - yi)*(yi - to2.y) >= 0) )
+        if( ((from1.x - xi)*(xi - to1.x) >= 0.0) &&
+          ((from2.x - xi)*(xi - to2.x) >= 0.0) &&
+          ((from1.y - yi)*(yi - to1.y) >= 0.0) &&
+          ((from2.y - yi)*(yi - to2.y) >= 0.0) )
             return Wx::RealPoint.new(xi, yi)
         end
 
@@ -1684,7 +1680,7 @@ module Wx::SF
       # first, get bounding box of the current shape
       if (mask & BBMODE::SELF) != 0
         if rct.is_empty
-          rct = get_bounding_box.inflate([@h_border.abs, @v_border.abs])
+          rct.assign(get_bounding_box.inflate([@h_border.abs, @v_border.abs]))
         else
           rct.union!(get_bounding_box.inflate([@h_border.abs, @v_border.abs]))
 

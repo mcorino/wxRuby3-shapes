@@ -2115,12 +2115,12 @@ module Wx::SF
             case @selected_handle.get_type
             when Shape::Handle::TYPE::LINESTART
               line = @selected_handle.get_parent_shape
-              line.set_line_mode(LineShape::LINEMODE::SRCCHANGE)
+              line.send(:set_line_mode, LineShape::LINEMODE::SRCCHANGE)
               line.set_unfinished_point(lpos)
 
             when Shape::Handle::TYPE::LINEEND
               line = @selected_handle.get_parent_shape
-              line.set_line_mode(LineShape::LINEMODE::TRGCHANGE)
+              line.send(:set_line_mode, LineShape::LINEMODE::TRGCHANGE)
               line.set_unfinished_point(lpos)
             end
           end
@@ -2248,7 +2248,7 @@ module Wx::SF
         case @selected_handle.get_type
         when Shape::Handle::TYPE::LINESTART, Shape::Handle::TYPE::LINEEND
           line = @selected_handle.get_parent_shape
-          line.set_line_mode(LineShape::LINEMODE::READY)
+          line.send(:set_line_mode, LineShape::LINEMODE::READY)
 
           parent_shape = get_shape_under_cursor
 
@@ -2599,7 +2599,7 @@ module Wx::SF
             @selected_handle.send(:_on_end_drag, Wx::Point.new(0, 0))
 
             line = @selected_handle.get_parent_shape
-            line.set_line_mode(LineShape::LINEMODE::READY)
+            line.send(:set_line_mode, LineShape::LINEMODE::READY)
             @selected_handle = nil
           end
 
@@ -2954,7 +2954,7 @@ module Wx::SF
         unless event.left_is_down
           if @selected_handle
             if @selected_handle.get_parent_shape.is_a?(LineShape)
-              @selected_handle.get_parent_shape.set_line_mode(LineShape::LINEMODE::READY)
+              @selected_handle.get_parent_shape.send(:set_line_mode, LineShape::LINEMODE::READY)
             elsif @selected_handle.get_parent_shape.is_a?(BitmapShape)
               @selected_handle.get_parent_shape.on_end_handle(@selected_handle)
             end

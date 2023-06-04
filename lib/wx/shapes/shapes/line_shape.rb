@@ -124,27 +124,69 @@ module Wx::SF
 
     # @return [Wx::RealPoint]
     def get_src_point
+      unless @stand_alone
+        src_shape = @diagram.find_shape(@src_shape_id)
+
+        if src_shape && !@lst_points.empty?
+          if src_shape.get_connection_points.empty?
+            return src_shape.get_border_point(get_mod_src_point, @lst_points.first)
+          else
+            return get_mod_src_point
+          end
+        else
+          if @mode != LINEMODE::UNDERCONSTRUCTION
+            pt1, _ = get_direct_line
+          else
+            pt1 = get_mod_src_point
+          end
+          return pt1
+        end
+
+        return Wx::RealPoint.new
+      end
       @src_point
     end
     alias :src_point :get_src_point
-    
+
+    # Deserialization only.
     # @param [Wx::RealPoint] pt
     def set_src_point(pt)
       @src_point = pt
     end
-    alias :src_point= :set_src_point
+    private :set_src_point
 
     # @return [Wx::RealPoint]
     def get_trg_point
+      unless @stand_alone
+        trg_shape = @diagram.find_shape(@trg_shape_id)
+
+        if trg_shape && !@lst_points.empty?
+          if trg_shape.get_connection_points.empty?
+            return trg_shape.get_border_point(get_mod_trg_point, @lst_points.last)
+          else
+            return get_mod_trg_point
+          end
+        else
+          if @mode != LINEMODE::UNDERCONSTRUCTION
+            _, pt2 = get_direct_line
+          else
+            pt2 = @unfinished_point.to_real
+          end
+          return pt2
+        end
+
+        return Wx::RealPoint.new
+      end
       @trg_point
     end
     alias :trg_point :get_trg_point
 
+    # Deserialization only.
     # @param [Wx::RealPoint] pt
     def set_trg_point(pt)
       @trg_point = pt
     end
-    alias :trg_point= :set_trg_point
+    private :set_trg_point
 
     # @return [Wx::SF::ArrowBase]
     def get_src_arrow
@@ -360,14 +402,14 @@ module Wx::SF
 	  # Get line's bounding box. The function can be overridden if necessary.
     # @return [Wx::Rect] Bounding rectangle
     def get_bounding_box
-      line_rct = Wx::Rect.new(0, 0, 0, 0)
+      line_rct = nil
     
       # calculate control points area if they exist
       if !@lst_points.empty?
         prev_pt = get_src_point
     
         @lst_points.each do |pt|
-          if line_rct.empty?
+          if line_rct.nil?
             line_rct = Wx::Rect.new(prev_pt.to_point, pt.to_point)
           else
             line_rct.union!(Wx::Rect.new(prev_pt.to_point, pt.to_point))
@@ -379,32 +421,23 @@ module Wx::SF
       else
         # include starting point
         pt = get_src_point
+        line_rct = Wx::Rect.new(pt.x.to_i, pt.y.to_i, 1, 1)
 
-        if line_rct.empty?
-          line_rct = Wx::Rect.new(pt.x.to_i, pt.y.to_i, 1, 1)
-        else
-          line_rct.union!(Wx::Rect.new(pt.x.to_i, pt.y.to_i, 1, 1))
-        end
-    
         # include ending point
         pt = get_trg_point
-        if line_rct.empty?
-          line_rct = Wx::Rect.new(pt.x.to_i, pt.y.to_i, 1, 1)
-        else
-          line_rct.union!(Wx::Rect.new(pt.x.to_i, pt.y.to_i, 1, 1))
-        end
+        line_rct.union!(Wx::Rect.new(pt.x.to_i, pt.y.to_i, 1, 1))
       end
     
       # include unfinished point if the line is under construction
       if @mode == LINEMODE::UNDERCONSTRUCTION || @mode == LINEMODE::SRCCHANGE || @mode == LINEMODE::TRGCHANGE
-        if line_rct.empty?
+        if line_rct.nil?
           line_rct = Wx::Rect.new(@unfinished_point.x, @unfinished_point.y, 1, 1)
         else
           line_rct.union!(Wx::Rect.new(@unfinished_point.x, @unfinished_point.y, 1, 1))
         end
       end
     
-      line_rct
+      line_rct ? line_rct : Wx::Rect.new
     end
 
 	  # Get the shape's absolute position in the canvas.
@@ -608,6 +641,13 @@ module Wx::SF
       super
     end
 
+    # Get current working mode.
+    # @return [LINEMODE] Current working mode
+    # @see LINEMODE
+    def get_line_mode
+      @mode
+    end
+
     protected
 
 	  # Draw the shape in the normal way. The function can be overridden if necessary.
@@ -747,13 +787,6 @@ module Wx::SF
     # @see LINEMODE
     def set_line_mode(mode)
       @mode = mode
-    end
-
-    # Get current working mode.
-	  # @return [LINEMODE] Current working mode
-    # @see LINEMODE
-    def get_line_mode
-      @mode
     end
 
     # Set next potential control point position (useful in LINEMODE::UNDERCONSTRUCTION working mode).
