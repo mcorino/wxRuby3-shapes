@@ -16,8 +16,8 @@ class SFSample1Frame < Wx::Frame
 
   def initialize(title)
     super(nil, Wx::StandardID::ID_ANY, title, size: [800,600])
-    
-    # set_size([800, 600])
+
+    self.icon = Wx::Icon(:sample)
 
     # initialize event types
     @event_type_info = {
@@ -81,6 +81,7 @@ class SFSample1Frame < Wx::Frame
     
     # create shape canvas and associate it with shape manager
     @canvas = Wx::SF::ShapeCanvas.new(@diagram, self)
+    @canvas.set_scrollbars(20,20,50,50)
     # set some shape canvas properties if necessary...
 	  @canvas.add_style(Wx::SF::ShapeCanvas::STYLE::GRID_SHOW)
     @canvas.add_style(Wx::SF::ShapeCanvas::STYLE::GRID_USE)
@@ -126,7 +127,7 @@ class SFSample1Frame < Wx::Frame
       # create a status bar with some information about the used wxWidgets version
       create_status_bar(2)
       set_status_text('Hello wxRuby ShapeFramework user!',0)
-      set_status_text(Wx::PLATFORM, 1)
+      set_status_text("wxRuby #{Wx::WXRUBY_VERSION} #{Wx::PLATFORM} (wxWidgets #{Wx::WXWIDGETS_VERSION})", 1)
     end # wxUSE_STATUSBAR
 
     set_sizer(main_sizer)
