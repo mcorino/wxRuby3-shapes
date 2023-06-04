@@ -5,6 +5,8 @@ require 'wx/shapes/shapes/line_shape'
 
 module Wx::SF
 
+  # Interpolation line shape. The class extends LineShape class and allows
+  # user to create curved connection line.
   class CurveShape < LineShape
 
     # @overload initialize()
