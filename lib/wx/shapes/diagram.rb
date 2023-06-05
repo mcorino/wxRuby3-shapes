@@ -294,7 +294,11 @@ module Wx::SF
     def reparent_shape(shape, parent)
       prev_parent = shape.get_parent_shape
       shape.set_parent_shape(parent)
-      @shapes << shape unless parent || prev_parent.nil? # add to toplevel shapes if unparented
+      if prev_parent.nil? && parent
+        @shapes.delete(shape) # remove from top level list if now parented
+      elsif prev_parent && parent.nil?
+        @shapes << shape # add to toplevel shapes if now unparented
+      end
       shape
     end
 
