@@ -238,14 +238,14 @@ module SerializerTestMixin
     def initialize(list = [])
       super
       @fixed_item = Wx::Point.new(30, 30)
-      @fixed_item.disable_list_serialize
+      @fixed_item.disable_serialize
       self.list << @fixed_item
     end
 
   end
 
   class SerializedDerived2_1 < SerializedBase2
-    property :extra_item
+    property :extra_item, force: true
 
     def initialize(list = [], extra = nil)
       super(list)
@@ -257,7 +257,7 @@ module SerializerTestMixin
     def set_extra_item(extra)
       @extra_item = extra
       if @extra_item
-        @extra_item.disable_list_serialize
+        @extra_item.disable_serialize
         list << @extra_item
       end
     end
@@ -294,7 +294,7 @@ module SerializerTestMixin
     def initialize(list = [])
       super
       @fixed_item = Wx::Point.new(30, 30)
-      @fixed_item.disable_list_serialize
+      @fixed_item.disable_serialize
       self.list << @fixed_item
     end
 

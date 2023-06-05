@@ -59,7 +59,7 @@ module Wx::SF::Serializable
 
     # Always returns false for IDs.
     # @return [Boolean]
-    def list_serialize_disabled?
+    def serialize_disabled?
       false
     end
 

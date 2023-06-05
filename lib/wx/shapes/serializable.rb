@@ -8,10 +8,11 @@ module Wx::SF
   module Serializable
 
     class Property
-      def initialize(klass, prop, proc=nil, &block)
+      def initialize(klass, prop, proc=nil, force: false, &block)
         ::Kernel.raise ArgumentError, "Invalid property id #{prop}" unless ::String === prop || ::Symbol === prop
         @klass = klass
         @id = prop.to_sym
+        @forced = force
         if block
           # any property block MUST accept 2 or 3 args; property name, instance and value (for setter)
           ::Kernel.raise ArgumentError, "Invalid property block #{proc} for #{prop}" unless block.arity == -3
@@ -35,14 +36,17 @@ module Wx::SF
 
       def serialize(obj, data, excludes)
         unless excludes.include?(@id)
-          data[@id] = case (val = getter.call(obj))
-                      when ::Array
-                        val.select { |elem| !(Serializable === elem && elem.list_serialize_disabled?) }
-                      when ::Set
-                        ::Set.new(val.select { |elem| !(Serializable === elem && elem.list_serialize_disabled?) })
-                      else
-                        val
-                      end
+          val = getter.call(obj)
+          unless Serializable === val && val.serialize_disabled? && !@forced
+            data[@id] = case val
+                        when ::Array
+                          val.select { |elem| !(Serializable === elem && elem.serialize_disabled?) }
+                        when ::Set
+                          ::Set.new(val.select { |elem| !(Serializable === elem && elem.serialize_disabled?) })
+                        else
+                          val
+                        end
+          end
         end
       end
 
@@ -158,13 +162,14 @@ module Wx::SF
     module SerializeClassMethods
 
       # Adds (a) serializable property(-ies) for instances of his class (and derived classes)
-      # @overload property(*props)
+      # @overload property(*props, force: false)
       #   Specifies one or more serialized properties.
       #   The serialization framework will determine the availability of setter and getter methods
       #   automatically by looking for methods "#{prop_id}=(v)", "set_#{prop_id}(v)" or "#{prop}(v)"
       #   for setters and "#{prop_id}()" or "get_#{prop_id}" for getters.
       #   @param [Symbol,String] props one or more ids of serializable properties
-      # @overload property(hash)
+      #   @param [Boolean] force overrides any #disable_serialize for the properties specified
+      # @overload property(hash, force: false)
       #   Specifies one or more serialized properties with associated setter/getter method ids/procs/lambda-s.
       #   @example
       #     property(
@@ -181,7 +186,8 @@ module Wx::SF
       #   @note Use `*val` to specify the optional value argument for setter requests instead of `val=nil`
       #         to be able to support setting explicit nil values.
       #   @param [Hash] hash a hash of pairs of property ids and getter/setter procs
-      # @overload property(*props, &block)
+      #   @param [Boolean] force overrides any #disable_serialize for the properties specified
+      # @overload property(*props, force: false, &block)
       #   Specifies one or more serialized properties with a getter/setter block.
       #   The getter/setter block should accept either 2 (property id and object for getter) or 3 arguments
       #   (property id, object and value for setter) and is assumed to handle getter/setter requests
@@ -200,22 +206,29 @@ module Wx::SF
       #   @note Use `*val` to specify the optional value argument for setter requests instead of `val=nil`
       #         to be able to support setting explicit nil values.
       #   @param [Symbol,String] props one or more ids of serializable properties
+      #   @param [Boolean] force overrides any #disable_serialize for the properties specified
       #   @yieldparam [Symbol,String] id property id
       #   @yieldparam [Object] obj object instance
       #   @yieldparam [Object] val optional property value to set in case of setter request
-      def property(*props, &block)
+      def property(*props, **kwargs, &block)
+        forced = !!kwargs.delete(:force)
         if block
           props.each do |prop|
-            serializer_properties << Property.new(self, prop, &block)
+            serializer_properties << Property.new(self, prop, force: forced, &block)
           end
         else
           props.flatten.each do |prop|
             if ::Hash === prop
               prop.each_pair do |pn, pp|
-                serializer_properties << Property.new(self, pn, pp)
+                serializer_properties << Property.new(self, pn, pp, force: forced)
               end
             else
-              serializer_properties << Property.new(self, prop)
+              serializer_properties << Property.new(self, prop, force: forced)
+            end
+          end
+          unless kwargs.empty?
+            kwargs.each_pair do |pn, pp|
+              serializer_properties << Property.new(self, pn, pp, force: forced)
             end
           end
         end
@@ -265,18 +278,20 @@ module Wx::SF
         Serializable[format].dump(self, io, pretty: pretty)
       end
 
-      # Returns true if serialization for this object as part of an un-keyed list (Array or Set) has been disabled,
-      # true otherwise (default)
+      # Returns true if regular serialization for this object has been disabled, false otherwise (default).
+      # Disabled serialization can be overridden for single objects (not objects maintained in property containers
+      # like arrays and sets).
       # @return [Boolean]
-      def list_serialize_disabled?
-        !!@list_serialize_disabled # true for any value but false
+      def serialize_disabled?
+        !!@serialize_disabled # true for any value but false
       end
 
-      # Disables serialization for this object as part of an un-keyed list (Array or Set)
+      # Disables serialization for this object as a single property or as part of a property container
+      # (array or set).
       # @return [void]
-      def disable_list_serialize
+      def disable_serialize
         # by default unset (nil) so serializing enabled
-        @list_serialize_disabled = true
+        @serialize_disabled = true
       end
 
       # @!method for_serialize(hash, excludes = Set.new)

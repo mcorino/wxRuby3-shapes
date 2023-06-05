@@ -18,6 +18,9 @@ module Wx::SF
       end
 
       module YamlSerializePatch
+
+        ALLOWED_ALIASES = [Serializable::ID, Wx::Pen, Wx::Colour, Wx::Brush, Wx::Enum, Wx::Rect, Wx::Point, Wx::RealPoint, Wx::Size]
+
         def revive(klass, node)
           if Wx::SF::Serializable > klass
             s = register(node, klass.create_for_deserialize(data = revive_hash({}, node, true)))
@@ -27,9 +30,9 @@ module Wx::SF
           end
         end
         def visit_Psych_Nodes_Alias o
-          rc = @st.fetch(o.anchor) { raise AnchorNotDefined, o.anchor }
+          rc = @st.fetch(o.anchor) { raise ::YAML::AnchorNotDefined, o.anchor }
           # only allow Serializable::ID aliases
-          raise AliasesNotEnabled unless Serializable::ID === rc
+          raise ::YAML::AliasesNotEnabled unless ALLOWED_ALIASES.any? { |klass| klass === rc }
           rc
         end
       end
@@ -46,10 +49,10 @@ module Wx::SF
         def find(klassname)
           if @classes.include?(klassname)
             super
-          elsif @allow_struct && klassname.start_with?('Struct::') && ::Struct > super
+          elsif @allow_struct && ::Struct > super
             @cache[klassname]
           else
-            raise DisallowedClass.new('load', klassname)
+            raise ::YAML::DisallowedClass.new('load', klassname)
           end
         end
       end
