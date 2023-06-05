@@ -24,7 +24,7 @@ module Wx::SF
     # @overload initialize(pos, size, diagram)
     #   User constructor.
     #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::Size] size Initial size
+    #   @param [Wx::RealPoint] size Initial size
     #   @param [Wx::SF::Diagram] diagram parent diagram
     def initialize(*args)
       size = nil
@@ -143,37 +143,8 @@ module Wx::SF
     # @param [Shape::Handle] handle Reference to dragged handle
     def on_handle(handle)
       # HINT: overload it for custom actions...
-    
-      case handle.type
-      when Shape::Handle::TYPE::LEFT
-        on_left_handle(handle)
+      do_on_handle(handle)
 
-      when Shape::Handle::TYPE::LEFTTOP
-        on_left_handle(handle)
-        on_top_handle(handle)
-
-      when Shape::Handle::TYPE::LEFTBOTTOM
-        on_left_handle(handle)
-        on_bottom_handle(handle)
-
-      when Shape::Handle::TYPE::RIGHT
-        on_right_handle(handle)
-
-      when Shape::Handle::TYPE::RIGHTTOP
-        on_right_handle(handle)
-        on_top_handle(handle)
-
-      when Shape::Handle::TYPE::RIGHTBOTTOM
-        on_right_handle(handle)
-        on_bottom_handle(handle)
-
-      when Shape::Handle::TYPE::TOP
-        on_top_handle(handle)
-
-      when Shape::Handle::TYPE::BOTTOM
-        on_bottom_handle(handle)
-      end
-      
       super
     end
 
@@ -237,15 +208,58 @@ module Wx::SF
     def scale(x, y, children = WITHCHILDREN)
       # HINT: overload it for custom actions...
       if x > 0 && y > 0
-        set_rect_size(@size.x * x, @size.y * y)
-    
+        scale_rectangle(x, y)
+
         # call default function implementation (needed for scaling of shape's children)
         super
       end
     end
     
     protected
-    
+
+    # Scale the rectangle size for this shape.
+    # @param [Float] x Horizontal scale factor
+    # @param [Float] y Vertical scale factor
+    def scale_rectangle(x, y)
+      set_rect_size(@size.x * x, @size.y * y)
+    end
+
+    # Handle's shape specific actions on handling handle events.
+    # The function can be overridden if necessary.
+    # @param [Shape::Handle] handle Reference to dragged handle
+    # @see #on_handle
+    def do_on_handle(handle)
+      case handle.type
+      when Shape::Handle::TYPE::LEFT
+        on_left_handle(handle)
+
+      when Shape::Handle::TYPE::LEFTTOP
+        on_left_handle(handle)
+        on_top_handle(handle)
+
+      when Shape::Handle::TYPE::LEFTBOTTOM
+        on_left_handle(handle)
+        on_bottom_handle(handle)
+
+      when Shape::Handle::TYPE::RIGHT
+        on_right_handle(handle)
+
+      when Shape::Handle::TYPE::RIGHTTOP
+        on_right_handle(handle)
+        on_top_handle(handle)
+
+      when Shape::Handle::TYPE::RIGHTBOTTOM
+        on_right_handle(handle)
+        on_bottom_handle(handle)
+
+      when Shape::Handle::TYPE::TOP
+        on_top_handle(handle)
+
+      when Shape::Handle::TYPE::BOTTOM
+        on_bottom_handle(handle)
+      end
+    end
+
     # Draw the shape in the normal way. The function can be overridden if necessary.
     # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_normal(dc)
