@@ -94,7 +94,7 @@ module Wx::SF
     end
     alias :text_colour :get_text_colour
     
-    # Update shape (align all child shapes an resize it to fit them)
+    # Update shape (align all child shapes and resize it to fit them)
     def update
       update_rect_size
       super
@@ -118,10 +118,10 @@ module Wx::SF
             h = 0
             @text.split("\n").each do |line|
               wd, hd, d, e = gc.get_text_extent(line)
-              h += (hd + e)
-              w = (wd + d) if (wd + d) > w
+              h += (hd + e).to_i
+              w = (wd + d).to_i if (wd + d) > w
             end
-            @line_height = (hd + e)
+            @line_height = (hd + e).to_i
 
             gc.set_font(Wx::NULL_FONT, Wx::BLACK)
           end
@@ -146,11 +146,11 @@ module Wx::SF
       tsize = get_text_extent
 
       if tsize.is_fully_specified
-        tsize.x = 1 if tsize.x <= 0
-        tsize.y = 1 if tsize.y <= 0
+        tsize.width = 1 if tsize.width <= 0
+        tsize.height = 1 if tsize.height <= 0
 
-        @rect_size.x = tsize.x.to_f
-        @rect_size.y = tsize.y.to_f
+        @rect_size.x = tsize.width.to_f
+        @rect_size.y = tsize.height.to_f
       end
     end
 

@@ -57,14 +57,21 @@ module Wx::SF
       # calculate distance between line points
       dist = from.distance_to(to)
 
-      # calculate sin and cos of given line segment
-      sina = (from.y - to.y)/dist
-      cosa = (from.x - to.x)/dist
+      if dist == 0.0
+        src.each do |pt|
+          trg << Wx::Point.new(((pt.x-pt.y)+to.x).to_i,
+                               ((pt.x+pt.y)+to.y).to_i)
+        end
+      else
+        # calculate sin and cos of given line segment
+        sina = (from.y - to.y)/dist
+        cosa = (from.x - to.x)/dist
 
-      # rotate arrow
-      src.each do |pt|
-        trg << Wx::Point.new(((pt.x*cosa-pt.y*sina)+to.x).to_i,
-                             ((pt.x*sina+pt.y*cosa)+to.y))
+        # rotate arrow
+        src.each do |pt|
+          trg << Wx::Point.new(((pt.x*cosa-pt.y*sina)+to.x).to_i,
+                               ((pt.x*sina+pt.y*cosa)+to.y).to_i)
+        end
       end
       trg
     end

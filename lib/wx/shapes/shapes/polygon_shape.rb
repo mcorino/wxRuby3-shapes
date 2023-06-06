@@ -59,7 +59,7 @@ module Wx::SF
 	  # @param [Array<Wx::RealPoint] pts Array of the vertices
     def set_vertices(pts)
       ::Kernel.raise ArgumentError, 'Expected an array of Wx::RealPoint' unless pts.all? { |pt| pt.is_a?(Wx::RealPoint) }
-      @vertices.replace(pts)
+      @vertices = pts.collect { |pt| pt.dup }
       normalize_vertices
       fit_bounding_box_to_vertices
     end
@@ -104,7 +104,7 @@ module Wx::SF
       else
         success = false
         pts.each_with_index do |pt, i|
-          if tmp_intersection = lines_intersection(pt, pts[(i+1) % pts.size], start, end_pt)
+          if tmp_intersection = Wx::SF::Shape.lines_intersection(pt, pts[(i+1) % pts.size], start, end_pt)
             if !success
               min_dist = intersection.distance_to(end_pt)
               intersection = tmp_intersection
@@ -139,8 +139,8 @@ module Wx::SF
     # @param [Float] x Horizontal scale factor
     # @param [Float] y Vertical scale factor
     def scale_rectangle(x, y)
-      @rect_size.x *= x;
-      @rect_size.y *= y;
+      rect_size.x *= x
+      rect_size.y *= y
 
       fit_vertices_to_bounding_box
     end
@@ -165,8 +165,8 @@ module Wx::SF
     def fit_vertices_to_bounding_box
       minx, miny, maxx, maxy = get_extents
 
-      sx = @rect_size.x/(maxx - minx)
-      sy = @rect_size.y/(maxy - miny)
+      sx = rect_size.x/(maxx - minx)
+      sy = rect_size.y/(maxy - miny)
 
       @vertices.each do |pt|
         pt.x *= sx
@@ -178,8 +178,8 @@ module Wx::SF
     def fit_bounding_box_to_vertices
       minx, miny, maxx, maxy = get_extents
 
-      @rect_size.x = maxx - minx
-      @rect_size.y = maxy - miny
+      rect_size.x = maxx - minx
+      rect_size.y = maxy - miny
     end
 
 	  # Get polygon extents.
@@ -193,11 +193,11 @@ module Wx::SF
       @vertices.inject(nil) do |exts, pt|
         if exts
           exts[0] = pt.x if pt.x < exts[0]
-          exts[1] = pt.x if pt.x > exts[1]
-          exts[2] = pt.y if pt.y < exts[2]
+          exts[1] = pt.y if pt.y < exts[1]
+          exts[2] = pt.x if pt.x > exts[2]
           exts[3] = pt.y if pt.y > exts[3]
         else
-          exts = [pt.x, pt.x, pt.y, pt.y]
+          exts = [pt.x, pt.y, pt.x, pt.y]
         end
         exts
       end

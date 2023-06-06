@@ -34,7 +34,7 @@ module Wx::SF
         pos, size, diagram = args
         super(pos, diagram)
       end
-      @size = size ? size : DEFAULT::SIZE.dup
+      @rect_size = size ? size : DEFAULT::SIZE.dup
       @fill = DEFAULT::FILL
       @border = DEFAULT::BORDER
       @prev_size = @prev_position = Wx::RealPoint
@@ -75,14 +75,14 @@ module Wx::SF
     # @overload set_rect_size(size)
     #   @param [Wx::RealPoint] size New size
     def set_rect_size(arg1, arg2 = nil)
-      @size = arg2 ? Wx::RealPoint.new(arg1.to_f, arg2.to_f) : arg1
+      @rect_size = arg2 ? Wx::RealPoint.new(arg1.to_f, arg2.to_f) : arg1
     end
     alias :rect_size= :set_rect_size
 
     # Get the rectangle size.
     # @return [Wx::RealPoint] Current size
     def get_rect_size
-      @size
+      @rect_size
     end
     alias :rect_size :get_rect_size
 
@@ -90,7 +90,7 @@ module Wx::SF
     # @return [Wx::Rect] Bounding rectangle
     def get_bounding_box
       apos = get_absolute_position
-      Wx::Rect.new([apos.x.to_i, apos.y.to_i], [@size.x.to_i, @size.y.to_i])
+      Wx::Rect.new([apos.x.to_i, apos.y.to_i], [@rect_size.x.to_i, @rect_size.y.to_i])
     end
 
     # Get intersection point of the shape border and a line leading from
@@ -155,7 +155,7 @@ module Wx::SF
     # @param [Shape::Handle] handle Reference to dragged handle
     def on_begin_handle(handle)
       @prev_position = @relative_position
-      @prev_size = @size
+      @prev_size = @rect_size
 
       super
     end
@@ -182,7 +182,7 @@ module Wx::SF
           # resize parent shape
           shp_bb.union!(ch_bb)
           move_to(shp_bb.get_position.x, shp_bb.get_position.y)
-          @size = Wx::RealPoint.new(shp_bb.get_size.x.to_f, shp_bb.get_size.y.to_f)
+          @rect_size = Wx::RealPoint.new(shp_bb.get_size.x.to_f, shp_bb.get_size.y.to_f)
           if has_style?(STYLE::EMIT_EVENTS)
             evt = ShapeEvent.new(EVT_SF_SHAPE_SIZE_CHANGED, id)
             evt.set_shape(self)
@@ -221,7 +221,7 @@ module Wx::SF
     # @param [Float] x Horizontal scale factor
     # @param [Float] y Vertical scale factor
     def scale_rectangle(x, y)
-      set_rect_size(@size.x * x, @size.y * y)
+      set_rect_size(@rect_size.x * x, @rect_size.y * y)
     end
 
     # Handle's shape specific actions on handling handle events.
@@ -267,7 +267,7 @@ module Wx::SF
 
       dc.with_pen(@border) do
         dc.with_brush(@fill) do
-          dc.draw_rectangle(get_absolute_position.to_point, @size.to_size)
+          dc.draw_rectangle(get_absolute_position.to_point, @rect_size.to_size)
         end
       end
     end
@@ -280,7 +280,7 @@ module Wx::SF
 
       dc.with_pen(Wx::Pen.new(@hover_color, 1)) do
         dc.with_brush(@fill) do
-          dc.draw_rectangle(get_absolute_position.to_point, @size.to_size)
+          dc.draw_rectangle(get_absolute_position.to_point, @rect_size.to_size)
         end
       end
     end
@@ -294,7 +294,7 @@ module Wx::SF
 
       dc.with_pen(Wx::Pen.new(@hover_color, 2)) do
         dc.with_brush(@fill) do
-          dc.draw_rectangle(get_absolute_position.to_point, @size.to_size)
+          dc.draw_rectangle(get_absolute_position.to_point, @rect_size.to_size)
         end
       end
     end
@@ -307,7 +307,7 @@ module Wx::SF
       if @fill.style != Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT
         dc.with_pen(Wx::TRANSPARENT_PEN) do
           dc.with_brush(get_parent_canvas.get_shadow_fill) do
-            dc.draw_rectangle((get_absolute_position + get_parent_canvas.get_shadow_offset).to_point, @size.to_size)
+            dc.draw_rectangle((get_absolute_position + get_parent_canvas.get_shadow_offset).to_point, @rect_size.to_size)
           end
         end
       end
@@ -319,7 +319,7 @@ module Wx::SF
     def on_right_handle(handle)
       # HINT: overload it for custom actions...
 
-      @size.x += handle.get_delta.x
+      @rect_size.x += handle.get_delta.x
     end
 
     # Event handler called during dragging of the left shape handle.
@@ -337,7 +337,7 @@ module Wx::SF
         end
       end
       # update position and size of the shape
-      @size.x -= dx
+      @rect_size.x -= dx
       @relative_position.x += dx
     end
 
@@ -356,7 +356,7 @@ module Wx::SF
         end
       end
       # update position and size of the shape
-      @size.y -= dy
+      @rect_size.y -= dy
       @relative_position.y += dy
     end
 
@@ -366,7 +366,7 @@ module Wx::SF
     def on_bottom_handle(handle)
       # HINT: overload it for custom actions...
 
-      @size.y += handle.get_delta.y
+      @rect_size.y += handle.get_delta.y
     end
   end
 

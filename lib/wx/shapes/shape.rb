@@ -223,7 +223,7 @@ module Wx::SF
       @id = Serializable::ID.new
       @diagram = diagram
       @parent_shape = nil
-      @child_shapes = []
+      @child_shapes = ShapeList.new
 
       if @diagram
         if @diagram.shape_canvas
@@ -283,9 +283,12 @@ module Wx::SF
     # Set managing diagram
     # @param [Wx::SF::Diagram] diagram
     def set_diagram(diagram)
-      @diagram = diagram
+      if @diagram != diagram
+        @diagram = diagram
+        @child_shapes.each { |child| child.set_diagram(diagram) }
+      end
+      self
     end
-    alias :diagram= :set_diagram
 
     # Get managing diagram
     # @return [Wx::SF::Diagram]
@@ -319,6 +322,7 @@ module Wx::SF
     def set_parent_shape(parent)
       @parent_shape.send(:remove_child, self) if @parent_shape
       parent.send(:add_child, self) if parent
+      set_diagram(parent.get_diagram) if parent
       @parent_shape = parent
     end
     alias :parent_shape= :set_parent_shape

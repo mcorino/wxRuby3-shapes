@@ -269,7 +269,7 @@ module Wx::SF
         ch_bb.set_height(10)
       end
   
-      @size = Wx::RealPoint.new(ch_bb.width + 2*@cell_space, ch_bb.height + 2*@cell_space)
+      @rect_size = Wx::RealPoint.new(ch_bb.width + 2*@cell_space, ch_bb.height + 2*@cell_space)
     end
 
     # Do layout of assigned child shapes

@@ -498,7 +498,6 @@ module Wx::SF
       @shp_multi_edit.set_diagram(@diagram)
       @diagram.shape_canvas = self if @diagram
     end
-    alias :diagram= :set_diagram
 
     # Load serialized canvas content (diagrams).
     # @overload load_canvas(file)
@@ -717,7 +716,7 @@ module Wx::SF
 
       lpos = dp2lp(pos)
 
-      if @working_mode == MODE::READY && ((shape_info && shape_info < Wx::SF::LineShape) || (shape.is_a?(Wx::SF::LineShape)))
+      if @working_mode == MODE::READY && ((shape_info && shape_info <= Wx::SF::LineShape) || (shape.is_a?(Wx::SF::LineShape)))
 
         if connection_point
 
@@ -1170,7 +1169,7 @@ module Wx::SF
 
       @current_shapes.replace(@diagram.get_all_shapes) if @diagram
 
-      @current_shapes.each do |shape|
+      @current_shapes.reverse_each do |shape|
         if shape.visible? && shape.active? && shape.contains?(lpos)
           if shape.is_a?(Wx::SF::LineShape)
             top_line ||= shape

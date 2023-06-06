@@ -380,12 +380,22 @@ module Wx::SF
         @trg_offset.y = (pos_cp.y - rct_bb.top).to_f / rct_bb.height
       end
     end
-	
+
+    # Get number of line segments for this shape.
+    # @return [Integer] number of line segments
+    def get_line_segment_count
+      @lst_points.size+1
+    end
+    alias :line_segment_count :get_line_segment_count
+    alias :segment_count :get_line_segment_count
+
     # Get starting and ending point of line segment defined by its index.
 	  # @param [Integer] index Index of desired line segment
 	  # @return [Array(Wx::RealPoint,Wx::RealPoint)] starting and ending point of line segment
     def get_line_segment(index)
-      if !@lst_points.empty?
+      if @lst_points.empty?
+        return get_direct_line if index == 0
+      else
         if index == 0
           return [get_src_point, @lst_points.first.dup]
         elsif index == @lst_points.size
@@ -393,8 +403,6 @@ module Wx::SF
         elsif index > 0 && index < @lst_points.size
           return @lst_points[index-1, 2].collect {|p| p.dup}
         end
-      else
-        return get_direct_line if index == 0
       end
       [Wx::RealPoint.new, Wx::RealPoint.new]
     end
@@ -627,7 +635,7 @@ module Wx::SF
     end
 
 	  # Scale the shape size by in both directions. The function can be overridden if necessary
-    # (new implementation should call default one ore scale shape's children manualy if neccesary).
+    # (new implementation should call default one or scale shape's children manually if necessary).
     # @param [Float] x Horizontal scale factor
     # @param [Float] y Vertical scale factor
     # @param [Boolean] children true if the shape's children should be scaled as well, otherwise the shape will be updated after scaling via update() function.
@@ -686,7 +694,7 @@ module Wx::SF
       when LINEMODE::READY
         # draw basic line parts
         src = trg = nil
-        @lst_points.each_with_index do |pt, i|
+        line_segment_count.times do |i|
           src, trg = get_line_segment(i)
           dc.draw_line(src.to_point, trg.to_point)
         end
@@ -701,7 +709,7 @@ module Wx::SF
       when LINEMODE::UNDERCONSTRUCTION
         # draw basic line parts
         src = trg = nil
-        @lst_points.each_with_index do |pt, i|
+        @lst_points.size.times do |i|
           src, trg = get_line_segment(i)
           dc.draw_line(src.to_point, trg.to_point)
         end
@@ -725,8 +733,8 @@ module Wx::SF
       when LINEMODE::SRCCHANGE
         # draw basic line parts
         src = trg = nil
-        @lst_points.each_with_index do |pt, i|
-          src, trg = get_line_segment(i)
+        @lst_points.size.times do |i|
+          src, trg = get_line_segment(i+1)
           dc.draw_line(src.to_point, trg.to_point)
         end
 
@@ -743,7 +751,7 @@ module Wx::SF
         if @lst_points.empty?
           trg = get_src_point
         else
-          @lst_points.each_with_index do |pt, i|
+          @lst_points.size.times do |i|
             src, trg = get_line_segment(i)
             dc.draw_line(src.to_point, trg.to_point)
           end
@@ -762,7 +770,7 @@ module Wx::SF
       return -1 unless get_bounding_box.contains?(pos)
 
       # Get all polyline segments
-      (@lst_points.size+1).times do |i|
+      line_segment_count.times do |i|
         src, trg = get_line_segment(i)
 
         # calculate line segment bounding box

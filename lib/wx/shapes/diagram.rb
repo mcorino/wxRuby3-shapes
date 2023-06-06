@@ -24,8 +24,7 @@ module Wx::SF
     SEARCHMODE = ShapeCanvas::SEARCHMODE
 
     def initialize
-      @shapes = []
-      @shapes_index = {}
+      @shapes = ShapeList.new
       @shape_canvas = nil
       @is_modified = false
       @accepted_shapes = ::Set.new(['*'])
@@ -46,15 +45,10 @@ module Wx::SF
     end
     alias :shape_canvas= :set_shape_canvas
 
+    # Deserialization only.
     def set_shapes(list)
-      @shapes.replace(list)
-      @shapes_index.clear
-      @shapes.each do |sh|
-        @shapes_index[sh.id] = sh
-        sh.get_child_shapes(ANY, RECURSIVE).each do |child|
-          @shapes_index[child.id] = child
-        end
-      end
+      @shapes = list
+      @shapes.each { |shape| shape.set_diagram(self) }
     end
     private :set_shapes
 
@@ -190,12 +184,11 @@ module Wx::SF
           else
             if is_top_shape_accepted(shape.class)
               @shapes << shape
+              shape.set_diagram(self)
             else
               return ERRCODE::NOT_ACCEPTED
             end
           end
-          @shapes_index[shape.id] = shape
-          shape.set_diagram(self)
 
           # initialize added shape
           if initialize
@@ -212,8 +205,6 @@ module Wx::SF
                   child.update
 
                   child.set_hover_colour(@shape_canvas.get_hover_colour) if @shape_canvas
-
-                  @shapes_index[child.id] = child
                 end
             end
           end
@@ -266,12 +257,12 @@ module Wx::SF
 
       # remove the shape and it's children from canvas cache and shape index list
       lst_children.each do |child|
-        @shapes_index.delete(child.id)
         @shape_canvas.send(:remove_from_temporaries, shape) if @shape_canvas
       end
 
       # remove the shape
       shape.set_parent_shape(nil) # also removes shape from parent if it had a parent
+      shape.set_diagram(nil)
       @shapes.delete(shape)
 
       @is_modified = true
@@ -298,6 +289,7 @@ module Wx::SF
         @shapes.delete(shape) # remove from top level list if now parented
       elsif prev_parent && parent.nil?
         @shapes << shape # add to toplevel shapes if now unparented
+        shape.set_diagram(self) # make sure the right diagram is set
       end
       shape
     end
@@ -306,7 +298,7 @@ module Wx::SF
     # @param [Wx::SF::Shape] shape
     # @return [Boolean]
     def contains_shape(shape)
-      @shapes_index.has_key?(shape.id)
+      @shapes.include?(shape.id,true)
     end
     alias :contains_shape? :contains_shape
     alias :contains? :contains_shape
@@ -314,7 +306,6 @@ module Wx::SF
     # Remove all shapes from canvas
     def clear
       @shapes.clear
-      @shapes_index.clear
       if @shape_canvas
         @shape_canvas.get_multiselection_box.show(false)
         @shape_canvas.update_virtual_size
@@ -436,7 +427,7 @@ module Wx::SF
     # @param [Wx::SF::Serializable::ID] id Shape's ID
     # @return [Wx::SF::Shape] shape if exists, otherwise nil
     def find_shape(id)
-      @shapes_index[id]
+      @shapes.get(id, true)
     end
 
 	  # Get list of connections assigned to given parent shape.
@@ -471,7 +462,7 @@ module Wx::SF
     end
 
     def get_all_shapes
-      @shapes_index.values
+      @shapes.all
     end
 
 	  # Get list of shapes of given type.
@@ -604,12 +595,11 @@ module Wx::SF
         if shape.is_a?(LineShape)
           # so that lines with both connected shapes will have matching ids
           # we will remove any lines for which one or both connected shapes are missing (not copied)
-          if @shapes_index.has_key?(shape.get_src_shape_id) && @shapes_index.has_key?(shape.get_trg_shape_id)
+          if @shapes.include?(shape.get_src_shape_id) && @shapes.include?(shape.get_trg_shape_id)
             shape.create_handles
             true # keep
           else
             # remove from diagram
-            @shapes_index.delete(shape.get_id)
             @shapes.delete(shape)
             false # remove from new_shapes
           end
@@ -631,13 +621,13 @@ module Wx::SF
       new_shapes.each do |shape|
         if shape.is_a?(GridShape)
           grid.each_cell do |row, col, id|
-            grid.clear_cell(row, col) unless id.nil? || @shapes_index.has_key?(id)
+            grid.clear_cell(row, col) unless id.nil? || @shapes.include?(id)
           end
         elsif shape.has_children?
           shape.get_children_recursively(nil, Shape::SEARCHMODE::DFS).each do |child|
             if shape.is_a?(GridShape)
               grid.each_cell do |row, col, id|
-                grid.clear_cell(row, col) unless id.nil? || @shapes_index.has_key?(id)
+                grid.clear_cell(row, col) unless id.nil? || @shapes.include?(id)
               end
             end
           end
