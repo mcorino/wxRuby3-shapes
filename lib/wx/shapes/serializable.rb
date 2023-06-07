@@ -357,12 +357,14 @@ module Wx::SF
       # add instance property (de-)serialization methods for base class
       base.class_eval <<~__CODE
         def for_serialize(hash, excludes = ::Set.new)
+          hash[:'@explicit'] = true if serialize_disabled? # mark explicit serialize overriding disabling
           #{base.name}.serializer_properties.each { |prop, h| prop.serialize(self, hash, excludes) }
           hash 
         end
         protected :for_serialize
 
         def from_serialized(hash)
+          disable_serialize if hash[:'@explicit'] # re-instate serialization disabling
           #{base.name}.serializer_properties.each { |prop| prop.deserialize(self, hash) }
           self
         end

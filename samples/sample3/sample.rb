@@ -54,7 +54,6 @@ class StarShape < Wx::SF::PolygonShape
   def set_title(txt)
     @text.set_parent_shape(nil) if @text
     @text = txt
-    @text.disable_serialize
   end
 
   def init
