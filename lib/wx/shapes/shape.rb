@@ -164,52 +164,6 @@ module Wx::SF
       DOCK_POINT = -3
     end
 
-    class << self
-      # Returns intersection point of two lines (if any)
-      # @param [Wx::RealPoint] from1
-      # @param [Wx::RealPoint] to1
-      # @param [Wx::RealPoint] from2
-      # @param [Wx::RealPoint] to2
-      # @return [Wx::RealPoint,nil] intersection point or nil
-      def lines_intersection(from1, to1, from2, to2)
-        i = Wx::RealPoint.new
-
-         # create line 1 info
-        a1 = to1.y - from1.y
-        b1 = from1.x - to1.x
-        c1 = -a1*from1.x - b1*from1.y
-
-        # create line 2 info
-        a2 = to2.y - from2.y
-        b2 = from2.x - to2.x
-        c2 = -a2*from2.x - b2*from2.y
-
-        # check, whether the lines are parallel...
-        ka = a1 / a2
-        kb = b1 / b2
-
-        return nil if(ka == kb)
-
-        # find intersection point
-        if Wx::PLATFORM == 'WXMSW'
-          xi = (((b1*c2 - c1*b2) / (a1*b2 - a2*b1)) + 0.5).floor
-          yi = ((-(a1*c2 - a2*c1) / (a1*b2 - a2*b1)) + 0.5).floor
-        else
-          xi = (b1*c2 - c1*b2) / (a1*b2 - a2*b1)
-          yi = -(a1*c2 - a2*c1) / (a1*b2 - a2*b1)
-        end
-
-        if( ((from1.x - xi)*(xi - to1.x) >= 0.0) &&
-          ((from2.x - xi)*(xi - to2.x) >= 0.0) &&
-          ((from1.y - yi)*(yi - to1.y) >= 0.0) &&
-          ((from2.y - yi)*(yi - to2.y) >= 0.0) )
-            return Wx::RealPoint.new(xi, yi)
-        end
-
-        nil
-      end
-    end
-
     # @overload initialize()
     #   default constructor
     # @overload initialize(pos, manager)
@@ -1982,31 +1936,26 @@ module Wx::SF
     def set_accepted_children(set)
       @accepted_children.replace(set)
     end
-    private :set_accepted_children
 
     # Sets accepted connection. Exclusively for deserialization.
     def set_accepted_connections(set)
       @accepted_connections.replace(set)
     end
-    private :set_accepted_connections
 
     # Sets accepted src neighbours. Exclusively for deserialization.
     def set_accepted_src_neighbours(set)
       @accepted_src_neighbours.replace(set)
     end
-    private :set_accepted_src_neighbours
 
     # Sets accepted trg neighbours. Exclusively for deserialization.
     def set_accepted_trg_neighbours(set)
       @accepted_trg_neighbours.replace(set)
     end
-    private :set_accepted_trg_neighbours
 
     # Sets connection points. Exclusively for deserialization.
     def set_connection_points(list)
       @connection_pts.replace(list)
     end
-    private :set_connection_points
 
     def update_child_parents
       @child_shapes.each do |shape|
@@ -2014,7 +1963,6 @@ module Wx::SF
         shape.send(:update_child_parents)
       end
     end
-    private :update_child_parents
 
     # (de-)serialize child shapes. Exclusively for deserialization.
     def serialize_child_shapes(*val)
@@ -2024,7 +1972,57 @@ module Wx::SF
       end
       @child_shapes
     end
-    private :serialize_child_shapes
+
+    public
+
+    # Returns intersection point of two lines (if any)
+    # @param [Wx::RealPoint] from1
+    # @param [Wx::RealPoint] to1
+    # @param [Wx::RealPoint] from2
+    # @param [Wx::RealPoint] to2
+    # @return [Wx::RealPoint,nil] intersection point or nil
+    def self.lines_intersection(from1, to1, from2, to2)
+      i = Wx::RealPoint.new
+
+      # create line 1 info
+      a1 = to1.y - from1.y
+      b1 = from1.x - to1.x
+      c1 = -a1*from1.x - b1*from1.y
+
+      # create line 2 info
+      a2 = to2.y - from2.y
+      b2 = from2.x - to2.x
+      c2 = -a2*from2.x - b2*from2.y
+
+      # check, whether the lines are parallel...
+      ka = a1 / a2
+      kb = b1 / b2
+
+      return nil if(ka == kb)
+
+      # find intersection point
+      if Wx::PLATFORM == 'WXMSW'
+        xi = (((b1*c2 - c1*b2) / (a1*b2 - a2*b1)) + 0.5).floor
+        yi = ((-(a1*c2 - a2*c1) / (a1*b2 - a2*b1)) + 0.5).floor
+      else
+        xi = (b1*c2 - c1*b2) / (a1*b2 - a2*b1)
+        yi = -(a1*c2 - a2*c1) / (a1*b2 - a2*b1)
+      end
+
+      if( ((from1.x - xi)*(xi - to1.x) >= 0.0) &&
+        ((from2.x - xi)*(xi - to2.x) >= 0.0) &&
+        ((from1.y - yi)*(yi - to1.y) >= 0.0) &&
+        ((from2.y - yi)*(yi - to2.y) >= 0.0) )
+        return Wx::RealPoint.new(xi, yi)
+      end
+
+      nil
+    end
+
+    # Allow shapes to call class method as instance method.
+    def lines_intersection(*args)
+      Shape.lines_intersection(*args)
+    end
 
   end # class Shape
 
