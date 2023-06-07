@@ -342,7 +342,7 @@ module Wx::SF
 
       # provide serialized property definition support
 
-      # provide the including class with it's own serialized properties (exclusion) list
+      # provide serialized classes with their own serialized properties (exclusion) list
       base.singleton_class.class_eval do
         def serializer_properties
           @serializer_props ||= []
@@ -351,24 +351,10 @@ module Wx::SF
           @excluded_serializer_props ||= ::Set.new
         end
       end
-      # provide inheritance support
-      base.class_eval do
-        def self.inherited(derived)
-          # provide the derived class with it's own serialized properties (exclusion) list
-          derived.singleton_class.class_eval do
-            def serialized_properties
-              @serialized_props ||= []
-            end
-            def excluded_serializer_properties
-              @excluded_serializer_props ||= ::Set.new
-            end
-          end
-        end
-      end
       # add class methods
       base.extend(SerializeClassMethods)
 
-      # add instance property (de-)serialization methods
+      # add instance property (de-)serialization methods for base class
       base.class_eval <<~__CODE
         def for_serialize(hash, excludes = ::Set.new)
           #{base.name}.serializer_properties.each { |prop, h| prop.serialize(self, hash, excludes) }
@@ -385,6 +371,7 @@ module Wx::SF
       # add inheritance support
       base.class_eval do
         def self.inherited(derived)
+          # add instance property (de-)serialization methods for derived classes
           derived.class_eval <<~__CODE
             def for_serialize(hash, excludes = ::Set.new)
               hash = super(hash, excludes | #{derived.name}.excluded_serializer_properties) 
