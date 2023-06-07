@@ -38,8 +38,9 @@ module Wx::SF
       TRGCHANGE = self.new(3)
     end
 
-    property :src_shape_id, :trg_shape_id, :src_point, :trg_point,
-             :stand_alone, :src_arrow, :trg_arrow, :src_offset, :trg_offset,
+    property :src_shape_id, :trg_shape_id
+    property src_point: :serialize_src_point, trg_point: :serialize_trg_point
+    property :stand_alone, :src_arrow, :trg_arrow, :src_offset, :trg_offset,
              :dock_point, :line_pen, :control_points
 
     # @overload initialize()
@@ -880,6 +881,18 @@ module Wx::SF
     # @param [Wx::RealPoint] offs
     def set_trg_offset(offs)
       @trg_offset = offs
+    end
+
+    # (De-)Serialization only
+    def serialize_src_point(*arg)
+      @src_point = arg.shift unless arg.empty?
+      @src_point
+    end
+
+    # (De-)Serialization only
+    def serialize_trg_point(*arg)
+      @trg_point = arg.shift unless arg.empty?
+      @trg_point
     end
 
   end

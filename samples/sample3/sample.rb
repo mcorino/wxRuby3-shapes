@@ -35,13 +35,6 @@ class StarShape < Wx::SF::PolygonShape
     init
   end
 
-  # Set managing diagram. Override also sets embedded text control diagram.
-  # @param [Wx::SF::Diagram] diagram
-  def set_diagram(diagram)
-    @diagram = diagram
-    @text.set_diagram(diagram)
-  end
-
   protected
 
   def get_description
@@ -56,8 +49,12 @@ class StarShape < Wx::SF::PolygonShape
     @text
   end
 
+  private
+
   def set_title(txt)
+    @text.set_parent_shape(nil) if @text
     @text = txt
+    @text.disable_serialize
   end
 
   def init
@@ -73,7 +70,7 @@ class StarShape < Wx::SF::PolygonShape
     accept_src_neighbour(StarShape)
     accept_trg_neighbour(StarShape)
 
-	  # create associated shape(s)
+    # create associated shape(s)
     @text = Wx::SF::EditTextShape.new
     # set some properties
     if @text
@@ -85,19 +82,29 @@ class StarShape < Wx::SF::PolygonShape
 
       # set required shape style(s)
       @text.set_style(STYLE::ALWAYS_INSIDE | STYLE::HOVERING | STYLE::PROCESS_DEL | STYLE::PROPAGATE_DRAGGING | STYLE::PROPAGATE_SELECTION | STYLE::PROPAGATE_INTERACTIVE_CONNECTION)
-		  # you can also force displaying of the shapes handles even if the interactive
-		  # size change is not allowed:
-		  #@text.add_style(STYLE::SHOW_HANDLES)
+      # you can also force displaying of the shapes handles even if the interactive
+      # size change is not allowed:
+      #@text.add_style(STYLE::SHOW_HANDLES)
 
       # components of composite shapes created at runtime in parent shape's
       # constructor cannot be fully serialized (it means created by
-		  # the serializer) so it is important to disable their standard serialization
+      # the serializer) so it is important to disable their standard serialization
       @text.disable_serialize
       # but they can be still serialized as the parent shape's properties
-		  # (see property declaration above)
+      # (see property declaration above)
       @text.set_parent_shape(self)
     end
   end
+
+  # Deserialize attributes and update @text relationship afterwards.
+  # @param [Hash] data
+  # @return [self]
+  def from_serialized(data)
+    super
+    @text.set_parent_shape(self) if @text
+    self
+  end
+
 end
 
 class SFSample3Frame < Wx::Frame
@@ -252,9 +259,10 @@ class SFSample3Frame < Wx::Frame
   def on_open(_event)
     Wx::FileDialog(self, 'Load diagram from file...', Dir.getwd, '', "JSON Files (*.json)|*.json", Wx::FD_OPEN) do |dlg|
       if dlg.show_modal == Wx::ID_OK
-        @canvas.load_canvas(dlg.get_path)
+        File.open(dlg.get_path, 'r') do |f|
+          @canvas.set_diagram(Wx::SF::Serializable.deserialize(f))
+        end
         @diagram = @canvas.get_diagram
-
         @canvas.refresh(false)
       end
     end
@@ -264,7 +272,9 @@ class SFSample3Frame < Wx::Frame
     Wx::FileDialog(self, 'Save diagram to XML...', Dir.getwd, '', 'JSON Files (*.json)|*.json', Wx::FD_SAVE) do |dlg|
       if dlg.show_modal == Wx::ID_OK
         # save diagram to file
-        @canvas.save_canvas(dlg.get_path)
+        File.open(dlg.get_path, 'w+') do |f|
+          @diagram.serialize(f, pretty: true)
+        end
         Wx.message_box("The diagram has been saved to '#{dlg.get_path}'.", 'wxRuby ShapeFramework')
       end
     end

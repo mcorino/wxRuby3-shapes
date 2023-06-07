@@ -497,6 +497,10 @@ module Wx::SF
       @shp_selection.set_diagram(@diagram)
       @shp_multi_edit.set_diagram(@diagram)
       @diagram.shape_canvas = self if @diagram
+      clear_temporaries
+      clear_canvas_history
+      save_canvas_state
+      @diagram.update_all
     end
 
     # Load serialized canvas content (diagrams).
@@ -507,11 +511,10 @@ module Wx::SF
     #   @param [IO] io IO object
     #   @return [self]
     def load_canvas(io)
-      return self unless @diagram
       # get IO stream to read from
       begin
         ios = io.is_a?(::String) ? File.open(io, 'r') : io
-        ver_info, @settings, @diagram = Serializable.deserialize(ios)
+        ver_info, @settings, diagram = Serializable.deserialize(ios)
       rescue SFException
         ::Kernel.raise
       rescue ::Exception
@@ -520,8 +523,8 @@ module Wx::SF
         ShapeCanvas.reset_compat_loading
         ios.close if io.is_a?(::String) && ios
       end
+      set_diagram(diagram)
       set_scale(@settings.scale)
-      save_canvas_state
       update_virtual_size
       refresh(false)
 

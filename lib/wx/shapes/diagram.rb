@@ -18,7 +18,8 @@ module Wx::SF
 
     include Serializable
 
-    property :shapes, :accepted_shapes, :accepted_top_shapes
+    property shapes: :serialize_shapes
+    property :accepted_shapes, :accepted_top_shapes
 
     # Search mode flags for get_shape_at_position method
     SEARCHMODE = ShapeCanvas::SEARCHMODE
@@ -44,13 +45,6 @@ module Wx::SF
       @shape_canvas = canvas
     end
     alias :shape_canvas= :set_shape_canvas
-
-    # Deserialization only.
-    def set_shapes(list)
-      @shapes = list
-      @shapes.each { |shape| shape.set_diagram(self) }
-    end
-    private :set_shapes
 
     # Get information about managed diagram's modification.
     #
@@ -633,6 +627,15 @@ module Wx::SF
           end
         end
       end
+    end
+
+    # Shape lis (de-)serialization
+    def serialize_shapes(*arg)
+      unless arg.empty?
+        @shapes = arg.shift
+        @shapes.each { |shape| shape.set_diagram(self) }
+      end
+      @shapes
     end
 
     # Set accepted shapes. Deserialization only.

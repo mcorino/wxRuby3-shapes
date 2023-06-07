@@ -183,7 +183,7 @@ module Wx::SF
           return false if col >= @cols
 
           # add the shape to the children list if necessary
-          shape.set_parent_shape(self) unless @child_shapes.index(shape)
+          shape.set_parent_shape(self) unless @child_shapes.include?(shape)
 
           @cells.insert(row * @cols + col, shape.id)
 
@@ -204,7 +204,7 @@ module Wx::SF
           return false if index >= (@rows * @cols)
 
           # add the shape to the children list if necessary
-          shape.set_parent_shape(self) unless @child_shapes.index(shape)
+          shape.set_parent_shape(self) unless @child_shapes.include?(shape)
 
           @cells.insert(index, shape.id)
 

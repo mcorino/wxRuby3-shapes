@@ -448,7 +448,7 @@ module SerializerTestMixin
     obj = Wx::SF::RectShape.new
     obj.set_relative_position(Wx::RealPoint.new(100, 99))
     obj.set_rect_size(20.0, 20.0)
-    p obj_serial = obj.serialize
+    obj_serial = obj.serialize
     obj_new = nil
     assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_instance_of(Wx::SF::RectShape, obj_new)
