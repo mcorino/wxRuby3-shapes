@@ -19,6 +19,7 @@ module SerializerTestMixin
         obj.instance_variable_get('@prop_e')
       end
     end
+    property :prop_f, :prop_g, handler: :serialize_props_f_and_g
 
     def initialize
       @prop_a = 'string'
@@ -26,6 +27,8 @@ module SerializerTestMixin
       @prop_c = :symbol
       @prop_d = 100.123
       @prop_e = [1,2,3]
+      @prop_f = {_1: 1, _2: 2, _3: 3}
+      @prop_g = 1..10
     end
 
     attr_accessor :prop_a
@@ -36,13 +39,26 @@ module SerializerTestMixin
     end
     private :serialize_prop_c
 
+    def serialize_props_f_and_g(id, *val)
+      case id
+      when :prop_f
+        @prop_f = val.shift unless val.empty?
+        @prop_f
+      when :prop_g
+        @prop_g = val.shift unless val.empty?
+        @prop_g
+      end
+    end
+
     def ==(other)
       self.class === other &&
         @prop_a == other.prop_a &&
         @prop_b == other.instance_variable_get('@prop_b') &&
         @prop_c == other.instance_variable_get('@prop_c') &&
         @prop_d == other.instance_variable_get('@prop_d') &&
-        @prop_e == other.instance_variable_get('@prop_e')
+        @prop_e == other.instance_variable_get('@prop_e') &&
+        @prop_g == other.instance_variable_get('@prop_g') &&
+        @prop_f == other.instance_variable_get('@prop_f')
     end
   end
 

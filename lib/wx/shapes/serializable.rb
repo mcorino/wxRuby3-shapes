@@ -8,18 +8,32 @@ module Wx::SF
   module Serializable
 
     class Property
-      def initialize(klass, prop, proc=nil, force: false, &block)
+      def initialize(klass, prop, proc=nil, force: false, handler: nil, &block)
         ::Kernel.raise ArgumentError, "Invalid property id #{prop}" unless ::String === prop || ::Symbol === prop
         @klass = klass
         @id = prop.to_sym
         @forced = force
-        if block
-          # any property block MUST accept 2 or 3 args; property name, instance and value (for setter)
-          ::Kernel.raise ArgumentError, "Invalid property block #{proc} for #{prop}" unless block.arity == -3
-          @getter = ->(obj) { block.call(@id, obj) }
-          @setter = ->(obj, val) { block.call(@id, obj, val) }
+        if block || handler
+          if handler
+            ::Kernel.raise ArgumentError,
+                           "Invalid property handler #{handler} for #{prop}" unless ::Proc === handler || ::Symbol === handler
+            if handler.is_a?(::Proc)
+              ::Kernel.raise ArgumentError, "Invalid property block #{proc} for #{prop}" unless block.arity == -3
+              @getter = ->(obj) { handler.call(@id, obj) }
+              @setter = ->(obj, val) { handler.call(@id, obj, val) }
+            else
+              @getter = ->(obj) { obj.send(handler, @id) }
+              @setter = ->(obj, val) { obj.send(handler, @id, val) }
+            end
+          else
+            # any property block MUST accept 2 or 3 args; property name, instance and value (for setter)
+            ::Kernel.raise ArgumentError, "Invalid property block #{proc} for #{prop}" unless block.arity == -3
+            @getter = ->(obj) { block.call(@id, obj) }
+            @setter = ->(obj, val) { block.call(@id, obj, val) }
+          end
         elsif proc
-          ::Kernel.raise ArgumentError, "Invalid property proc #{proc} for #{prop}" unless ::Proc === proc || ::Symbol === proc
+          ::Kernel.raise ArgumentError,
+                         "Invalid property proc #{proc} for #{prop}" unless ::Proc === proc || ::Symbol === proc
           if ::Proc === proc
             # any property proc should be callable with a single arg (instance)
             @getter = proc
@@ -187,10 +201,13 @@ module Wx::SF
       #         to be able to support setting explicit nil values.
       #   @param [Hash] hash a hash of pairs of property ids and getter/setter procs
       #   @param [Boolean] force overrides any #disable_serialize for the properties specified
-      # @overload property(*props, force: false, &block)
-      #   Specifies one or more serialized properties with a getter/setter block.
-      #   The getter/setter block should accept either 2 (property id and object for getter) or 3 arguments
+      # @overload property(*props, force: false, handler: nil, &block)
+      #   Specifies one or more serialized properties with a getter/setter handler proc/method/block.
+      #   The getter/setter proc or block should accept either 2 (property id and object for getter) or 3 arguments
       #   (property id, object and value for setter) and is assumed to handle getter/setter requests
+      #   for all specified properties.
+      #   The getter/setter method should accept either 1 (property id for getter) or 2 arguments
+      #   (property id and value for setter) and is assumed to handle getter/setter requests
       #   for all specified properties.
       #   @example
       #     property(:property_a, :property_b, :property_c) do |id, obj, *val|
@@ -212,9 +229,9 @@ module Wx::SF
       #   @yieldparam [Object] val optional property value to set in case of setter request
       def property(*props, **kwargs, &block)
         forced = !!kwargs.delete(:force)
-        if block
+        if block || kwargs[:handler]
           props.each do |prop|
-            serializer_properties << Property.new(self, prop, force: forced, &block)
+            serializer_properties << Property.new(self, prop, force: forced, handler: kwargs[:handler], &block)
           end
         else
           props.flatten.each do |prop|
