@@ -412,11 +412,12 @@ module Wx::SF
               protected :from_serialized
             end
             include SerializerMethods
-
-            def self.has_serializer_property?(id)
-              self.serializer_properties.any? { |p| p.id == id.to_sym } || self.superclass.has_serializer_property?(id) 
-            end
             __CODE
+          derived.class_eval do
+            def self.has_serializer_property?(id)
+              self.serializer_properties.any? { |p| p.id == id.to_sym } || self.superclass.has_serializer_property?(id)
+            end
+          end
 
           # register as serializable class
           Serializable.serializables << derived
