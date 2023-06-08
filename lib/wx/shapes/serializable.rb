@@ -9,7 +9,8 @@ module Wx::SF
 
     class Property
       def initialize(klass, prop, proc=nil, force: false, handler: nil, &block)
-        ::Kernel.raise ArgumentError, "Invalid property id #{prop}" unless ::String === prop || ::Symbol === prop
+        ::Kernel.raise ArgumentError, "Invalid property id [#{prop}]" unless ::String === prop || ::Symbol === prop
+        ::Kernel.raise ArgumentError, "Duplicate property id [#{prop}]" if klass.has_serializer_property?(prop)
         @klass = klass
         @id = prop.to_sym
         @forced = force
@@ -386,6 +387,10 @@ module Wx::SF
           self
         end
         protected :from_serialized
+
+        def self.has_serializer_property?(id)
+          self.serializer_properties.any? { |p| p.id == id.to_sym } 
+        end
         __CODE
       # add inheritance support
       base.class_eval do
@@ -404,6 +409,10 @@ module Wx::SF
               super(hash)
             end
             protected :from_serialized
+    
+            def self.has_serializer_property?(id)
+              self.serializer_properties.any? { |p| p.id == id.to_sym } || self.superclass.has_serializer_property?(id) 
+            end
             __CODE
 
           # register as serializable class
