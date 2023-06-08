@@ -397,19 +397,22 @@ module Wx::SF
         def self.inherited(derived)
           # add instance property (de-)serialization methods for derived classes
           derived.class_eval <<~__CODE
-            def for_serialize(hash, excludes = ::Set.new)
-              hash = super(hash, excludes | #{derived.name}.excluded_serializer_properties) 
-              #{derived.name}.serializer_properties.each { |prop| prop.serialize(self, hash, excludes) }
-              hash 
+            module SerializerMethods 
+              def for_serialize(hash, excludes = ::Set.new)
+                hash = super(hash, excludes | #{derived.name}.excluded_serializer_properties) 
+                #{derived.name}.serializer_properties.each { |prop| prop.serialize(self, hash, excludes) }
+                hash 
+              end
+              protected :for_serialize
+  
+              def from_serialized(hash)
+                #{derived.name}.serializer_properties.each { |prop| prop.deserialize(self, hash) }
+                super(hash)
+              end
+              protected :from_serialized
             end
-            protected :for_serialize
+            include SerializerMethods
 
-            def from_serialized(hash)
-              #{derived.name}.serializer_properties.each { |prop| prop.deserialize(self, hash) }
-              super(hash)
-            end
-            protected :from_serialized
-    
             def self.has_serializer_property?(id)
               self.serializer_properties.any? { |p| p.id == id.to_sym } || self.superclass.has_serializer_property?(id) 
             end
