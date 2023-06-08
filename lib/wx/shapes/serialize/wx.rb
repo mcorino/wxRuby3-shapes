@@ -86,3 +86,11 @@ class Wx::Pen
   property :colour, :width, :style
 
 end
+
+class Wx::Font
+
+  include Wx::SF::Serializable
+
+  property font_info: ->(font, *info) { font.set_native_font_info_user_desc(info.shift) unless info.empty?; font.get_native_font_info_user_desc }
+
+end
