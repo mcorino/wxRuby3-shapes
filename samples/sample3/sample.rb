@@ -12,10 +12,12 @@ class StarShape < Wx::SF::PolygonShape
           Wx::RealPoint.new(-40, 50), Wx::RealPoint.new(-22, 10),
           Wx::RealPoint.new(-50, -10), Wx::RealPoint.new(-15, -10)]
 
+  # regular property
   property :description
-  property :title, force: true
-  # disable serialization of polygon vertices for this derivative, because they are always set
-  # in constructor for this class
+  # component shape property
+  component :title
+  # disable serialization of polygon vertices for this PolygonShape derivative,
+  # because they are always set in constructor for this class
   excludes :vertices
 
   # @overload initialize()
@@ -52,7 +54,6 @@ class StarShape < Wx::SF::PolygonShape
   private
 
   def set_title(txt)
-    @text.set_parent_shape(nil) if @text
     @text = txt
   end
 
@@ -85,23 +86,11 @@ class StarShape < Wx::SF::PolygonShape
       # size change is not allowed:
       #@text.add_style(STYLE::SHOW_HANDLES)
 
-      # components of composite shapes created at runtime in parent shape's
-      # constructor cannot be fully serialized (it means created by
-      # the serializer) so it is important to disable their standard serialization
-      @text.disable_serialize
-      # but they can be still serialized as the parent shape's properties
-      # (see property declaration above)
+      # component will/should be added as child shape but not be serialized as such
+      # instead it will be serialized as a dedicated property of instances of
+      # this class
       @text.set_parent_shape(self)
     end
-  end
-
-  # Deserialize attributes and update @text relationship afterwards.
-  # @param [Hash] data
-  # @return [self]
-  def from_serialized(data)
-    super
-    @text.set_parent_shape(self) if @text
-    self
   end
 
 end

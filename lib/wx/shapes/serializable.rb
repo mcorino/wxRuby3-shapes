@@ -71,6 +71,10 @@ module Wx::SF
         end
       end
 
+      def get(obj)
+        getter.call(obj)
+      end
+
       def get_method(id)
         begin
           @klass.instance_method(id)

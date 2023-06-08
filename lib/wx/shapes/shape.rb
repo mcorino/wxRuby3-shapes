@@ -164,6 +164,82 @@ module Wx::SF
       DOCK_POINT = -3
     end
 
+    # Provide Shape and derivatives with component set container
+    class << self
+      def component_shapes
+        @component_shapes ||= ::Set.new
+      end
+    end
+
+    # Declare a component shape property for the shape class.
+    # @overload component(*comp_ids)
+    #   Specifies one or more serialized component properties.
+    #   The serialization framework will determine the availability of setter and getter methods
+    #   automatically by looking for methods "#{comp_id}=(v)", "set_#{comp_id}(v)" or "#{comp_id}(v)"
+    #   for setters and "#{comp_id}()" or "get_#{comp_id}" for getters.
+    #   @param [String,Symbol] comp_id id of component property
+    # @overload component(hash)
+    #   Specifies one or more serialized component properties with associated setter/getter method ids/procs/lambda-s.
+    #   @example
+    #     property(
+    #       prop_a: ->(obj, *val) {
+    #                 obj.my_prop_a_setter(val.first) unless val.empty?
+    #                 obj.my_prop_a_getter
+    #               },
+    #       prop_b: Proc.new { |obj, *val|
+    #                 obj.my_prop_b_setter(val.first) unless val.empty?
+    #                 obj.my_prop_b_getter
+    #               },
+    #       prop_c: :serialization_method)
+    #   Procs with setter support MUST accept 1 or 2 arguments (1 for getter, 2 for setter).
+    #   @note Use `*val` to specify the optional value argument for setter requests instead of `val=nil`
+    #         to be able to support setting explicit nil values.
+    #   @param [Hash] hash a hash of pairs of property ids and getter/setter procs
+    def self.component(*args)
+      args.flatten.each do |arg|
+        if arg.is_a?(::Hash)
+          arg.each_pair do |pn, pp|
+            # define serialized property for component (checks for duplicates)
+            property({pn => pp}, force: true)
+            # get the property definition and register as component
+            component_shapes << self.serializer_properties.last
+          end
+        else
+          # define serialized property for component (checks for duplicates)
+          property(arg, force: true)
+          # get the property definition and register as component
+          component_shapes << self.serializer_properties.last
+        end
+      end
+      # check if the current class already has the appropriate support
+      unless self.const_defined?(:ComponentSerializerMethods)
+        class << self
+          def disable_component_serialize(obj)
+            component_shapes.each { |pd| pd.get(obj).disable_serialize }
+            superclass.disable_component_serialize(obj) if superclass.respond_to?(:disable_component_serialize)
+          end
+
+          # override the #new method
+          def new(*)
+            instance = super
+            disable_component_serialize(instance)
+            instance
+          end
+        end
+        self.class_eval <<~__CODE
+          module ComponentSerializerMethods 
+            def from_serialized(hash)
+              super(hash)
+              #{self.name}.component_shapes.each { |pd| pd.get(self).set_parent_shape(self) }
+              self
+            end
+            protected :from_serialized
+          end
+          include ComponentSerializerMethods
+          __CODE
+      end
+    end
+
     # @overload initialize()
     #   default constructor
     # @overload initialize(pos, manager)
@@ -178,6 +254,7 @@ module Wx::SF
       @diagram = diagram
       @parent_shape = nil
       @child_shapes = ShapeList.new
+      @components = ::Set.new
 
       if @diagram
         if @diagram.shape_canvas
