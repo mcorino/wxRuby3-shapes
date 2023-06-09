@@ -41,7 +41,7 @@ module Wx::SF
         return Wx::DragResult::DragNone unless get_data
 
         @parent_canvas.__send__(:_on_drop, x, y, deflt, get_data_object)
-        return deflt
+        deflt
       end
 
     end
