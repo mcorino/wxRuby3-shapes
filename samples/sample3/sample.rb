@@ -190,7 +190,7 @@ class SFSample3Frame < Wx::Frame
     msg += " - You can modify the star's text (double click it by the left mouse button)\n"
     msg += " - DEL key removes selected shape\n"
 
-    Wx.message_box(msg, "wxRuby ShapeFramework Sample 1")
+    Wx.message_box(msg, "wxRuby ShapeFramework Sample 3")
   end
 
   # event handlers for shape canvas
