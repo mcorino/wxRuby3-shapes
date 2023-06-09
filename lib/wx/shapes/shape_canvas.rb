@@ -2891,7 +2891,6 @@ module Wx::SF
       paint_buffered do |paint_dc|
         if Wx.has_feature?(:USE_GRAPHICS_CONTEXT) && ShapeCanvas.gc_enabled?
           Wx::GCDC.draw_on(paint_dc) do |gdc|
-            prepare_dc(paint_dc)
             prepare_dc(gdc)
 
             # scale  GC
