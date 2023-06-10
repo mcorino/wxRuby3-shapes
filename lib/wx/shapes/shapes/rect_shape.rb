@@ -154,9 +154,7 @@ module Wx::SF
     # The function is called by the framework (by the shape canvas).
     # @param [Shape::Handle] handle Reference to dragged handle
     def on_begin_handle(handle)
-      @prev_position = @relative_position
-      @prev_size = @rect_size
-
+      do_begin_handle
       super
     end
   
@@ -216,6 +214,12 @@ module Wx::SF
     end
     
     protected
+
+    # Handle action at handle drag beginning
+    def do_begin_handle
+      @prev_position = @relative_position
+      @prev_size = @rect_size
+    end
 
     # Scale the rectangle size for this shape.
     # @param [Float] x Horizontal scale factor
