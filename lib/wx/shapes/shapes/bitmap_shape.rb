@@ -1,4 +1,4 @@
-# Wx::SF::TextShape - Bitmap shape class
+# Wx::SF::BitmapShape - Bitmap shape class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/shapes/rect_shape'

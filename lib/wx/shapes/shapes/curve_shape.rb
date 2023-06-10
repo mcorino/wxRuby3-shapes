@@ -1,4 +1,4 @@
-# Wx::SF::LineShape - curved line shape class
+# Wx::SF::CurveShape - curved line shape class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/shapes/line_shape'

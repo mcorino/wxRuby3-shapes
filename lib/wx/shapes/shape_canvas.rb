@@ -1786,6 +1786,7 @@ module Wx::SF
       else
         set_virtual_size((virt_rct.right*@settings.scale).to_i, (virt_rct.bottom*@settings.scale).to_i)
       end
+      @diagram.update_all
     end
 
 	  # Move all shapes so none of it will be located in negative position

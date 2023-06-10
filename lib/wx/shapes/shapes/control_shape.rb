@@ -1,4 +1,4 @@
-# Wx::SF::TextShape - control shape class
+# Wx::SF::ControlShape - control shape class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/shapes/rect_shape'

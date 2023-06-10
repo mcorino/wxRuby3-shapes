@@ -1,4 +1,4 @@
-# Wx::SF::TextShape - polygon shape class
+# Wx::SF::PolygonShape - polygon shape class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/shapes/rect_shape'

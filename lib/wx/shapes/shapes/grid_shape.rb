@@ -1,4 +1,4 @@
-# Wx::SF::TextShape - grid shape class
+# Wx::SF::GridShape - grid shape class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/shapes/rect_shape'
