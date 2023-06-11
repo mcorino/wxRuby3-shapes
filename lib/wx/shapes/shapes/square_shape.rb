@@ -25,6 +25,32 @@ module Wx::SF
       end
     end
 
+    # Set the rectangle size.
+    # @overload set_rect_size(x, y)
+    #   @param [Float] x Horizontal size
+    #   @param [Float] y Vertical size
+    # @overload set_rect_size(size)
+    #   @param [Wx::RealPoint] size New size
+    def set_rect_size(arg1, arg2 = nil)
+      # prevent from setting unequal dimensions
+      # set to largest dimension
+      if arg2
+        x = arg1; y = arg2
+      else
+        x = arg1.x; y = arg1.y
+      end
+      sz = arg1 >= arg2 ? arg1 : arg2
+      super(sz, sz)
+    end
+    alias :rect_size= :set_rect_size
+
+    # Get shape's center. Default implementation does nothing. The function can be overridden if necessary.
+    # @return [Wx::RealPoint] Center point
+    def get_center
+      # Optimize
+      get_absolute_position + [@rect_size.x/2, @rect_size.y/2]
+    end
+
     protected
 
     # Scale the rectangle size for this shape.
