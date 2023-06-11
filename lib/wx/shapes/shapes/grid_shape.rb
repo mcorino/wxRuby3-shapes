@@ -287,8 +287,8 @@ module Wx::SF
       end
 
       @cells.each_with_index do |id, i|
-        shape = @child_shapes.find { |child| child.id == id }
-        if shape
+        if id
+          shape = @child_shapes[id]
           col = (i % @cols)
           row = (i / @cols)
 
