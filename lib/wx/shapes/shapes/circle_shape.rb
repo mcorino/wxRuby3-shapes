@@ -7,7 +7,6 @@ module Wx::SF
 
   class CircleShape < SquareShape
 
-
     # @overload initialize()
     #   Default constructor.
     # @overload initialize(pos, size, diagram)
