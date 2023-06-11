@@ -111,6 +111,17 @@ module Wx::SF
 
     protected
 
+    # Event handler called by ShapeCanvas to request,report canvas changes.
+    # @param [ShapeCanvas::CHANGE] change change type indicator
+    # @param [Array] _args any additional arguments
+    # @return [Boolean,nil]
+    def _on_canvas(change, *_args)
+      if change == ShapeCanvas::CHANGE::RESCALED
+        self.scale(1, 1)
+      end
+      super
+    end
+
     # Handle action at handle drag beginning
     def do_begin_handle
       if @can_scale

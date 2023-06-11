@@ -150,6 +150,14 @@ module Wx::SF
       ALL = self.new(1)
     end
 
+    # Change mode flags
+    class CHANGE < Wx::Enum
+      SET_SCALE = self.new(0)
+      RESCALED = self.new(1)
+      VIRTUAL_SIZE = self.new(2)
+      FOCUS = self.new(3)
+    end
+
     # Printing modes used by SetPrintMode() function.
     class PRINTMODE < Wx::Enum
       # This sets the user scale and origin of the DC so that the image fits
@@ -1624,20 +1632,18 @@ module Wx::SF
       return unless @diagram
 
       if scale != 1.0
-        if @diagram.get_shapes(ControlShape).empty?
-          Wx.message_box('Cannot change scale of shape canvas containing control (GUI) shapes.', 'wxRuby ShapeFramework', Wx::ICON_WARNING | Wx::OK)
+        # query shapes
+        msg = ''
+        unless _query_canvas_change(CHANGE::SET_SCALE, msg)
+          Wx.message_box("Cannot change scale of shape canvas: #{msg}.", 'wxRuby ShapeFramework', Wx::ICON_WARNING | Wx::OK)
           scale = 1.0
         end
       end
 
       @settings.scale = scale != 0.0 ? scale : 1.0
 
-      # rescale all bitmap shapes if neccessary
-      unless ShapeCanvas.gc_enabled?
-        @diagram.get_shapes(BitmapShape).each do |bmp|
-          bmp.scale(1, 1)
-        end
-      end
+      # inform shapes
+      _notify_canvas_change(CHANGE::RESCALED)
 
       update_virtual_size
     end
@@ -1786,7 +1792,7 @@ module Wx::SF
       else
         set_virtual_size((virt_rct.right*@settings.scale).to_i, (virt_rct.bottom*@settings.scale).to_i)
       end
-      @diagram.update_all
+      _notify_canvas_change(CHANGE::VIRTUAL_SIZE)
     end
 
 	  # Move all shapes so none of it will be located in negative position
@@ -1984,16 +1990,6 @@ module Wx::SF
       @shp_multi_edit
     end
 
-    # Close and delete all opened text editing controls actually used by editable text shapes 
-    def delete_all_text_ctrls
-      return unless @diagram
-
-      @diagram.get_shapes(Wx::SF::EditTextShape).each do |shape|
-        text_ctrl = shape.get_text_ctrl
-        text_ctrl.quit(APPLY_TEXT_CHANGES) if text_ctrl
-      end
-    end
-
     # @!group Public event handlers
 
     # Event handler called when the canvas is clicked by
@@ -2009,7 +2005,7 @@ module Wx::SF
       # HINT: override it for custom actions...
       return unless @diagram
 
-      delete_all_text_ctrls
+      _notify_canvas_change(CHANGE::FOCUS)
       set_focus
     
       lpos = dp2lp(event.get_position)
@@ -2207,7 +2203,7 @@ module Wx::SF
     def on_left_double_click(event)
       # HINT: override it for custom actions...
 
-      delete_all_text_ctrls
+      _notify_canvas_change(CHANGE::FOCUS)
       set_focus
 
       lpos = dp2lp(event.get_position)
@@ -2350,8 +2346,8 @@ module Wx::SF
     # @see _on_right_down
     def on_right_down(event)
       # HINT: override it for custom actions...
-    
-      delete_all_text_ctrls
+
+      _notify_canvas_change(CHANGE::FOCUS)
       set_focus
     
       lpos = dp2lp(event.get_position)
@@ -2380,8 +2376,8 @@ module Wx::SF
     # @see _on_right_double_click
     def on_right_double_click(event)
       # HINT: override it for custom actions...
-    
-      delete_all_text_ctrls
+
+      _notify_canvas_change(CHANGE::FOCUS)
       set_focus
     
       lpos = dp2lp(event.get_position)
@@ -2753,6 +2749,10 @@ module Wx::SF
 
     # @!endgroup
 
+    def inspect
+      "#<Wx::SF::ShapeCanvas:#{object_id}>"
+    end
+
     private
 
     # Validate selection so the shapes in the given list can be processed by the clipboard functions
@@ -2868,7 +2868,6 @@ module Wx::SF
     
         prev_parent.update if prev_parent
         parent_shape.update if parent_shape
-        shape.update if shape.is_a?(ControlShape)
       end
     end
 
@@ -2957,8 +2956,6 @@ module Wx::SF
           if @selected_handle
             if @selected_handle.get_parent_shape.is_a?(LineShape)
               @selected_handle.get_parent_shape.send(:set_line_mode, LineShape::LINEMODE::READY)
-            elsif @selected_handle.get_parent_shape.is_a?(BitmapShape)
-              @selected_handle.get_parent_shape.on_end_handle(@selected_handle)
             end
     
             @selected_handle.send(:_on_end_drag, lpos)
@@ -3199,8 +3196,13 @@ module Wx::SF
       
     end
 
-    def inspect
-      "#<Wx::SF::ShapeCanvas:#{object_id}>"
+    def _notify_canvas_change(change, *args)
+      @diagram.get_all_shapes.each { |shape| shape.send(:_on_canvas, change, *args) } if @diagram
+    end
+
+    def _query_canvas_change(change, *args)
+      return true unless @diagram
+      @diagram.get_all_shapes.all? { |shape| shape.send(:_on_canvas, change, *args) }
     end
 
   end # class ShapeCanvas

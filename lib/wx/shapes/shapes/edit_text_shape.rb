@@ -290,12 +290,27 @@ module Wx::SF
       super
     end
 
+    protected
+
+    # Event handler called by ShapeCanvas to request,report canvas changes.
+    # @param [ShapeCanvas::CHANGE] change change type indicator
+    # @param [Array] _args any additional arguments
+    # @return [Boolean,nil]
+    def _on_canvas(change, *_args)
+      if change == ShapeCanvas::CHANGE::FOCUS
+        text_ctrl = get_text_ctrl
+        text_ctrl.quit(APPLY_TEXT_CHANGES) if text_ctrl
+      end
+      super
+    end
+
+    private
+
     # Return cached state
     # @return [Integer]
     def get_current_state
       @current_state
     end
-    private :get_current_state
 
   end
 

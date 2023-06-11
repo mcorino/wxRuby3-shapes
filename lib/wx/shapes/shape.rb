@@ -2009,6 +2009,16 @@ module Wx::SF
       refresh_rect(curr_bb.union!(prev_bb), DELAYED)
     end
 
+    # Event handler called by ShapeCanvas to request,report canvas changes.
+    # Default implementation does nothing.
+    # @param [ShapeCanvas::CHANGE] _change change type indicator
+    # @param [Array] _args any additional arguments
+    # @return [Boolean]
+    def _on_canvas(_change, *_args)
+      # overridden in some derived shapes
+      true
+    end
+
     # Sets accepted children. Exclusively for deserialization.
     def set_accepted_children(set)
       @accepted_children.replace(set)

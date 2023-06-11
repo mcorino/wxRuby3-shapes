@@ -278,13 +278,13 @@ module Wx::SF
     # @return [Wx::SF::Shape] re-parented shape
     def reparent_shape(shape, parent)
       prev_parent = shape.get_parent_shape
-      shape.set_parent_shape(parent)
       if prev_parent.nil? && parent
-        @shapes.delete(shape) # remove from top level list if now parented
+        @shapes.delete(shape) # remove from top level list if the shape will become parented
       elsif prev_parent && parent.nil?
-        @shapes << shape # add to toplevel shapes if now unparented
+        @shapes << shape # add to toplevel shapes if the shape will become unparented
         shape.set_diagram(self) # make sure the right diagram is set
       end
+      shape.set_parent_shape(parent)
       shape
     end
 

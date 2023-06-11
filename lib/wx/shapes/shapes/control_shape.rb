@@ -304,6 +304,14 @@ module Wx::SF
       end
     end
 
+    # Set parent shape object
+    # @param [Wx::SF::Shape] parent
+    def set_parent_shape(parent)
+      super
+      update
+    end
+    alias :parent_shape= :set_parent_shape
+
 	  # Scale the shape size by in both directions. The function can be overridden if necessary
     # (new implementation should call default one ore scale shape's children manually if necessary).
     # @param [Float] x Horizontal scale factor
@@ -439,6 +447,24 @@ module Wx::SF
       end
     
       # call default handler
+      super
+    end
+
+    protected
+
+    # Event handler called by ShapeCanvas to request,report canvas changes.
+    # @param [ShapeCanvas::CHANGE] change change type indicator
+    # @param [Array] args any additional arguments
+    # @return [Boolean,nil]
+    def _on_canvas(change, *args)
+      case change
+      when ShapeCanvas::CHANGE::SET_SCALE
+        msg = args.shift
+        msg << 'rescaling control (GUI) shapes not supported'
+        return false
+      when ShapeCanvas::CHANGE::VIRTUAL_SIZE
+        self.update
+      end
       super
     end
 
