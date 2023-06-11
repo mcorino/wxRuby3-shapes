@@ -314,7 +314,7 @@ module Wx::SF
         @page_setup_data.set_margin_top_left([15, 15])
         @page_setup_data.set_margin_bottom_right([15, 15])
       end
-      private _init_printing
+      private :_init_printing
 
     end
 
