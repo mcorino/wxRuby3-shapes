@@ -70,7 +70,6 @@ class SFSample4Frame < Wx::Frame
 
     # create shape canvas and associate it with shape manager
     @canvas = Wx::SF::ShapeCanvas.new(@diagram, self)
-    @canvas.set_scrollbars(20,20,50,50)
     # set some shape canvas properties if necessary...
     @canvas.add_style(Wx::SF::ShapeCanvas::STYLE::GRID_USE)
 

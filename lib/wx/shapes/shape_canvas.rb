@@ -445,8 +445,6 @@ module Wx::SF
       # perform basic window initialization
       super
 
-      set_background_style(Wx::BG_STYLE_PAINT)
-
       # set drop target
       if Wx.has_feature?(:USE_DRAG_AND_DROP)
         set_drop_target(Wx::SF::CanvasDropTarget.new(Wx::SF::ShapeDataObject.new, self))
@@ -483,10 +481,10 @@ module Wx::SF
       #     }
       #     }
       #
-      #     SetScrollbars(5, 5, 100, 100)
-      #     SetBackgroundStyle(Wx::BG_STYLE_CUSTOM)
-      #
-      #     return true
+      set_scrollbars(5, 5, 100, 100)
+      set_background_style(Wx::BG_STYLE_PAINT)
+
+      true
     end
 
     attr_reader :settings
