@@ -3,6 +3,7 @@
 
 require 'wx/shapes/shape_data_object'
 require 'wx/shapes/canvas_history'
+require 'wx/shapes/printout'
 
 require 'tempfile'
 require 'fileutils'
@@ -283,6 +284,38 @@ module Wx::SF
         ::Thread::current[TLS_LOADING_VERSION_KEY] = nil
       end
 
+      def print_data
+        _init_printing unless @print_data
+        @print_data
+      end
+
+      def print_data=(pd)
+        @print_data = pd
+      end
+
+      def page_setup_data
+        _init_printing unless @page_setup_data
+        @page_setup_data
+      end
+
+      def page_setup_data=(psd)
+        @page_setup_data = psd
+      end
+
+      def _init_printing
+        @print_data = Wx::PRT::PrintData.new
+        # You could set an initial paper size here
+        #	@print_data.set_paper_id(Wx::PaperSize::PAPER_LETTER) # for Americans
+        @print_data.set_paper_id(Wx::PaperSize::PAPER_A4)	# for everyone else
+
+        # copy over initial paper size from print record
+        @page_setup_data = Wx::PRT::PageSetupDialogData.new(@print_data)
+        # Set some initial page margins in mm.
+        @page_setup_data.set_margin_top_left([15, 15])
+        @page_setup_data.set_margin_bottom_right([15, 15])
+      end
+      private _init_printing
+
     end
 
     # Auxiliary serializable class encapsulating canvas version info
@@ -466,21 +499,6 @@ module Wx::SF
       @shp_multi_edit.show(false)
       @shp_multi_edit.show_handles(true)
 
-      # if ++m_nRefCounter == 1 )
-      #   {
-      #     # initialize printing
-      #   InitializePrinting()
-      #
-      #   # initialize output bitmap
-      #   int nWidth, nHeight
-      #   Wx::DisplaySize(&nWidth, &nHeight)
-      #
-      #   if( !m_OutBMP.Create(nWidth, nHeight) )
-      #     {
-      #       Wx::LogError(Wx::T("Couldn't create output bitmap."))
-      #     }
-      #     }
-      #
       set_scrollbars(5, 5, 100, 100)
       set_background_style(Wx::BG_STYLE_PAINT)
 
@@ -1112,7 +1130,30 @@ module Wx::SF
     #   @param [Wx::SF::Printout] printout user-defined printout object (inherited from Wx::SF::Printout class) for printing.
     #   @param [Boolean] prompt If true (PROMPT) then the the native print dialog will be displayed before printing
     # @see Wx::SF::Printout
-    def print(*args) end
+    def print(*args)
+      if args.first.is_a?(Wx::PRT::Printout)
+        printout. prompt = args
+      else
+        printout = Printout.new('wxRuby SF Printout', self)
+        prompt = args.shift
+      end
+      prompt = PROMPT if prompt.nil?
+
+      print_dialog_data = Wx::PRT::PrintDialogData.new(ShapeCanvas.print_data)
+      printer = Wx::PRT::Printer.new(print_dialog_data)
+
+      deselect_all
+
+      if !printer.print(self, printout, prompt)
+        if Wx::PRT::Printer.get_last_error == Wx::PRT::PrinterError::PRINTER_ERROR
+          Wx.message_box("There was a problem printing.\nPerhaps your current printer is not set correctly?",
+                         'wxRuby SF Printing',
+                         Wx::OK | Wx::ICON_ERROR)
+        end
+      else
+        ShapeCanvas.print_data = printer.get_print_dialog_data.get_print_data
+      end
+    end
 
     # Show print preview.
     # @overload print_preview()
@@ -1121,11 +1162,41 @@ module Wx::SF
     #   @param [Wx::SF::Printout] printout user-defined printout class (inherited from Wx::SF::Printout class) used for printing.
     #   This parameter can be nil (in this case a print button will not be available in the print preview window).
     # @see Wx::SF::Printout
-    def print_preview(*args) end
+    def print_preview(*args)
+      if args.empty?
+        preview = Printout.new('wxRuby SF Preview', self)
+        printout = Printout.new('wxRuby SF Printout', self)
+      else
+        preview, printout = args
+      end
+
+      deselect_all
+
+      # Pass two printout objects: for preview, and possible printing.
+      print_dialog_data = Wx::PRT::PrintDialogData.new(ShapeCanvas.print_data)
+      prn_preview = Wx::PrintPreview.new(preview, printout, print_dialog_data)
+      if !prn_preview.ok?
+        Wx.message_box("There was a problem previewing.\nPerhaps your current printer is not set correctly?",
+                       'wxRuby SF Previewing',
+                       Wx::OK | Wx::ICON_ERROR)
+        return
+      end
+
+      frame = Wx::PreviewFrame.new(prn_preview, self, 'wxRuby SF Print Preview', [100, 100], [800, 700])
+      frame.centre(Wx::BOTH)
+      frame.init
+      frame.show
+    end
 
     # Show page setup dialog for printing.
     def page_setup
+      ShapeCanvas.page_setup_data.set_print_data(ShapeCanvas.print_data)
 
+      Wx::PTR::PageSetupDialog(self, ShapeCanvas.page_setup_data) do |dlg|
+        dlg.show_modal
+        ShapeCanvas.print_data = dlg.get_page_setup_dialog_data.get_print_data
+        ShapeCanvas.page_setup_data = dlg.get_page_setup_dialog_data
+      end
     end
 
     # @!endgroup
