@@ -2,6 +2,7 @@
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/core'
+require 'wx/prt'
 
 require 'wx/shapes/version'
 require 'wx/shapes/core'
