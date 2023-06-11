@@ -5,6 +5,7 @@ require 'wx/shapes/shapes/square_shape'
 
 module Wx::SF
 
+  # Class encapsulating the circle shape.
   class CircleShape < SquareShape
 
     # @overload initialize()
