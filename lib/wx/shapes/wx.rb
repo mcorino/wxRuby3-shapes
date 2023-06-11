@@ -9,8 +9,8 @@ module Wx
     # @param [Wx::RealPoint,Wx::Point,Array(Integer,Integer)] pt2
     # @return [Float] distance to given point
     def distance_to(pt2)
-      if Array === arg && arg.size == 2
-        to_x, to_y = arg
+      if Array === pt2 && pt2.size == 2
+        to_x, to_y = pt2
       else
         to_x = pt2.x; to_y = pt2.y
       end
