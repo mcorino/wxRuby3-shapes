@@ -1,4 +1,4 @@
-# Wx::SF::ArrowBase - diamond arrow class
+# Wx::SF::DiamondArrow - diamond arrow class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/arrows/solid_arrow'

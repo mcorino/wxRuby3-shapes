@@ -1,4 +1,4 @@
-# Wx::SF::ArrowBase - solid arrow class
+# Wx::SF::SolidArrow - solid arrow class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/arrow_base'

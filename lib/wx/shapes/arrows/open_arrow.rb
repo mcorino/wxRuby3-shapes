@@ -1,4 +1,4 @@
-# Wx::SF::ArrowBase - open arrow class
+# Wx::SF::OpenArrow - open arrow class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/arrow_base'
