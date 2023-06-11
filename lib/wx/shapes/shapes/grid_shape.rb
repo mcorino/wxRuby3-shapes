@@ -286,11 +286,18 @@ module Wx::SF
         max_rect.set_height(curr_rect.height) if shape.get_v_align != VALIGN::EXPAND && curr_rect.height > max_rect.height
       end
 
+      index = col = 0
+      row = -1
       @cells.each_with_index do |id, i|
         shape = @child_shapes.find { |child| child.id == id }
         if shape
-          col = (i % @cols)
-          row = (i / @cols)
+          if (index % @cols) == 0
+            col = 0
+            row += 1
+          else
+            col += 1
+          end
+          index += 1
 
           fit_shape_to_rect(shape, Wx::Rect.new(col*max_rect.width + (col+1)*@cell_space,
                                                 row*max_rect.height + (row+1)*@cell_space,
