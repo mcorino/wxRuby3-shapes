@@ -33,26 +33,16 @@ module Wx::SF
       row_sizes = ::Array.new(@rows, 0)
       col_sizes = ::Array.new(@cols, 0)
 
-      index = col = total_x = total_y = 0
-      row = -1
-  
       # prepare a storage for processed shapes pointers
-      child_shapes = ::Array.new(@cells.size)
+      grid_shapes = ::Array.new(@cells.size)
 
       # get maximum size of all managed (child) shapes per row and column
-      @cells.each_with_index do |shape, i|
-        if shape
-          # store used shape pointer for further processing (optimization for speed)
-          child_shapes[i] = shape
+      @cells.each_with_index do |id, i|
+        if id
+          col = (i % @cols)
+          row = (i / @cols)
 
-          if (index % @cols) == 0
-            col = 0
-            row += 1
-          else
-            col += 1
-          end
-          index += 1
-
+          grid_shapes[i] = shape = @child_shapes[id]
           curr_rect = shape.get_bounding_box
 
           # update maximum rows and columns sizes
@@ -60,21 +50,20 @@ module Wx::SF
           row_sizes[row] = curr_rect.height if (shape.get_v_align != VALIGN::EXPAND) && (curr_rect.height > row_sizes[row])
         end
       end
-  
+
+      total_x = total_y = 0
+
       # put managed shapes to appropriate positions
-      index = col = 0
-      row = -1
-  
-      child_shapes.each do |shape|
+      grid_shapes.each_with_index do |shape, i|
         if shape
-          if (index % @cols) == 0
-            col = 0; total_x = 0; row += 1
+          col = (i % @cols)
+          row = (i / @cols)
+          if col == 0
+            total_x = 0
             total_y += row_sizes[row-1] if row > 0
           else
-            col++
-            total_x += col_sizes[col-1] if col > 0
+            total_x += col_sizes[col-1]
           end
-          index += 1
 
           fit_shape_to_rect(shape,
                             Wx::Rect.new(total_x + (col+1)*@cell_space,
