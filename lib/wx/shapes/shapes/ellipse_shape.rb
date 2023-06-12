@@ -41,7 +41,7 @@ module Wx::SF
       dist = start.distance_to(end_pt)
       center = get_absolute_position + [@rect_size.x/2, @rect_size.y/2]
 
-      if dist != 0
+      if dist != 0.0
         src_dx = @rect_size.x/2*(end_pt.x-start.x)/dist - (start.x-center.x)
         src_dy = @rect_size.y/2*(end_pt.y-start.y)/dist - (start.y-center.y)
 
