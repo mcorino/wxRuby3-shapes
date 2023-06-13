@@ -1584,7 +1584,7 @@ module Wx::SF
     # Set grid size.
     # @param [Wx::Size] grid Grid size
     def set_grid_size(grid)
-      @settings.grid_size = grid
+      @settings.grid_size = grid.to_size
     end
     alias :grid_size= :set_grid_size
 
