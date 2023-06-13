@@ -270,24 +270,28 @@ module Wx::SF
 
     class << self
 
-      def layout_algorithms
+      def layout_algorithms_table
         @layout_algorithms ||= {}
       end
-      private :layout_algorithms
+      private :layout_algorithms_table
 
       def register_layout_algorithm(name, klass)
-        layout_algorithms[name.to_s] = klass
+        layout_algorithms_table[name.to_s] = klass
       end
 
       def get_layout_algorithm(name)
-        layout_algorithms.has_key?(name.to_s) ? layout_algorithms[name.to_s].new : nil
+        layout_algorithms_table.has_key?(name.to_s) ? layout_algorithms_table[name.to_s].new : nil
+      end
+
+      def layout_algorithms
+        layout_algorithms_table.keys
       end
 
       def each_layout_algorithm(&block)
         if block
-          layout_algorithms.each_value { |klass| block.call(klass.new) }
+          layout_algorithms_table.each_value { |klass| block.call(klass.new) }
         else
-          ::Enumerator.new { |y| layout_algorithms.each_value { |klass| y << klass.new } }
+          ::Enumerator.new { |y| layout_algorithms_table.each_value { |klass| y << klass.new } }
         end
       end
 
