@@ -24,7 +24,7 @@ module Wx::SF
     # @overload initialize(pos, size, diagram)
     #   User constructor.
     #   @param [Array<Wx::RealPoint>] pts Array of the polygon vertices
-    #   @param [Wx::Point] pos Initial position
+    #   @param [Wx::RealPoint] pos Initial position
     #   @param [Wx::SF::Diagram] diagram parent diagram
     def initialize(*args)
       @connect_to_vertex = DEFAULT::VERTEXCONNECTIONS

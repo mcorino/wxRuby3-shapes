@@ -138,8 +138,8 @@ module Wx::SF
     # @overload initialize(pos, size, diagram)
     #   User constructor.
     #   @param [Wx::Window] ctrl managed GUI control
-    #   @param [Wx::Point] pos Initial position
-    #   @param [Wx::Size] size Initial size
+    #   @param [Wx::RealPoint] pos Initial position
+    #   @param [Wx::RealPoint] size Initial size
     #   @param [Wx::SF::Diagram] diagram parent diagram
     def initialize(*args)
       if args.empty?

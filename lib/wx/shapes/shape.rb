@@ -243,7 +243,7 @@ module Wx::SF
     # @overload initialize()
     #   default constructor
     # @overload initialize(pos, manager)
-    #   @param [Wx::Point] pos Initial relative position
+    #   @param [Wx::RealPoint] pos Initial relative position
     #   @param [Diagram] diagram containing diagram
     def initialize(*args)
       pos, diagram = args

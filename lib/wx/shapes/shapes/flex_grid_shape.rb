@@ -16,7 +16,7 @@ module Wx::SF
     # @overload initialize(pos, size, rows, cols, cell_space, diagram)
     #   User constructor.
     #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::Size] size Initial size
+    #   @param [Wx::RealPoint] size Initial size
     #   @param [Integer] cols Number of grid rows
     #   @param [Integer] rows Number of grid columns
     #   @param [Integer] cell_space Additional space between managed shapes

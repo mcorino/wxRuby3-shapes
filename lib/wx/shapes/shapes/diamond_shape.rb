@@ -20,7 +20,7 @@ module Wx::SF
     #   Default constructor.
     # @overload initialize(pos, size, diagram)
     #   User constructor.
-    #   @param [Wx::Point] pos Initial position
+    #   @param [Wx::RealPoint] pos Initial position
     #   @param [Wx::SF::Diagram] diagram parent diagram
     def initialize(*args)
       if args.empty?

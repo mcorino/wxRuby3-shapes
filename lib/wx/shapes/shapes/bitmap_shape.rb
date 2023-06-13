@@ -16,7 +16,7 @@ module Wx::SF
     #   Default constructor.
     # @overload initialize(pos, bmp_path, diagram)
     #   User constructor.
-    #   @param [Wx::Point] pos Initial position
+    #   @param [Wx::RealPoint] pos Initial position
     #   @param [String] bmp_path Bitmap path
     #   @param [Wx::SF::Diagram] diagram parent diagram
     def initialize(*args)
