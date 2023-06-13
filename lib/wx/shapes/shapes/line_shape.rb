@@ -66,9 +66,9 @@ module Wx::SF
       else
         src, trg, path, diagram = args
         super(Shape::DEFAULT::POSITION.dup, diagram)
-        if src.is_a?(Wx::RealPoint) && trg.is_a?(Wx::RealPoint)
-          @src_point = src
-          @trg_point = trg
+        if src.respond_to?(:to_real_point) && trg.respond_to?(:to_real_point)
+          @src_point = src.to_real_point
+          @trg_point = trg.to_real_point
           @src_shape_id = @trg_shape_id = DEFAULT::UNKNOWNID
           @stand_alone = true
         elsif src.is_a?(Wx::SF::Serializable::ID) && trg.is_a?(Wx::SF::Serializable::ID)
@@ -81,7 +81,7 @@ module Wx::SF
           ::Kernel.raise ArgumentError, "Invalid arguments #{args}"
         end
         path ||= []
-        @lst_points = path.select { |pt| pt.is_a?(Wx::RealPoint) }
+        @lst_points = path.select { |pt| pt.respond_to?(:to_real_point) }.collect { |pt| pt.to_real_point }
         ::Kernel.raise ArgumentError, "Invalid arguments #{args}" unless path.size == @lst_points.size
       end
 
@@ -152,7 +152,7 @@ module Wx::SF
     # Deserialization only.
     # @param [Wx::RealPoint] pt
     def set_src_point(pt)
-      @src_point = pt
+      @src_point = pt.to_real_point
     end
     private :set_src_point
 
@@ -185,7 +185,7 @@ module Wx::SF
     # Deserialization only.
     # @param [Wx::RealPoint] pt
     def set_trg_point(pt)
-      @trg_point = pt
+      @trg_point = pt.to_real_point
     end
     private :set_trg_point
 
@@ -868,7 +868,7 @@ module Wx::SF
     # Deserialization only
     # @param [Wx::RealPoint] offs
     def set_src_offset(offs)
-      @src_offset = offs
+      @src_offset = offs.to_real_point
     end
 
     # Serialization only
@@ -880,7 +880,7 @@ module Wx::SF
     # Deserialization only
     # @param [Wx::RealPoint] offs
     def set_trg_offset(offs)
-      @trg_offset = offs
+      @trg_offset = offs.to_real_point
     end
 
     # (De-)Serialization only

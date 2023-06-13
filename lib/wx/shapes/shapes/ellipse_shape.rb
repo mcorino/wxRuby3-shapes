@@ -38,6 +38,7 @@ module Wx::SF
     # @param [Wx::RealPoint] end_pt Ending point of the virtual intersection line
     # @return [Wx::RealPoint] Intersection point
     def get_border_point(start, end_pt)
+      start = start.to_real_point; end_pt.to_real_point
       dist = start.distance_to(end_pt)
       center = get_absolute_position + [@rect_size.x/2, @rect_size.y/2]
 

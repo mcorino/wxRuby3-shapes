@@ -149,6 +149,7 @@ module Wx::SF
       if get_parent_canvas && @original_bitmap && @original_bitmap.ok?
         image = @original_bitmap.convert_to_image
 
+        size = size.to_real_point
         if ShapeCanvas.gc_enabled?
           image.rescale(size.x.to_i, size.y.to_i,
                         Wx::ImageResizeQuality::IMAGE_QUALITY_NORMAL)

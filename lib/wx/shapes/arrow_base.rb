@@ -55,6 +55,7 @@ module Wx::SF
     # @return [Array<Wx::Point>] array with translated vertices
     def translate_arrow(src, from, to, trg = [])
       # calculate distance between line points
+      from = from.to_real_point; to = to.to_real_point
       dist = from.distance_to(to)
 
       if dist == 0.0

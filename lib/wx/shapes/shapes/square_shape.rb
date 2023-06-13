@@ -37,7 +37,7 @@ module Wx::SF
       if arg2
         x = arg1; y = arg2
       else
-        x = arg1.x; y = arg1.y
+        x, y = arg1.to_real_point
       end
       sz = arg1 >= arg2 ? arg1 : arg2
       super(sz, sz)

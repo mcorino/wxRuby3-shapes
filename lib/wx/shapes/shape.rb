@@ -283,7 +283,7 @@ module Wx::SF
       @custom_dock_point = DEFAULT::DOCK_POINT
 
       if pos && get_parent_shape
-        @relative_position = pos - get_parent_absolute_position
+        @relative_position = pos.to_real_point - get_parent_absolute_position
       else
         @relative_position = DEFAULT::POSITION.dup
       end
@@ -621,7 +621,7 @@ module Wx::SF
     def scale(*args, children: WITHCHILDREN)
       # HINT: overload it for custom actions...
 
-      x, y = (args.first.is_a?(Wx::RealPoint) ? args.first : args)
+      x, y = (args.size == 1 ? args.first : args)
       scale_children(x, y) if children
 
       @diagram.set_modified(true) if @diagram
@@ -658,7 +658,7 @@ module Wx::SF
     def move_to(*args)
       # HINT: overload it for custom actions...
 
-      pos = (args.first.is_a?(Wx::RealPoint) ? args.first : Wx::RealPoint.new(*args))
+      pos = (args.size == 1 ? args.first.to_real_point : Wx::RealPoint.new(*args))
       @relative_position = pos - get_parent_absolute_position
 
       @diagram.set_modified(true) if @diagram
@@ -673,7 +673,7 @@ module Wx::SF
     def move_by(*args)
       # HINT: overload it for custom actions...
 
-      x, y = (args.first.is_a?(Wx::RealPoint) ? args.first : args)
+      x, y = (args.size == 1 ? args.first : args)
       @relative_position.x += x
       @relative_position.y += y
 
@@ -822,7 +822,7 @@ module Wx::SF
     #   @param [Float] y Vertical coordinate of new relative position
     # @see #move_to
     def set_relative_position(*arg)
-      x, y = (arg.size == 1 ? arg.first : arg)
+      x, y = (arg.size == 1 ? arg.first.to_real_point : arg)
       @relative_position.x = x
       @relative_position.y = y
     end
@@ -1213,6 +1213,7 @@ module Wx::SF
 	 # @param [Wx::RealPoint] pos Position
 	 # @return [Wx::SF::ConnectionPoint,nil] closest connection point if exists, otherwise nil
     def get_nearest_connection_point(pos)
+      pos = pos.to_real_point
       min_dist = Float::MAX
       @connection_pts.inject(nil) do |nearest, cp|
         if (curr_dist = pos.distance_to(cp.get_connection_point)) < min_dist
@@ -1245,14 +1246,14 @@ module Wx::SF
       when ConnectionPoint::CPTYPE
         unless get_connection_point(arg)
           cp = ConnectionPoint.new(self, type)
-          cp.disable_list_serialize unless persistent
+          cp.disable_serialize unless persistent
         end
-      when Wx::RealPoint
-        cp = ConnectionPoint.new(self, arg, *rest)
-        cp.disable_list_serialize unless persistent
+      when Wx::RealPoint, ::Array
+        cp = ConnectionPoint.new(self, arg.to_real_point, *rest)
+        cp.disable_serialize unless persistent
       when ConnectionPoint
         cp = arg
-        cp.disable_list_serialize unless persistent
+        cp.disable_serialize unless persistent
       else
         ::Kernel.raise ArgumentError, "Invalid arguments: arg: #{arg}, rest: #{rest}"
       end

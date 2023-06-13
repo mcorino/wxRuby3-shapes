@@ -34,7 +34,7 @@ module Wx::SF
         pos, size, diagram = args
         super(pos, diagram)
       end
-      @rect_size = size ? size : DEFAULT::SIZE.dup
+      @rect_size = size ? size.to_real_point : DEFAULT::SIZE.dup
       @fill = DEFAULT::FILL
       @border = DEFAULT::BORDER
       @prev_size = @prev_position = Wx::RealPoint
@@ -75,7 +75,7 @@ module Wx::SF
     # @overload set_rect_size(size)
     #   @param [Wx::RealPoint] size New size
     def set_rect_size(arg1, arg2 = nil)
-      @rect_size = arg2 ? Wx::RealPoint.new(arg1.to_f, arg2.to_f) : arg1
+      @rect_size = arg2 ? Wx::RealPoint.new(arg1.to_f, arg2.to_f) : arg1.to_real_point
     end
     alias :rect_size= :set_rect_size
 
@@ -100,6 +100,7 @@ module Wx::SF
     # @return [Wx::RealPoint] Intersection point
     def get_border_point(start, end_pt)
       # HINT: override it for custom actions ...
+      start = start.to_real_point; end_pt.to_real_point
 
       # the function calculates intersection of line leading from the shape center to
       # given point with the shape's bounding box

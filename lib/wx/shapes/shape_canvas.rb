@@ -1629,7 +1629,7 @@ module Wx::SF
     # Set shadow offset.
     # @param [Wx::RealPoint] offset Shadow offset
     def set_shadow_offset(offset)
-      @settings.shadow_offset = offset
+      @settings.shadow_offset = offset.to_real_point
     end
     alias :shadow_offset= :set_shadow_offset
 

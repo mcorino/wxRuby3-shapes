@@ -84,6 +84,7 @@ module Wx::SF
 	  # @return [Wx::RealPoint] Intersection point
     def get_border_point(start, end_pt)
       # HINT: override it for custom actions ...
+      start = start.to_real_point; end_pt.to_real_point
       return get_center if @vertices.empty?
 
       pts = get_translated_vertices
