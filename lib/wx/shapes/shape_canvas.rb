@@ -1901,8 +1901,11 @@ module Wx::SF
         end
       end
 
+      # move selected (toplevel) shapes to the back of the shapes list in the diagram
+      # this gives a higher Z-order so they will float on top of other shapes when dragging
       selection.each do |shape|
-        # move selected shapes to the back of the shapes list in the diagram
+        # in case of child shapes find the toplevel parent it belongs to and move that one
+        shape = shape.get_parent_shape while shape.get_parent_shape
         @diagram.move_to_end(shape)
       end
     end
