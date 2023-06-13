@@ -109,7 +109,7 @@ module Wx::SF
     # Set absolute position of mouse cursor.
     # @param [Wx::Point] mouse_position Mouse cursor's absolute position
     def set_mouse_position(mouse_position)
-      @mouse_position = mouse_position
+      @mouse_position = mouse_position.to_point
     end
     alias :mouse_position= :set_mouse_position
 
@@ -237,7 +237,7 @@ module Wx::SF
     # Set position where shapes were dropped
     # @param [Wx::Point] pos drop position
     def set_drop_position(pos)
-      @drop_position = pos
+      @drop_position = pos.to_point
     end
     alias :drop_position= :set_drop_position
 

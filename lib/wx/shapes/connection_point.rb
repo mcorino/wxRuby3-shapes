@@ -171,7 +171,7 @@ module Wx::SF
 	  # @return [Boolean] true if the point is inside the handle, otherwise false
     def contains(pos)
       # HINT: overload it for custom actions...
-      connection_point.distance_to(pos.to_real) < (3 * RADIUS)
+      connection_point.distance_to(pos.to_real_point) < (3 * RADIUS)
     end
     alias :contains? :contains
 

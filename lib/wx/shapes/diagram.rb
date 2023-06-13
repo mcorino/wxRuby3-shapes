@@ -120,8 +120,8 @@ module Wx::SF
     #   @param [Boolean] save_state Set the parameter true if you wish to save canvas state after the operation
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new shape. the object is added to the shape canvas automatically.
     def create_shape(shape_info, *rest)
-      pos = if rest.first.is_a?(Wx::Point)
-              rest.shift
+      pos = if rest.first.respond_to?(:to_point)
+              rest.shift.to_point
             elsif @shape_canvas
               clt_rect = @shape_canvas.get_client_rect
               Wx::Point.new((clt_rect.right - clt_rect.left)/2,
@@ -165,6 +165,7 @@ module Wx::SF
     def add_shape(shape, parent,  pos, initialize, save_state = true)
       if shape
         if shape.is_a?(Shape) && is_shape_accepted(shape.class)
+          pos = pos.to_point
           if @shape_canvas
             new_pos = @shape_canvas.fit_position_to_grid(@shape_canvas.dp2lp(pos))
             shape.set_relative_position(new_pos.to_real)
@@ -488,6 +489,7 @@ module Wx::SF
       # sort shapes list in the way that the line shapes will be at the top of the list
       # and all non-line shapes get listed in reversed order as returned from get_shapes (for z order)
       ins_pos = 0
+      pos = pos.to_point
       shapes = get_shapes.inject([]) do |list, shape|
         if shape.is_a?(LineShape)
           list.prepend(shape)
@@ -528,6 +530,7 @@ module Wx::SF
     # @return [Array<Wx::SF::Shape>] shape list
     # @see Wx::SF::ShapeCanvas::dp2lp
     def get_shapes_at_position(pos, shapes = [])
+      pos = pos.to_point
       get_shapes.each do |shape|
         shapes << shape if shape.visible? && shape.active? && shape.contains?(pos)
       end

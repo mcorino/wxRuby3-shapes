@@ -38,6 +38,7 @@ module Wx::SF
     def contains?(pos)
       return super if @radius == 0.0
 
+      pos = pos.to_point
       # get original bounding box
       shp_bb = get_bounding_box
     
@@ -133,7 +134,7 @@ module Wx::SF
     # @param [Wx::Point] center Circle center
     # @return [Boolean]
     def in_circle?(pos, center)
-      center.to_real.distance_to(pos.to_real) <= @radius
+      center.to_real_point.distance_to(pos.to_real_point) <= @radius
     end
 
   end

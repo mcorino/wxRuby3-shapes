@@ -770,6 +770,7 @@ module Wx::SF
     def get_hit_linesegment(pos)
       return -1 unless get_bounding_box.contains?(pos)
 
+      pos = pos.to_point
       # Get all polyline segments
       line_segment_count.times do |i|
         src, trg = get_line_segment(i)
@@ -804,7 +805,7 @@ module Wx::SF
 	  # @param [Wx::Point] pos New potential control point position
     # @see LINEMODE
     def set_unfinished_point(pos)
-      @unfinished_point = pos
+      @unfinished_point = pos.to_point
     end
 
     # Get modified starting line point .

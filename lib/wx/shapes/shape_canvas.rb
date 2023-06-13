@@ -740,9 +740,10 @@ module Wx::SF
         if args.first.is_a?(Wx::SF::ConnectionPoint)
           connection_point = args.shift
         end
-        pos = args.shift
+        pos = args.shift.to_point
       when ::Class
-        shape_info, pos = args.shift(2)
+        shape_info = args.shift
+        pos = args.shift.to_point
         shape_klass = shape_info.name
       end
       ::Kernel.raise ArgumentError, "Invalid arguments #{args}" unless args.empty?
@@ -936,7 +937,7 @@ module Wx::SF
           deselect_all
 
           @dnd_started_here = true
-          @dnd_started_at = start
+          @dnd_started_at = start.to_point
 
           data_obj = Wx::SF::ShapeDataObject.new(shapes)
 
@@ -1218,11 +1219,13 @@ module Wx::SF
     #   @param [Wx::Rect] rct Device position (for example mouse position)
     #   @return [Wx::Rect] Logical position
     def dp2lp(arg)
-      x, y = calc_unscrolled_position(arg.x, arg.y)
       if arg.is_a?(Wx::Rect)
+        x, y = calc_unscrolled_position(arg.x, arg.y)
         Wx::Rect.new((x/@settings.scale).to_i, (y/@settings.scale).to_i,
                      (arg.width/@settings.scale).to_i, (arg.height/@settings.scale).to_i)
       else
+        arg = arg.to_point
+        x, y = calc_unscrolled_position(arg.x, arg.y)
         Wx::Point.new((x/@settings.scale).to_i, (y/@settings.scale).to_i)
       end
     end
@@ -1237,11 +1240,13 @@ module Wx::SF
     #   @param [Wx::Rect] rct Logical position (for example shape position)
     #   @return [Wx::Rect] Device position
     def lp2dp(arg)
-      x, y = calc_unscrolled_position(arg.x, arg.y)
       if arg.is_a?(Wx::Rect)
+        x, y = calc_unscrolled_position(arg.x, arg.y)
         Wx::Rect.new((x*@settings.scale).to_i, (y*@settings.scale).to_i,
                      (arg.width*@settings.scale).to_i, (arg.height*@settings.scale).to_i)
       else
+        arg = arg.to_point
+        x, y = calc_unscrolled_position(arg.x, arg.y)
         Wx::Point.new((x*@settings.scale).to_i, (y*@settings.scale).to_i)
       end
     end
@@ -1251,6 +1256,7 @@ module Wx::SF
     def update_shape_under_cursor_cache(lpos)
       sel_shape = unsel_shape = top_shape = nil
       sel_line = unsel_line = top_line = nil
+      lpos = lpos.to_point
 
       @topmost_shape_under_cursor = nil
 
@@ -1322,6 +1328,7 @@ module Wx::SF
     def get_topmost_handle_at_position(pos)
       return nil unless @diagram
 
+      pos = pos.to_point
       # first test multiedit handles...
       if @shp_multi_edit.visible?
         @shp_multi_edit.handles.each do |handle|
@@ -1828,6 +1835,7 @@ module Wx::SF
     # @param [Wx::Point] pos Position which should be updated
     # @return [Wx::Point] Updated position
     def fit_position_to_grid(pos)
+      pos = pos.to_point
       if has_style?(STYLE::GRID_USE)
         Wx::Point.new(pos.x / @settings.grid_size.x * @settings.grid_size.x,
           pos.y / @settings.grid_size.y * @settings.grid_size.y)

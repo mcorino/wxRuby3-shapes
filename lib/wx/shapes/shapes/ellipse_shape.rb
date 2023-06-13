@@ -28,7 +28,8 @@ module Wx::SF
   
       m = apos.x + a
       n = apos.y + b
-  
+
+      pos = pos.to_point
       (((pos.x - m)*(pos.x - m))/(a*a) + ((pos.y - n)*(pos.y - n))/(b*b)) < 1
     end
 
