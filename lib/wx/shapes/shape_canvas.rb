@@ -471,6 +471,13 @@ module Wx::SF
       evt_size :_on_resize
     end
 
+    # Creates the window in two-step construction mode. set_diagram() function must also be called to complete the canvas initialization.
+    # @param [Wx::Window] parent Parent window
+    # @param [Integer] id Window ID
+    # @param [Wx::Point] pos Initial position
+    # @param [Wx::Size] size Initial size
+    # @param [Integer] style Window style
+    # @param [String] name Window name
     def create(parent, id = -1, pos = Wx::DEFAULT_POSITION, size = Wx::DEFAULT_SIZE, style = (Wx::HSCROLL | Wx::VSCROLL), name = "Wx::ScrolledWindow")
       # NOTE: user must call Wx::SF::ShapeCanvas#set_diagram() to complete
       # canvas initialization!
