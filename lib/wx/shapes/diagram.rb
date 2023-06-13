@@ -350,7 +350,7 @@ module Wx::SF
     
     # Add given shape type to an acceptance list. The acceptance list contains class
     # names of the shapes which can be inserted into this instance of shapes canvas.
-    # Note: Keyword 'All' behaves like any class name.
+    # Note: Keyword '*' behaves like any class name.
     # @param [String,Class] type Class (name) of accepted shape object
     # @see is_shape_accepted
     def accept_shape(type)
