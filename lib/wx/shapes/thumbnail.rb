@@ -7,9 +7,10 @@ module Wx::SF
 
     # Internally used IDs
     module ID
-		  ID_UPDATETIMER = Wx::ID_HIGHEST + 1
-		  IDM_SHOWELEMENTS = ID_UPDATETIMER+1
-		  IDM_SHOWCONNECTIONS = ID_UPDATETIMER+2
+      include Wx::IDHelper
+		  UPDATETIMER = self.next_id
+		  M_SHOWELEMENTS = self.next_id
+		  M_SHOWCONNECTIONS = self.next_id
     end
 
     # Thumbnail style 
@@ -30,18 +31,20 @@ module Wx::SF
       @thumb_style = THUMBSTYLE::SHOW_ELEMENTS | THUMBSTYLE::SHOW_CONNECTIONS
       @prev_mouse_pos = nil
 
-      @update_timer = Wx::Timer.new(self, ID_UPDATETIMER)
+      @update_timer = Wx::Timer.new(self, ID::UPDATETIMER)
+
+      set_background_style(Wx::BG_STYLE_PAINT)
 
       evt_paint :_on_paint
       evt_erase_background :_on_erase_background
       evt_motion :_on_mouse_move
       evt_left_down :_on_left_down
       evt_right_down :_on_right_down
-      evt_timer(ID_UPDATETIMER, :_on_timer)
-      evt_update_ui(IDM_SHOWELEMENTS, :_on_update_show_elements)
-      evt_update_ui(IDM_SHOWCONNECTIONS, :_on_update_show_connections)
-      evt_menu(IDM_SHOWELEMENTS, :_on_show_elements)
-      evt_menu(IDM_SHOWCONNECTIONS, :_on_show_connections)
+      evt_timer(ID::UPDATETIMER, :_on_timer)
+      evt_update_ui(ID::M_SHOWELEMENTS, :_on_update_show_elements)
+      evt_update_ui(ID::M_SHOWCONNECTIONS, :_on_update_show_connections)
+      evt_menu(ID::M_SHOWELEMENTS, :_on_show_elements)
+      evt_menu(ID::M_SHOWCONNECTIONS, :_on_show_connections)
     end
 
     # Access (get/set) thumbnail style.
@@ -96,13 +99,11 @@ module Wx::SF
         
         if @canvas
           sz_canvas = @canvas.get_client_size
-          sz_virt_canvas = @canvas.get_virtual_size
+          cx, cy = @canvas.get_virtual_size
           sz_canvas_offset = get_canvas_offset
           sz_thumb = get_client_size
           
           # scale and copy bitmap to DC
-          cx = sz_virt_canvas.x
-          cy = sz_virt_canvas.y
           tx = sz_thumb.x
           ty = sz_thumb.y
           
@@ -115,7 +116,7 @@ module Wx::SF
           # draw virtual canvas area
           dc.with_pen(Wx::WHITE_PEN) do
             dc.with_brush(Wx::Brush.new(Wx::Colour.new(240, 240, 240))) do
-              dc.draw_rectangle(0, 0, (sz_virt_canvas.x*@scale).to_i, (sz_virt_canvas.y*@scale).to_i)
+              dc.draw_rectangle(0, 0, (cx*@scale).to_i, (cy*@scale).to_i)
 
               # draw top level shapes
               Wx::ScaledDC.draw_on(dc, @scale * @canvas.get_scale)  do |sdc|
@@ -125,7 +126,7 @@ module Wx::SF
               # draw canvas client area
               dc.set_pen(Wx::RED_PEN)
               dc.set_brush(Wx::TRANSPARENT_BRUSH)
-              dc.draw_rectangle((sz_canvas_offset.x*@scale).to_i, (sz_canvas_offset.y*@scale).to_i, (sz_canvas.x*@scale).to_i, (sz_canvas.y*@scale).to_i)
+              dc.draw_rectangle((cx*@scale).to_i, (cy*@scale).to_i, (sz_canvas.x*@scale).to_i, (sz_canvas.y*@scale).to_i)
             end
           end
         end
