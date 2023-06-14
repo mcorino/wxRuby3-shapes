@@ -348,6 +348,11 @@ module Wx::SF
 
     end
 
+    register_layout_algorithm('Circle', LayoutCircle)
+    register_layout_algorithm('Mesh', LayoutMesh)
+    register_layout_algorithm('Horizontal Tree', LayoutHorizontalTree)
+    register_layout_algorithm('Vertical Tree', LayoutVerticalTree)
+
   end
 
 end
