@@ -636,10 +636,10 @@ module Wx::SF
 
       bmp_bb = get_total_bounding_box
 
-      bmp_bb.left *= scale
-      bmp_bb.top *= scale
-      bmp_bb.width *= scale
-      bmp_bb.height *= scale
+      bmp_bb.left = (bmp_bb.left * scale).to_i
+      bmp_bb.top = (bmp_bb.top * scale).to_i
+      bmp_bb.width = (bmp_bb.width * scale).to_i
+      bmp_bb.height = (bmp_bb.height * scale).to_i
 
       bmp_bb.inflate(@settings.grid_size * scale)
 
@@ -674,12 +674,12 @@ module Wx::SF
             set_scale(prev_scale) if scale != prev_scale
 
             if outbmp.save_file(file, type)
-              Wx.message_box("The image has been saved to '#{file}'.", 'ShapeFramework')
+              Wx.message_box("The image has been saved to '#{file}'.", 'wxRuby ShapeFramework')
             else
-              Wx.message_box("Unable to save image to '#{file}'.", 'wxShapeFramework', Wx::OK | Wx::ICON_ERROR)
+              Wx.message_box("Unable to save image to '#{file}'.", 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_ERROR)
             end
           else
-            Wx.message_box('Could not create output bitmap.', 'wxShapeFramework', Wx::OK | Wx::ICON_ERROR)
+            Wx.message_box('Could not create output bitmap.', 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_ERROR)
           end
         end
       end
@@ -1087,7 +1087,7 @@ module Wx::SF
       return false unless has_style?(STYLE::CLIPBOARD)
 
       Wx::Clipboard.open do |clipboard|
-        return clipboard.supported?(Wx::DataFormat.new(DataFormatID))
+        return clipboard.supported?(Wx::DataFormat.new(Wx::SF::ShapeDataObject::DataFormatID))
       end
     end
     alias :can_paste? :can_paste
@@ -1182,7 +1182,7 @@ module Wx::SF
 
       # Pass two printout objects: for preview, and possible printing.
       print_dialog_data = Wx::PRT::PrintDialogData.new(ShapeCanvas.print_data)
-      prn_preview = Wx::PrintPreview.new(preview, printout, print_dialog_data)
+      prn_preview = Wx::PRT::PrintPreview.new(preview, printout, print_dialog_data)
       if !prn_preview.ok?
         Wx.message_box("There was a problem previewing.\nPerhaps your current printer is not set correctly?",
                        'wxRuby SF Previewing',
@@ -1190,7 +1190,7 @@ module Wx::SF
         return
       end
 
-      frame = Wx::PreviewFrame.new(prn_preview, self, 'wxRuby SF Print Preview', [100, 100], [800, 700])
+      frame = Wx::PRT::PreviewFrame.new(prn_preview, self, 'wxRuby SF Print Preview', [100, 100], [800, 700])
       frame.centre(Wx::BOTH)
       frame.init
       frame.show
@@ -1200,10 +1200,10 @@ module Wx::SF
     def page_setup
       ShapeCanvas.page_setup_data.set_print_data(ShapeCanvas.print_data)
 
-      Wx::PTR::PageSetupDialog(self, ShapeCanvas.page_setup_data) do |dlg|
+      Wx::PRT::PageSetupDialog(self, ShapeCanvas.page_setup_data) do |dlg|
         dlg.show_modal
-        ShapeCanvas.print_data = dlg.get_page_setup_dialog_data.get_print_data
-        ShapeCanvas.page_setup_data = dlg.get_page_setup_dialog_data
+        ShapeCanvas.print_data = dlg.get_page_setup_data.get_print_data
+        ShapeCanvas.page_setup_data = dlg.get_page_setup_data
       end
     end
 
