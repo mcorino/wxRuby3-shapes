@@ -1229,16 +1229,16 @@ module Wx::SF
     # @overload add_connection_point(type, persistent: true)
     #   @param [Wx::SF::ConnectionPoint::CPTYPE] type Connection point type
 	  #   @param [Boolean] persistent true if the connection point should be serialized
-	  #   @return [Wx::SF::ConnectionPoint,nil] new connection point
+	  #   @return [Wx::SF::ConnectionPoint] new connection point
     # @overload add_connection_point(relpos, id=-1, persistent: true)
     #   @param [Wx::RealPoint] relpos Relative position in percentages
     #   @param [Integer] id connection point ID
     #   @param [Boolean] persistent true if the connection point should be serialized
-    #   @return [Wx::SF::ConnectionPoint,nil] new connection point
+    #   @return [Wx::SF::ConnectionPoint] new connection point
     # @overload add_connection_point(cp, persistent: true)
     #   @param [Wx::SF::ConnectionPoint] cp connection point (shape will take the ownership)
     #   @param [Boolean] persistent true if the connection point should be serialized
-    #   @return [Wx::SF::ConnectionPoint,nil] added connection point
+    #   @return [Wx::SF::ConnectionPoint] added connection point
 	  # @see Wx::SF::ConnectionPoint::CPTYPE
     def add_connection_point(arg, *rest, persistent: true)
       cp = nil
