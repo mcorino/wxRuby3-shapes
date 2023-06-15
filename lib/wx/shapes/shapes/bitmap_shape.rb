@@ -167,7 +167,7 @@ module Wx::SF
     def draw_normal(dc)
       # HINT: overload it for custom actions...
       if @rescale_in_progress
-        _draw_bitmap(@prev_pos.to_point)
+        _draw_bitmap(dc, @prev_pos.to_point)
     
         dc.with_brush(Wx::TRANSPARENT_BRUSH) do
           dc.with_pen(Wx::Pen.new(Wx::Colour.new(100, 100, 100), 1, Wx::PenStyle::PENSTYLE_DOT)) do
@@ -175,14 +175,14 @@ module Wx::SF
           end
         end
       else
-        _draw_bitmap(get_absolute_position.to_point)
+        _draw_bitmap(dc, get_absolute_position.to_point)
       end
     end
 
 	  # Draw the shape in the hover mode (the mouse cursor is above the shape). The function can be overridden if necessary.
     # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_hover(dc)
-      _draw_bitmap(get_absolute_position.to_point)
+      _draw_bitmap(dc, get_absolute_position.to_point)
 
       dc.with_brush(Wx::TRANSPARENT_BRUSH) do
         dc.with_pen(Wx::Pen.new(@hover_color, 1)) do
@@ -195,7 +195,7 @@ module Wx::SF
     # dragged one if it will be dropped on it). The function can be overridden if necessary.
     # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_highlighted(dc)
-      _draw_bitmap(get_absolute_position.to_point)
+      _draw_bitmap(dc, get_absolute_position.to_point)
 
       dc.with_brush(Wx::TRANSPARENT_BRUSH) do
         dc.with_pen(Wx::Pen.new(@hover_color, 2)) do
@@ -207,8 +207,9 @@ module Wx::SF
     private
 
     # draw the bitmap
+    # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     # @param [Wx::Point] pos
-    def _draw_bitmap(pos)
+    def _draw_bitmap(dc, pos)
       if @bitmap && @bitmap.ok?
         dc.draw_bitmap(@bitmap, pos)
       else
