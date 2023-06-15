@@ -133,20 +133,15 @@ module Wx::SF
       # @param [Wx::DC] dc Device context where the handle will be drawn
       def draw_normal(dc)
         dc.with_pen(Wx::PLATFORM == 'WXGTK' ? Wx::TRANSPARENT_PEN : Wx::BLACK_PEN) do
-          if Wx.has_feature?(:USE_GRAPHICS_CONTEXT)
-            if ShapeCanvas::gc_enabled?
-              dc.brush = Wx::Brush.new(Wx::Colour.new(0, 0, 0, 128))
-            else
-              dc.brush = Wx::BLACK_BRUSH
-              dc.logical_function = Wx::RasterOperationMode::INVERT
-            end
+          if ShapeCanvas::gc_enabled?
+            dc.brush = Wx::Brush.new(Wx::Colour.new(0, 0, 0, 128))
           else
             dc.brush = Wx::BLACK_BRUSH
-            dc.logical_function = Wx::RasterOperationMode::INVERT
+            # dc.logical_function = Wx::RasterOperationMode::INVERT
           end
 
           dc.draw_rectangle(handle_rect)
-          dc.logical_function = Wx::RasterOperationMode::COPY
+          # dc.logical_function = Wx::RasterOperationMode::COPY
 
           dc.brush = Wx::NULL_BRUSH
         end
@@ -204,8 +199,7 @@ module Wx::SF
             hrct = Wx::Rect.new
           end
 
-          hrct.offset([-3, -3])
-          hrct
+          hrct.offset!(-3, -3)
         else
           Wx::Rect.new
         end
