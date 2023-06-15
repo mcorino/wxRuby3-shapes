@@ -99,30 +99,35 @@ module Wx::SF
       @unfinished_point = Wx::Point.new
     end
 
+    # Get source shape id.
     # @return [Wx::SF::Serializable::ID]
     def get_src_shape_id
       @src_shape_id
     end
     alias :src_shape_id :get_src_shape_id
 
+    # Set source shape id.
     # @param [Wx::SF::Serializable::ID] id
     def set_src_shape_id(id)
       @src_shape_id = id
     end
     alias :src_shape_id= :set_src_shape_id
 
+    # Get target shape id.
     # @return [Wx::SF::Serializable::ID]
     def get_trg_shape_id
       @trg_shape_id
     end
     alias :trg_shape_id :get_trg_shape_id
 
+    # Set target shape id.
     # @param [Wx::SF::Serializable::ID] id
     def set_trg_shape_id(id)
       @trg_shape_id = id
     end
     alias :trg_shape_id= :set_trg_shape_id
 
+    # Get source point.
     # @return [Wx::RealPoint]
     def get_src_point
       unless @stand_alone
@@ -149,13 +154,13 @@ module Wx::SF
     end
     alias :src_point :get_src_point
 
-    # Deserialization only.
+    # Set source point.
     # @param [Wx::RealPoint] pt
     def set_src_point(pt)
       @src_point = pt.to_real_point
     end
-    private :set_src_point
 
+    # Get target point.
     # @return [Wx::RealPoint]
     def get_trg_point
       unless @stand_alone
@@ -182,13 +187,13 @@ module Wx::SF
     end
     alias :trg_point :get_trg_point
 
-    # Deserialization only.
+    # Set target point.
     # @param [Wx::RealPoint] pt
     def set_trg_point(pt)
       @trg_point = pt.to_real_point
     end
-    private :set_trg_point
 
+    # Get source arrow.
     # @return [Wx::SF::ArrowBase]
     def get_src_arrow
       @src_arrow
@@ -211,6 +216,7 @@ module Wx::SF
     end
     alias :src_arrow= :set_src_arrow
 
+    # Get target arrow.
     # @return [Wx::SF::ArrowBase]
     def get_trg_arrow
       @trg_arrow

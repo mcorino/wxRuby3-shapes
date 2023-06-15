@@ -26,7 +26,7 @@ module Wx::SF
 
     # Exports data from data object.
     # @return [Boolean] true on success, otherwise false
-    def _get_data(buf)
+    def _get_data
       @data
     end
 

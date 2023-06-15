@@ -29,8 +29,7 @@ module Wx::SF
     def draw_complete_line(dc)
       return unless @diagram
   
-      cp_src = nil
-      cp_trg = nil
+      src = trg = cp_src = cp_trg = nil
     
       shape = @diagram.find_shape(@src_shape_id)
       if shape
@@ -50,7 +49,7 @@ module Wx::SF
         end
         # draw target arrow
         if @trg_arrow
-          asrc, atrg = get_last_subsegment(src, trg, get_used_connection_points(cp_src, cp_trg, i - 1))
+          asrc, atrg = get_last_subsegment(src, trg, get_used_connection_points(cp_src, cp_trg, @lst_points.size))
           @trg_arrow.draw(asrc, atrg, dc)
         end
         # draw source arrow
@@ -70,7 +69,7 @@ module Wx::SF
         # draw unfinished line segment if any (for interactive line creation)
         dc.with_pen(Wx::Pen.new(Wx::BLACK, 1, Wx::PenStyle::PENSTYLE_DOT)) do
           if @lst_points.size>1
-            draw_line_segment(dc, trg, @unfinished_point.to_real, get_used_connection_points(cp_src, cp_trg, i))
+            draw_line_segment(dc, trg, @unfinished_point.to_real, get_used_connection_points(cp_src, cp_trg, @lst_points.size))
           else
             src_shape = @diagram.find_shape(@src_shape_id)
             if src_shape
@@ -179,9 +178,11 @@ module Wx::SF
 	  # @param [SEGMENTCPS] cps Connection points used by the line segment
     def draw_line_segment(dc, src, trg, cps)
       direction = 0.0
-      
+      src_pt = src.to_point
+      trg_pt = trg.to_point
+
       if (trg.x == src.x) || (trg.y == src.y)
-        dc.draw_line(src.x, src.y, trg.x, trg.y)
+        dc.draw_line(src_pt, trg_pt)
         return
       else
         direction = get_segment_direction(src, trg, cps)
@@ -189,22 +190,22 @@ module Wx::SF
       
       if is_two_segment(cps)
         if direction < 1.0
-          dc.draw_line(src.x, src.y, trg.x, src.y)
-          dc.draw_line(trg.x, src.y, trg.x, trg.y)
+          dc.draw_line(src_pt.x, src_pt.y, trg_pt.x, src_pt.y)
+          dc.draw_line(trg_pt.x, src_pt.y, trg_pt.x, trg_pt.y)
         else
-          dc.draw_line(src.x, src.y, src.x, trg.y)
-          dc.draw_line(src.x, trg.y, trg.x, trg.y)
+          dc.draw_line(src_pt.x, src_pt.y, src_pt.x, trg_pt.y)
+          dc.draw_line(src_pt.x, trg_pt.y, trg_pt.x, trg_pt.y)
         end
       else
-        pt_center = Wx::RealPoint.new((src.x + trg.x)/2, (src.y + trg.y)/2)
+        pt_center = Wx::Point.new(((src.x + trg.x)/2).to_i, ((src.y + trg.y)/2).to_i)
         if direction < 1.0
-          dc.draw_line(src.x, src.y, pt_center.x, src.y)
-          dc.draw_line(pt_center.x, src.y, pt_center.x, trg.y)
-          dc.draw_line(pt_center.x, trg.y, trg.x, trg.y)
+          dc.draw_line(src_pt.x, src_pt.y, pt_center.x, src_pt.y)
+          dc.draw_line(pt_center.x, src_pt.y, pt_center.x, trg_pt.y)
+          dc.draw_line(pt_center.x, trg_pt.y, trg_pt.x, trg_pt.y)
         else
-          dc.draw_line(src.x, src.y, src.x, pt_center.y)
-          dc.draw_line(src.x, pt_center.y, trg.x, pt_center.y)
-          dc.draw_line(trg.x, pt_center.y, trg.x, trg.y)
+          dc.draw_line(src_pt.x, src_pt.y, src_pt.x, pt_center.y)
+          dc.draw_line(src_pt.x, pt_center.y, trg_pt.x, pt_center.y)
+          dc.draw_line(trg_pt.x, pt_center.y, trg_pt.x, trg_pt.y)
         end
       end
     end
@@ -235,6 +236,7 @@ module Wx::SF
           subtrg = Wx::RealPoint.new(src.x, pt_center.y)
         end
       end
+      [subsrc, subtrg]
     end
 
 	  # Get middle part of orthogonal line segment.
@@ -245,34 +247,6 @@ module Wx::SF
     def get_middle_subsegment(src, trg, cps)
       direction = get_segment_direction(src, trg, cps)
       
-      if is_two_segment(cps)
-        if direction < 1.0
-          subsrc = Wx::RealPoint.new(trg.x, src.y)
-          subtrg = trg
-        else
-          subsrc = Wx::RealPoint.new(src.x, trg.y)
-          subtrg = trg
-        end
-      else
-        pt_center = Wx::RealPoint.new((src.x + trg.x)/2, (src.y + trg.y)/2)
-        if direction < 1.0
-          subsrc = Wx::RealPoint.new(pt_center.x, trg.y)
-          subtrg = trg
-        else
-          subsrc = Wx::RealPoint.new(trg.x, pt_center.y)
-          subtrg = trg
-        end
-      end
-    end
-
-	  # Get last part of orthogonal line segment.
-    # @param [Wx::RealPoint] src Starting point of the ortho line segment
-    # @param [Wx::RealPoint] trg Ending point of the ortho line segment
-    # @param [SEGMENTCPS] cps Connection points used by the line segment
-    # @return [Array(Wx::RealPoint, Wx::RealPoint)] starting and ending point of the third part of ortho line segment
-    def get_last_subsegment(src, trg, cps)
-      direction = get_segment_direction(src, trg, cps)
-    
       if is_two_segment(cps)
         if direction < 1.0
           subsrc = src
@@ -287,10 +261,36 @@ module Wx::SF
           subsrc = Wx::RealPoint.new(pt_center.x, src.y)
           subtrg = Wx::RealPoint.new(pt_center.x, trg.y)
         else
-          subsrc = Wx::RealPoint.new(src.x, ptCenter.y)
-          subtrg = Wx::RealPoint.new(trg.x, ptCenter.y)
+          subsrc = Wx::RealPoint.new(src.x, pt_center.y)
+          subtrg = Wx::RealPoint.new(trg.x, pt_center.y)
         end
       end
+      [subsrc, subtrg]
+    end
+
+	  # Get last part of orthogonal line segment.
+    # @param [Wx::RealPoint] src Starting point of the ortho line segment
+    # @param [Wx::RealPoint] trg Ending point of the ortho line segment
+    # @param [SEGMENTCPS] cps Connection points used by the line segment
+    # @return [Array(Wx::RealPoint, Wx::RealPoint)] starting and ending point of the third part of ortho line segment
+    def get_last_subsegment(src, trg, cps)
+      direction = get_segment_direction(src, trg, cps)
+    
+      if is_two_segment(cps)
+        if direction < 1.0
+          subsrc = Wx::RealPoint.new(trg.x, src.y)
+        else
+          subsrc = Wx::RealPoint.new(src.x, trg.y)
+        end
+      else
+        pt_center = Wx::RealPoint.new((src.x + trg.x)/2, (src.y + trg.y)/2)
+        if direction < 1.0
+          subsrc = Wx::RealPoint.new(pt_center.x, trg.y)
+        else
+          subsrc = Wx::RealPoint.new(trg.x, pt_center.y)
+        end
+      end
+      [subsrc, trg]
     end
 
 	  # Get direction of the line segment.

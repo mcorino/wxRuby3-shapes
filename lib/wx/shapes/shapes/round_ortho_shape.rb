@@ -37,11 +37,13 @@ module Wx::SF
     # @param [SEGMENTCPS] cps Connection points used by the line segment
     def draw_line_segment(dc, src, trg, cps)
       if (trg.x == src.x) || (trg.y == src.y)
-        dc.draw_line(src.x, src.y, trg.x, trg.y)
+        dc.draw_line(src.to_point, trg.to_point)
         return
       end
 
       direction = get_segment_direction(src, trg, cps)
+      src_pt = src.to_point
+      trg_pt = trg.to_point
 
       dx = trg.x - src.x
       dy = trg.y - src.y
@@ -56,27 +58,27 @@ module Wx::SF
           if direction < 1.0
             r = (dy * @max_radius/100).abs < @max_radius ? (dy * @max_radius/100).abs : @max_radius
 
-            dc.draw_line(src.x, src.y, trg.x - r * kx, src.y)
-            dc.draw_line(trg.x, src.y - r * ky, trg.x, trg.y)
+            dc.draw_line(src_pt.x, src_pt.y, (trg.x - r * kx).to_i, src_pt.y)
+            dc.draw_line(trg_pt.x, (src.y - r * ky).to_i, trg_pt.x, trg_pt.y)
 
             if r > 0
               if (ky > 0 && kx > 0) || (ky < 0 && kx < 0)
-                dc.draw_arc(trg.x - r * kx, src.y, trg.x, src.y - r * ky, trg.x - r * kx, src.y - r * ky)
+                dc.draw_arc((trg.x - r * kx).to_i, src_pt.y, trg_pt.x, (src.y - r * ky).to_i, (trg.x - r * kx).to_i, (src.y - r * ky).to_i)
               else
-                dc.draw_arc(trg.x, src.y - r * ky, trg.x - r * kx, src.y, trg.x - r * kx, src.y - r * ky)
+                dc.draw_arc(trg_pt.x, (src.y - r * ky).to_i, (trg.x - r * kx).to_i, src_pt.y, (trg.x - r * kx).to_i, (src.y - r * ky).to_i)
               end
             end
           else
             r = (dx * @max_radius/100).abs < @max_radius ? (dx * @max_radius/100) : @max_radius
 
-            dc.draw_line(src.x, src.y, src.x, trg.y + r * ky)
-            dc.draw_line(src.x + r * kx, trg.y, trg.x, trg.y)
+            dc.draw_line(src_pt.x, src_pt.y, src_pt.x, (trg.y + r * ky).to_i)
+            dc.draw_line((src.x + r * kx).to_i, trg_pt.y, trg_pt.x, trg_pt.y)
 
             if r > 0
               if (ky > 0 && kx > 0) || (ky < 0 && kx < 0)
-                dc.draw_arc(src.x + r * kx, trg.y, src.x, trg.y + r * ky, src.x + r * kx, trg.y + r * ky)
+                dc.draw_arc((src.x + r * kx).to_i, trg_pt.y, src_pt.x, (trg.y + r * ky).to_i, (src.x + r * kx).to_i, (trg.y + r * ky).to_i)
               else
-                dc.draw_arc(src.x, trg.y + r * ky, src.x + r * kx, trg.y, src.x + r * kx, trg.y + r * ky)
+                dc.draw_arc(src_pt.x, (trg.y + r * ky).to_i, (src.x + r * kx).to_i, trg_pt.y, (src.x + r * kx).to_i, (trg.y + r * ky).to_i)
               end
             end
           end
@@ -85,33 +87,33 @@ module Wx::SF
           if direction < 1
             r = (dy * @max_radius/100).abs < @max_radius ? (dy * @max_radius/100).abs : @max_radius
 
-            dc.draw_line(src.x, src.y, pt_center.x - r * kx, src.y)
-            dc.draw_line(pt_center.x, src.y - r * ky, pt_center.x, trg.y + r * ky)
-            dc.draw_line(pt_center.x + r * kx, trg.y, trg.x, trg.y)
+            dc.draw_line(src_pt.x, src_pt.y, (pt_center.x - r * kx).to_i, src_pt.y)
+            dc.draw_line(pt_center.x.to_i, (src.y - r * ky).to_i, pt_center.x.to_i, (trg.y + r * ky).to_i)
+            dc.draw_line((pt_center.x + r * kx).to_i, trg_pt.y, trg_pt.x, trg_pt.y)
 
             if r > 0
               if (ky > 0 && kx > 0) || (ky < 0 && kx < 0)
-                dc.draw_arc(pt_center.x - r * kx, src.y, pt_center.x, src.y - r * ky, pt_center.x - r * kx, src.y - r * ky)
-                dc.draw_arc(pt_center.x + r * kx, trg.y, pt_center.x, trg.y + r * ky, pt_center.x + r * kx, trg.y + r * ky )
+                dc.draw_arc((pt_center.x - r * kx).to_i, src_pt.y, pt_center.x.to_i, (src.y - r * ky).to_i, (pt_center.x - r * kx).to_i, (src.y - r * ky).to_i)
+                dc.draw_arc((pt_center.x + r * kx).to_i, trg_pt.y, pt_center.x.to_i, (trg.y + r * ky).to_i, (pt_center.x + r * kx).to_i, (trg.y + r * ky).to_i)
               else
-                dc.draw_arc(pt_center.x, src.y - r * ky, pt_center.x - r * kx, src.y, pt_center.x - r * kx, src.y - r * ky)
-                dc.draw_arc(pt_center.x, trg.y + r * ky, pt_center.x + r * kx, trg.y, pt_center.x + r * kx, trg.y + r * ky)
+                dc.draw_arc(pt_center.x.to_i, (src.y - r * ky).to_i, (pt_center.x - r * kx).to_i, src_pt.y, (pt_center.x - r * kx).to_i, (src.y - r * ky).to_i)
+                dc.draw_arc(pt_center.x.to_i, (trg.y + r * ky).to_i, (pt_center.x + r * kx).to_i, trg_pt.y, (pt_center.x + r * kx).to_i, (trg.y + r * ky).to_i)
               end
             end
           else
             r = (dx * @max_radius/100) < @max_radius ? (dx * @max_radius/100) : @max_radius
 
-            dc.draw_line(src.x, src.y, src.x, pt_center.y + r * ky)
-            dc.draw_line(src.x + r * kx, pt_center.y, trg.x - r * kx, pt_center.y)
-            dc.draw_line(trg.x, pt_center.y - r * ky, trg.x, trg.y)
+            dc.draw_line(src_pt.x, src_pt.y, src_pt.x, (pt_center.y + r * ky).to_i)
+            dc.draw_line((src.x + r * kx).to_i, pt_center.y.to_i, (trg.x - r * kx).to_i, pt_center.y.to_i)
+            dc.draw_line(trg_pt.x, (pt_center.y - r * ky).to_i, trg_pt.x, trg_pt.y)
 
             if r > 0
               if (ky > 0 && kx > 0) || (ky < 0 && kx < 0)
-                dc.draw_arc(src.x + r * kx, pt_center.y, src.x, pt_center.y + r * ky, src.x + r * kx, pt_center.y + r * ky)
-                dc.draw_arc(trg.x - r * kx, pt_center.y, trg.x, pt_center.y - r * ky, trg.x - r * kx, pt_center.y - r * ky)
+                dc.draw_arc((src.x + r * kx).to_i, pt_center.y.to_i, src_pt.x, (pt_center.y + r * ky).to_i, (src.x + r * kx).to_i, (pt_center.y + r * ky).to_i)
+                dc.draw_arc((trg.x - r * kx).to_i, pt_center.y.to_i, trg_pt.x, (pt_center.y - r * ky).to_i, (trg.x - r * kx).to_i, (pt_center.y - r * ky).to_i)
               else
-                dc.draw_arc(src.x, pt_center.y + r * ky, src.x + r * kx, pt_center.y, src.x + r * kx, pt_center.y + r * ky)
-                dc.draw_arc(trg.x, pt_center.y - r * ky, trg.x - r * kx, pt_center.y, trg.x - r * kx, pt_center.y - r * ky)
+                dc.draw_arc(src_pt.x, (pt_center.y + r * ky).to_i, (src.x + r * kx).to_i, pt_center.y.to_i, (src.x + r * kx).to_i, (pt_center.y + r * ky).to_i)
+                dc.draw_arc(trg_pt.x, (pt_center.y - r * ky).to_i, (trg.x - r * kx).to_i, pt_center.y.to_i, (trg.x - r * kx).to_i, (pt_center.y - r * ky).to_i)
               end
             end
           end

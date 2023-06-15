@@ -543,9 +543,9 @@ module Wx::SF
     #   @return [self]
     def load_canvas(io)
       # get IO stream to read from
+      ios = io.is_a?(::String) ? File.open(io, 'r') : io
       begin
-        ios = io.is_a?(::String) ? File.open(io, 'r') : io
-        ver_info, @settings, diagram = Serializable.deserialize(ios)
+        _, @settings, diagram = Serializable.deserialize(ios)
       rescue SFException
         ::Kernel.raise
       rescue ::Exception
@@ -772,7 +772,7 @@ module Wx::SF
           end
 
           # start the connection's creation process if possible
-          if shape_under && shape_under.id && shape_under.is_connection_accepted(shape_klass)
+          if shape_under&.id && shape_under.is_connection_accepted(shape_klass)
             if shape && @diagram.contains?(shape)
               @new_line_shape = shape
             else
@@ -941,7 +941,7 @@ module Wx::SF
           data_obj = Wx::SF::ShapeDataObject.new(shapes)
 
           dnd_src = if Wx::PLATFORM == 'WXGTK'
-                      Wx::DropSource.new(data_obj, self, Wx::Icon(:page_xpm), Wx::Icon(:page_xpm), Wx::Icon(:page_xpm))
+                      Wx::DropSource.new(data_obj, self, Wx::Icon(:page), Wx::Icon(:page), Wx::Icon(:page))
                     else
                       Wx::DropSource.new(data_obj)
                     end
@@ -1139,7 +1139,7 @@ module Wx::SF
     # @see Wx::SF::Printout
     def print(*args)
       if args.first.is_a?(Wx::PRT::Printout)
-        printout. prompt = args
+        printout, prompt = args
       else
         printout = Printout.new('wxRuby SF Printout', self)
         prompt = args.shift
@@ -1182,7 +1182,7 @@ module Wx::SF
       # Pass two printout objects: for preview, and possible printing.
       print_dialog_data = Wx::PRT::PrintDialogData.new(ShapeCanvas.print_data)
       prn_preview = Wx::PRT::PrintPreview.new(preview, printout, print_dialog_data)
-      if !prn_preview.ok?
+      unless prn_preview.ok?
         Wx.message_box("There was a problem previewing.\nPerhaps your current printer is not set correctly?",
                        'wxRuby SF Previewing',
                        Wx::OK | Wx::ICON_ERROR)
@@ -2015,7 +2015,7 @@ module Wx::SF
 
         # draw connections
         @diagram.get_top_shapes.each do |shape|
-          shape.draw(dc) if shape.is_a?(LineShape) || !shape.stand_alone?
+          shape.draw(dc) if shape.is_a?(LineShape) && !shape.stand_alone?
         end
       end
     end
@@ -2201,12 +2201,12 @@ module Wx::SF
             when Shape::Handle::TYPE::LINESTART
               line = @selected_handle.get_parent_shape
               line.send(:set_line_mode, LineShape::LINEMODE::SRCCHANGE)
-              line.set_unfinished_point(lpos)
+              line.send(:set_unfinished_point, lpos)
 
             when Shape::Handle::TYPE::LINEEND
               line = @selected_handle.get_parent_shape
               line.send(:set_line_mode, LineShape::LINEMODE::TRGCHANGE)
-              line.set_unfinished_point(lpos)
+              line.send(:set_unfinished_point, lpos)
             end
           end
           @selected_handle.send(:_on_begin_drag, fit_position_to_grid(lpos))
@@ -2779,7 +2779,7 @@ module Wx::SF
 
       return PRECON_FINISH_STATE::FAILED_AND_CANCEL_LINE if event.vetoed?
 
-      return PRECON_FINISH_STATE::OK
+      PRECON_FINISH_STATE::OK
     end
 
     if Wx.has_feature?(:USE_DRAG_AND_DROP)
@@ -2828,8 +2828,8 @@ module Wx::SF
     # Event handler called if canvas virtual size is going to be updated.
     # The default implementation does nothing but the function can be overridden by
     # a user to modify calculated virtual canvas size.
-    # @param [Wx::Rect] virtrct Calculated canvas virtual size
-    def on_update_virtual_size(virtrct)
+    # @param [Wx::Rect] _virtrct Calculated canvas virtual size
+    def on_update_virtual_size(_virtrct)
       # HINT: override it for custom actions...
     end
 
@@ -2877,9 +2877,9 @@ module Wx::SF
       lst_connections = @diagram.get_assigned_connections(shape, LineShape, Shape::CONNECTMODE::BOTH) unless childrenonly
       lst_connections ||= []
       # get connections assigned to its child shape
-      lst_children.each do |shape|
+      lst_children.each do |child|
         # get connections assigned to the child shape
-        @diagram.get_assigned_connections(shape, LineShape, Shape::CONNECTMODE::BOTH, lst_connections)
+        @diagram.get_assigned_connections(child, LineShape, Shape::CONNECTMODE::BOTH, lst_connections)
       end
     
       # insert connections to the copy list
@@ -3225,8 +3225,8 @@ module Wx::SF
           dx = 0
           dy = 0
           if @dnd_started_here
-            dx = lpos.x - @dnd_started_at.x;
-            dy = lpos.y - @dnd_started_at.y;
+            dx = lpos.x - @dnd_started_at.x
+            dy = lpos.y - @dnd_started_at.y
           end
 
           parent = @diagram.get_shape_at_position(lpos, 1, SEARCHMODE::UNSELECTED)

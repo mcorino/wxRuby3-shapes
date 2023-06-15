@@ -54,8 +54,9 @@ module Wx::SF
       case @mode
       when LINEMODE::READY
         # draw line segments
+        b = c = nil
         if !@lst_points.empty?
-          @lst_points.size.times do |i|
+          (0..@lst_points.size).each do |i|
             a,b,c,d = get_segment_quaternion(i)
             catmul_rom_kubika(a, b, c, d, dc)
           end
@@ -71,6 +72,7 @@ module Wx::SF
 
       when LINEMODE::UNDERCONSTRUCTION
         # draw basic line parts
+        c = nil
         unless @lst_points.empty?
           @lst_points.size.times do |i|
             a,b,c,d = get_segment_quaternion(i)
@@ -99,8 +101,9 @@ module Wx::SF
 
       when LINEMODE::SRCCHANGE
         # draw basic line parts
+        c = nil
         @lst_points.size.times do |i|
-          a,b,c,d = get_segment_quaternion(i)
+          a,b,c,d = get_segment_quaternion(i+1)
           catmul_rom_kubika(a, b, c, d, dc)
         end
         # draw linesegment being updated
@@ -115,6 +118,7 @@ module Wx::SF
 
       when LINEMODE::TRGCHANGE
         # draw basic line parts
+        c = nil
         if !@lst_points.empty?
           @lst_points.size.times do |i|
             a,b,c,d = get_segment_quaternion(i)
@@ -180,7 +184,7 @@ module Wx::SF
     # @param [Wx::DC] dc
     def catmul_rom_kubika(a, b, c, d, dc)
       # the beginning of the curve is in the B point
-      point0 = B
+      point0 = b
 
       optim_steps = b.distance_to(c).to_f / 10
       optim_steps = 10 if optim_steps < 10

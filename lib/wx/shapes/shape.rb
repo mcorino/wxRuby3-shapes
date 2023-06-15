@@ -590,6 +590,7 @@ module Wx::SF
 	  # @see CONNECTMODE
     def get_assigned_connections(shape_info, mode, lines = [])
       @diagram.get_assigned_connections(self, shape_info, mode, lines) if @diagram
+      lines
     end
 
     # Get shape's bounding box. The function can be overridden if necessary.

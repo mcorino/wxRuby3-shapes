@@ -433,7 +433,7 @@ module Wx::SF
     # @return [Array<Wx::SF::Shape>] shape list
 	  # @see Wx::SF::Shape::CONNECTMODE
     def get_assigned_connections(parent, shape_info, mode, lines = [])
-      return unless parent && parent.get_id
+      return lines unless parent && parent.get_id
 
       # lines are all toplevel so we do not have to search recursively...
       lst_lines = @shapes.select { |shape| shape.is_a?(shape_info) }
