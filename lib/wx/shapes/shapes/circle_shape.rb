@@ -70,6 +70,7 @@ module Wx::SF
     # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_normal(dc)
       # HINT: overload it for custom actions...
+      pos = get_absolute_position
 
       dc.with_pen(@border) do
         dc.with_brush(@fill) do
@@ -85,6 +86,7 @@ module Wx::SF
     # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_hover(dc)
       # HINT: overload it for custom actions...
+      pos = get_absolute_position
 
       dc.with_pen(Wx::Pen.new(@hover_color, 1)) do
         dc.with_brush(@fill) do
@@ -101,6 +103,7 @@ module Wx::SF
     # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_highlighted(dc)
       # HINT: overload it for custom actions...
+      pos = get_absolute_position
 
       dc.with_pen(Wx::Pen.new(@hover_color, 2)) do
         dc.with_brush(@fill) do
@@ -115,6 +118,7 @@ module Wx::SF
     # @param [Wx::DC] dc Reference to device context where the shadow will be drawn to
     def draw_shadow(dc)
       # HINT: overload it for custom actions...
+      pos = get_absolute_position
 
       if @fill.style != Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT
         dc.with_pen(Wx::TRANSPARENT_PEN) do
