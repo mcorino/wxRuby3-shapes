@@ -218,8 +218,8 @@ module Wx::SF
 
     # Handle action at handle drag beginning
     def do_begin_handle
-      @prev_position = @relative_position
-      @prev_size = @rect_size
+      @prev_position = @relative_position.dup
+      @prev_size = @rect_size.dup
     end
 
     # Scale the rectangle size for this shape.
