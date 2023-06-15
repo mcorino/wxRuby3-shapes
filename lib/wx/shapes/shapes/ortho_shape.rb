@@ -129,7 +129,7 @@ module Wx::SF
 	  # @param [Wx::Point] pos Examined point
 	  # @return Zero-based index of line segment located under the given point
     def get_hit_linesegment(pos)
-      return -1 unless get_bounding_box.inflate(5, 5).contains?(pos)
+      return -1 unless get_bounding_box.inflate!(5, 5).contains?(pos)
 
       cp_src = nil
       cp_trg = nil
@@ -150,21 +150,21 @@ module Wx::SF
         # test first subsegment
         pt_s_src, pt_s_trg = get_first_subsegment( pt_src, pt_trg, get_used_connection_points(cp_src, cp_trg, i))
         rct_bb = Wx::Rect.new(pt_s_src.to_point, pt_s_trg.to_point)
-        rct_bb.inflate(5)
+        rct_bb.inflate!(5)
 
         return i if rct_bb.contains?(pos)
 
         # test middle subsegment
         pt_s_src, pt_s_trg = get_middle_subsegment(pt_src, pt_trg, get_used_connection_points(cp_src, cp_trg, i))
         rct_bb = Wx::Rect.new(pt_s_src.to_point, pt_s_trg.to_point)
-        rct_bb.inflate(5)
+        rct_bb.inflate!(5)
 
         return i if rct_bb.contains?(pos)
 
         # test last subsegment
         pt_s_src, pt_s_trg = get_last_subsegment( pt_src, pt_trg, get_used_connection_points(cp_src, cp_trg, i))
         rct_bb = Wx::Rect.new(pt_s_src.to_point, pt_s_trg.to_point)
-        rct_bb.inflate(5)
+        rct_bb.inflate!(5)
 
         return i if rct_bb.contains?(pos)
       end

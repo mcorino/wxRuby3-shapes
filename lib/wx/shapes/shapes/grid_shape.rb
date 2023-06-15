@@ -228,9 +228,9 @@ module Wx::SF
 
     # Update shape (align all child shapes an resize it to fit them)
     def update
-      # check for existence of assigned shapes
+      # check for existence of de-assigned shapes
       @cells.delete_if do |id|
-        !@child_shapes.find { |child| child.id == id }.nil?
+        @child_shapes.find { |child| child.id == id }.nil?
       end
 
       # check whether all child shapes' IDs are present in the cells array...

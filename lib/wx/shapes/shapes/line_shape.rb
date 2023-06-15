@@ -777,7 +777,7 @@ module Wx::SF
 
         # calculate line segment bounding box
         ls_bb = Wx::Rect.new(src.to_point, trg.to_point)
-        ls_bb.inflate(2)
+        ls_bb.inflate!(2)
     
         # convert line segment to its parametric form
         a = trg.y - src.y

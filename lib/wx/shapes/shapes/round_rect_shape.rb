@@ -43,8 +43,8 @@ module Wx::SF
       shp_bb = get_bounding_box
     
       # calculate modified boxes
-      hr = shp_bb.dup.deflate(0, @radius.to_i)
-      vr = shp_bb.dup.deflate(@radius.to_i, 0)
+      hr = shp_bb.deflate(0, @radius.to_i)
+      vr = shp_bb.deflate(@radius.to_i, 0)
     
       # test whether given position is inside body rect or rounded corners
       if hr.contains?(pos)
@@ -57,7 +57,7 @@ module Wx::SF
         return true
       elsif in_circle?(pos, shp_bb.top_right + [-@radius.to_i, @radius.to_i])
         return true
-      elsif is_in_circle(pos, shp_bb.bottom_right + [-@radius.to_i, -@radius.to_i])
+      elsif in_circle?(pos, shp_bb.bottom_right + [-@radius.to_i, -@radius.to_i])
         return true
       end
     

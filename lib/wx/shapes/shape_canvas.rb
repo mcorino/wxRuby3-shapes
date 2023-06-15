@@ -641,7 +641,7 @@ module Wx::SF
       bmp_bb.width = (bmp_bb.width * scale).to_i
       bmp_bb.height = (bmp_bb.height * scale).to_i
 
-      bmp_bb.inflate(@settings.grid_size * scale)
+      bmp_bb.inflate!(@settings.grid_size * scale)
 
       outbmp = Wx::Bitmap.new(bmp_bb.width, bmp_bb.height)
       Wx::MemoryDC.draw_on(outbmp) do |mdc|
@@ -847,10 +847,9 @@ module Wx::SF
     # @param [Wx::Rect] rct Refreshed region (rectangle)
     def refresh_canvas(erase, rct)
       lpos = dp2lp(Wx::Point.new(0, 0))
-      upd_rct = rct.dup
 
-      upd_rct.inflate([(20/@settings.scale).to_i, (20/@settings.scale).to_i])
-      upd_rct.offset([-lpos.x, -lpos.y])
+      upd_rct = rct.inflate((20/@settings.scale).to_i, (20/@settings.scale).to_i)
+      upd_rct.offset!(-lpos.x, -lpos.y)
 
       refresh_rect(Wx::Rect.new((upd_rct.x*@settings.scale).to_i,
                                 (upd_rct.y*@settings.scale).to_i,
@@ -1423,7 +1422,7 @@ module Wx::SF
       lst_selection = get_selected_shapes
 
       upd_rct = get_selection_bb
-      upd_rct.inflate([DEFAULT_ME_OFFSET, DEFAULT_ME_OFFSET])
+      upd_rct.inflate!(DEFAULT_ME_OFFSET, DEFAULT_ME_OFFSET)
 
       # find most distant position
       lst_selection.each do |shape|
@@ -1856,7 +1855,7 @@ module Wx::SF
         end
       end
       union_rct ||= Wx::Rect.new
-      union_rct.inflate([DEFAULT_ME_OFFSET, DEFAULT_ME_OFFSET])
+      union_rct.inflate!([DEFAULT_ME_OFFSET, DEFAULT_ME_OFFSET])
 
       # draw rectangle
       @shp_multi_edit.set_relative_position(Wx::RealPoint.new(union_rct.x.to_f, union_rct.y.to_f))
@@ -1949,9 +1948,9 @@ module Wx::SF
           # combine updated rectangles
           region_it.each do |rct|
             if upd_rct.nil?
-              upd_rct = dp2lp(rct.inflate([5, 5]))
+              upd_rct = dp2lp(rct.inflate(5, 5))
             else
-              upd_rct.union!(dp2lp(rct.inflate([5, 5])))
+              upd_rct.union!(dp2lp(rct.inflate(5, 5)))
             end
           end
         end
@@ -2976,7 +2975,7 @@ module Wx::SF
 	  # @param [Wx::PaintEvent] _event Paint event
     def _on_paint(_event)
       paint_buffered do |paint_dc|
-        if Wx.has_feature?(:USE_GRAPHICS_CONTEXT) && ShapeCanvas.gc_enabled?
+        if ShapeCanvas.gc_enabled?
           Wx::GCDC.draw_on(paint_dc) do |gdc|
             prepare_dc(gdc)
 

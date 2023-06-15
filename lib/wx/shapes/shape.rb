@@ -1245,7 +1245,7 @@ module Wx::SF
       case arg
       when ConnectionPoint::CPTYPE
         unless get_connection_point(arg)
-          cp = ConnectionPoint.new(self, type)
+          cp = ConnectionPoint.new(self, arg)
           cp.disable_serialize unless persistent
         end
       when Wx::RealPoint, ::Array
@@ -1716,9 +1716,9 @@ module Wx::SF
       # first, get bounding box of the current shape
       if (mask & BBMODE::SELF) != 0
         if rct.is_empty
-          rct.assign(get_bounding_box.inflate([@h_border.abs, @v_border.abs]))
+          rct.assign(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
         else
-          rct.union!(get_bounding_box.inflate([@h_border.abs, @v_border.abs]))
+          rct.union!(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
 
           # add also shadow offset if necessary
           if (mask & BBMODE::SHADOW) != 0 && has_style?(STYLE::SHOW_SHADOW) && get_parent_canvas

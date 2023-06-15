@@ -273,7 +273,7 @@ module Wx::SF
     def update_control
       if @control
         min_bb = @control.get_min_size
-        rct_bb = get_bounding_box.deflate([@control_offset, @control_offset])
+        rct_bb = get_bounding_box.deflate!(@control_offset, @control_offset)
 
         if rct_bb.width < min_bb.width
           rct_bb.width = min_bb.width

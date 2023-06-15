@@ -28,7 +28,7 @@ module Wx::SF
     # Get line's bounding box. The function can be overridden if necessary.
     # @return [Wx::Rect] Bounding rectangle
     def get_bounding_box
-      super.inflate([20, 20])
+      super.inflate(20, 20)
     end
 
     # Get a line point laying on the given line segment and shifted
