@@ -147,18 +147,13 @@ module Wx::SF
 	  # @param [Wx::RealPoint] size New bitmap size
     def rescale_image(size)
       if get_parent_canvas && @original_bitmap && @original_bitmap.ok?
-        image = @original_bitmap.convert_to_image
-
         size = size.to_real_point
         if ShapeCanvas.gc_enabled?
-          image.rescale(size.x.to_i, size.y.to_i,
-                        Wx::ImageResizeQuality::IMAGE_QUALITY_NORMAL)
+          Wx::Bitmap.rescale(@bitmap = Wx::Bitmap.new(@original_bitmap), size.to_size)
         else
-          image.rescale((size.x * get_parent_canvas.get_scale).to_i, (size.y * get_parent_canvas.get_scale).to_i,
-                        Wx::ImageResizeQuality::IMAGE_QUALITY_NORMAL)
+          scale = get_parent_canvas.get_scale
+          Wx::Bitmap.rescale(@bitmap = Wx::Bitmap.new(@original_bitmap), (size * scale).to_size)
         end
-
-        @bitmap = Wx::Bitmap.new(image)
       end
     end
 
@@ -171,7 +166,7 @@ module Wx::SF
     
         dc.with_brush(Wx::TRANSPARENT_BRUSH) do
           dc.with_pen(Wx::Pen.new(Wx::Colour.new(100, 100, 100), 1, Wx::PenStyle::PENSTYLE_DOT)) do
-            dc.draw_rectangle(get_absolute_position.to_point, [@rect_size.x.to_i, @rect_size.y.to_i])
+            dc.draw_rectangle(get_absolute_position.to_point, @rect_size.to_size)
           end
         end
       else
@@ -186,7 +181,7 @@ module Wx::SF
 
       dc.with_brush(Wx::TRANSPARENT_BRUSH) do
         dc.with_pen(Wx::Pen.new(@hover_color, 1)) do
-          dc.draw_rectangle(get_absolute_position.to_point, [@rect_size.x.to_i, @rect_size.y.to_i])
+          dc.draw_rectangle(get_absolute_position.to_point, @rect_size.to_size)
         end
       end
     end
@@ -199,7 +194,7 @@ module Wx::SF
 
       dc.with_brush(Wx::TRANSPARENT_BRUSH) do
         dc.with_pen(Wx::Pen.new(@hover_color, 2)) do
-          dc.draw_rectangle(get_absolute_position.to_point, [@rect_size.x.to_i, @rect_size.y.to_i])
+          dc.draw_rectangle(get_absolute_position.to_point, @rect_size.to_size)
         end
       end
     end
@@ -215,7 +210,7 @@ module Wx::SF
       else
         dc.with_brush(Wx::TRANSPARENT_BRUSH) do
           dc.with_pen(Wx::BLACK_PEN) do
-            dc.draw_rectangle(pos, [@rect_size.x.to_i, @rect_size.y.to_i])
+            dc.draw_rectangle(pos, @rect_size.to_size)
             dc.draw_line(pos, [pos.x+@rect_size.x.to_i-1, pos.y+@rect_size.y.to_i-1])
             dc.draw_line([pos.x, pos.y+@rect_size.y.to_i-1], [pos.x+@rect_size.x.to_i-1, pos.y])
           end
