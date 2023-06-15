@@ -99,18 +99,20 @@ module Wx::SF
         
         if @canvas
           sz_canvas = @canvas.get_client_size
-          cx, cy = @canvas.get_virtual_size
+          vsx, vsy = @canvas.get_virtual_size
           sz_canvas_offset = get_canvas_offset
           sz_thumb = get_client_size
           
           # scale and copy bitmap to DC
+          cx = vsx.to_f
+          cy = vsy.to_f
           tx = sz_thumb.x
           ty = sz_thumb.y
           
           if (tx/ty) > (cx/cy)
-            @scale = ty.to_f/cy
+            @scale = ty/cy
           else
-            @scale = tx.to_f/cx
+            @scale = tx/cx
           end
       
           # draw virtual canvas area
@@ -126,7 +128,7 @@ module Wx::SF
               # draw canvas client area
               dc.set_pen(Wx::RED_PEN)
               dc.set_brush(Wx::TRANSPARENT_BRUSH)
-              dc.draw_rectangle((cx*@scale).to_i, (cy*@scale).to_i, (sz_canvas.x*@scale).to_i, (sz_canvas.y*@scale).to_i)
+              dc.draw_rectangle((sz_canvas_offset.x.to_f*@scale).to_i, (sz_canvas_offset.y.to_f*@scale).to_i, (sz_canvas.x.to_f*@scale).to_i, (sz_canvas.y.to_f*@scale).to_i)
             end
           end
         end
