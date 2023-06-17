@@ -317,9 +317,9 @@ module Wx::SF
 
         if cp
           case cp.get_ortho_direction
-          when ConnectionPoint::CPTYPE::VERTICAL
+          when ConnectionPoint::CPORTHODIR::VERTICAL
             direction = 1.0
-          when ConnectionPoint::CPTYPE::HORIZONTAL
+          when ConnectionPoint::CPORTHODIR::HORIZONTAL
             direction = 0.0
           end
         end
