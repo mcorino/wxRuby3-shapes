@@ -2044,6 +2044,7 @@ module Wx::SF
     # Sets connection points. Exclusively for deserialization.
     def set_connection_points(list)
       @connection_pts.replace(list)
+      @connection_pts.each { |cp| cp.parent_shape = self }
     end
 
     def update_child_parents
