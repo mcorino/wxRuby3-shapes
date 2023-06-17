@@ -636,7 +636,7 @@ module Wx::SF
     def serialize_shapes(*arg)
       unless arg.empty?
         @shapes = arg.shift
-        @shapes.each { |shape| shape.set_diagram(self) }
+        @shapes.each { |shape| shape.set_diagram(self); shape.create_handles }
       end
       @shapes
     end

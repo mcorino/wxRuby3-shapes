@@ -552,8 +552,6 @@ module Wx::SF
         ShapeCanvas.reset_compat_loading
         ios.close if io.is_a?(::String) && ios
       end
-      # need to recreate handles after deserialization
-      diagram.get_all_shapes.each { |shape| shape.create_handles }
       set_diagram(diagram)
       clear_canvas_history
       save_canvas_state
@@ -1135,8 +1133,6 @@ module Wx::SF
     def restore_canvas_state(state)
       return unless state
       set_diagram(Wx::SF::Serializable.deserialize(state))
-      # need to recreate handles after deserialization
-      @diagram.get_all_shapes.each { |shape| shape.create_handles }
       update_virtual_size
       @diagram.set_modified
       refresh(false)
