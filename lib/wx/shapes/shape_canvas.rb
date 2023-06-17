@@ -1426,7 +1426,7 @@ module Wx::SF
 
       # find most distant position
       lst_selection.each do |shape|
-        if shape.is_a?(LineShape)
+        unless shape.is_a?(LineShape)
           pos = shape.get_absolute_position
           shape_bb = shape.get_bounding_box
 
@@ -1449,7 +1449,7 @@ module Wx::SF
 
       # set new positions
       lst_selection.each do |shape|
-        if shape.is_a?(LineShape)
+        unless shape.is_a?(LineShape)
           pos = shape.get_absolute_position
           shape_bb = shape.get_bounding_box
 
