@@ -429,7 +429,7 @@ module Wx::SF
       @prev_positions = {}
 
       @settings = Settings.new
-      @canvas_history = CanvasHistory.new(self)
+      @canvas_history = CanvasHistory.new
 
       if diagram
         parent = mixed_args.first.is_a?(Wx::Window) ? mixed_args.shift : nil
@@ -529,8 +529,6 @@ module Wx::SF
       @shp_multi_edit.set_diagram(@diagram)
       @diagram.shape_canvas = self if @diagram
       clear_temporaries
-      clear_canvas_history
-      save_canvas_state
       @diagram.update_all
     end
 
@@ -554,7 +552,11 @@ module Wx::SF
         ShapeCanvas.reset_compat_loading
         ios.close if io.is_a?(::String) && ios
       end
+      # need to recreate handles after deserialization
+      diagram.get_all_shapes.each { |shape| shape.create_handles }
       set_diagram(diagram)
+      clear_canvas_history
+      save_canvas_state
       set_scale(@settings.scale)
       update_virtual_size
       refresh(false)
@@ -1049,7 +1051,7 @@ module Wx::SF
 
       clear_temporaries
 
-      @canvas_history.restore_older_state
+      restore_canvas_state(@canvas_history.restore_older_state)
       @shp_multi_edit.show(false)
     end
 
@@ -1059,7 +1061,7 @@ module Wx::SF
 
       clear_temporaries
 
-      @canvas_history.restore_newer_state
+      restore_canvas_state(@canvas_history.restore_newer_state)
       @shp_multi_edit.show(false)
     end
 
@@ -1120,13 +1122,26 @@ module Wx::SF
     def save_canvas_state
       return unless has_style?(STYLE::UNDOREDO)
 
-      @canvas_history.save_canvas_state
+      @canvas_history.save_canvas_state(@diagram.serialize)
     end
 
     # Clear all stored canvas states (no Undo/Redo operations will be available)
     def clear_canvas_history
       @canvas_history.clear
     end
+
+    # Restores given canvas state (unless nil given)
+    # @param [String,nil] state to restore
+    def restore_canvas_state(state)
+      return unless state
+      set_diagram(Wx::SF::Serializable.deserialize(state))
+      # need to recreate handles after deserialization
+      @diagram.get_all_shapes.each { |shape| shape.create_handles }
+      update_virtual_size
+      @diagram.set_modified
+      refresh(false)
+    end
+    protected :restore_canvas_state
 
     # @!group Print methods
 
@@ -2886,16 +2901,6 @@ module Wx::SF
       lst_connections.each do |line|
         selection << line unless selection.include?(line)
       end
-    end
-
-    #  Initialize printing framework 
-    def initialize_printing
-
-    end
-
-    #  Deinitialize printing framework
-    def deinitialize_printing
-
     end
 
     #  Remove given shape for temporary containers

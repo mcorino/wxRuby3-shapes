@@ -248,6 +248,9 @@ class SFSample3Frame < Wx::Frame
       if dlg.show_modal == Wx::ID_OK
         File.open(dlg.get_path, 'r') do |f|
           @canvas.set_diagram(Wx::SF::Serializable.deserialize(f))
+          @canvas.get_diagram.get_all_shapes.each { |shape| shape.create_handles }
+          @canvas.clear_canvas_history
+          @canvas.save_canvas_state
         end
         @diagram = @canvas.get_diagram
         @canvas.refresh(false)
