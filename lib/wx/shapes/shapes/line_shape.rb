@@ -748,7 +748,7 @@ module Wx::SF
         # draw linesegment being updated
         src, trg = get_line_segment(0)
 
-        dc.set_pen(Wx::Pen(Wx::BLACK, 1, Wx::PENSTYLE_DOT)) unless @stand_alone
+        dc.set_pen(Wx::Pen.new(Wx::BLACK, 1, Wx::PENSTYLE_DOT)) unless @stand_alone
         dc.draw_line(@unfinished_point, trg.to_point)
         dc.set_pen(Wx::NULL_PEN) unless @stand_alone
 
@@ -764,7 +764,7 @@ module Wx::SF
           end
         end
         # draw linesegment being updated
-        dc.set_pen(Wx::Pen(Wx::BLACK, 1, Wx::PENSTYLE_DOT)) unless @stand_alone
+        dc.set_pen(Wx::Pen.new(Wx::BLACK, 1, Wx::PENSTYLE_DOT)) unless @stand_alone
         dc.draw_line(trg.to_point, @unfinished_point)
         dc.set_pen(Wx::NULL_PEN) unless @stand_alone
       end
