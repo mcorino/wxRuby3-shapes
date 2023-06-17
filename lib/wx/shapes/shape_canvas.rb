@@ -1026,7 +1026,7 @@ module Wx::SF
           new_shapes = Wx::SF::Serializable.deserialize(data_obj.get_data_here)
           # add new shapes to diagram and remove those that are not accepted
           new_shapes.select! do |shape|
-            ERRCODE::OK == @diagram.add_shape(shape, nil, Wx::Point.new(0, 0), DONT_INITIALIZE, DONT_SAVE_STATE)
+            ERRCODE::OK == @diagram.add_shape(shape, nil, shape.get_relative_position, INITIALIZE, DONT_SAVE_STATE)
           end
 
           # verify newly added shapes (may remove shapes from list)
