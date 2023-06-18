@@ -44,8 +44,6 @@ module Wx::SF
 
         # process the event also by an original handler if requested
         event.skip if (@parent_shape.get_event_processing & EVTPROCESSING::MOUSE2GUI) != 0
-
-        # @parent_shape.get_control.set_focus
       end
 
       # Event handler used for delayed processing of a mouse event (mouse movement).
