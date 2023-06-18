@@ -56,7 +56,8 @@ module Wx::SF
 
         if is_two_segment(cps)
           if direction < 1.0
-            r = (dy * @max_radius/100).abs < @max_radius ? (dy * @max_radius/100).abs : @max_radius
+            r = (dy * @max_radius/100).abs
+            r = @max_radius if r > @max_radius
 
             dc.draw_line(src_pt.x, src_pt.y, (trg.x - r * kx).to_i, src_pt.y)
             dc.draw_line(trg_pt.x, (src.y - r * ky).to_i, trg_pt.x, trg_pt.y)
@@ -69,7 +70,8 @@ module Wx::SF
               end
             end
           else
-            r = (dx * @max_radius/100).abs < @max_radius ? (dx * @max_radius/100) : @max_radius
+            r = (dx * @max_radius/100).abs
+            r = @max_radius if r > @max_radius
 
             dc.draw_line(src_pt.x, src_pt.y, src_pt.x, (trg.y + r * ky).to_i)
             dc.draw_line((src.x + r * kx).to_i, trg_pt.y, trg_pt.x, trg_pt.y)
@@ -85,7 +87,8 @@ module Wx::SF
 
         else
           if direction < 1
-            r = (dy * @max_radius/100).abs < @max_radius ? (dy * @max_radius/100).abs : @max_radius
+            r = (dy * @max_radius/100).abs
+            r = @max_radius if r > @max_radius
 
             dc.draw_line(src_pt.x, src_pt.y, (pt_center.x - r * kx).to_i, src_pt.y)
             dc.draw_line(pt_center.x.to_i, (src.y - r * ky).to_i, pt_center.x.to_i, (trg.y + r * ky).to_i)
@@ -101,7 +104,8 @@ module Wx::SF
               end
             end
           else
-            r = (dx * @max_radius/100) < @max_radius ? (dx * @max_radius/100) : @max_radius
+            r = (dx * @max_radius/100).abs
+            r = @max_radius if r > @max_radius
 
             dc.draw_line(src_pt.x, src_pt.y, src_pt.x, (pt_center.y + r * ky).to_i)
             dc.draw_line((src.x + r * kx).to_i, pt_center.y.to_i, (trg.x - r * kx).to_i, pt_center.y.to_i)
