@@ -2031,22 +2031,22 @@ module Wx::SF
 
     # Sets accepted children. Exclusively for deserialization.
     def set_accepted_children(set)
-      @accepted_children.replace(set)
+      @accepted_children.replace(set.collect { |e| e.is_a?(::String) ? ::Object.const_get(e) : e })
     end
 
     # Sets accepted connection. Exclusively for deserialization.
     def set_accepted_connections(set)
-      @accepted_connections.replace(set)
+      @accepted_connections.replace(set.collect { |e| e.is_a?(::String) ? ::Object.const_get(e) : e })
     end
 
     # Sets accepted src neighbours. Exclusively for deserialization.
     def set_accepted_src_neighbours(set)
-      @accepted_src_neighbours.replace(set)
+      @accepted_src_neighbours.replace(set.collect { |e| e.is_a?(::String) ? ::Object.const_get(e) : e })
     end
 
     # Sets accepted trg neighbours. Exclusively for deserialization.
     def set_accepted_trg_neighbours(set)
-      @accepted_trg_neighbours.replace(set)
+      @accepted_trg_neighbours.replace(set.collect { |e| e.is_a?(::String) ? ::Object.const_get(e) : e })
     end
 
     # Sets connection points. Exclusively for deserialization.

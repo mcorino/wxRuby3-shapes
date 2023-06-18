@@ -639,13 +639,13 @@ module Wx::SF
     # Set accepted shapes. Deserialization only.
     # @param [Array<String>] shp_names
     def set_accepted_shapes(shp_names)
-      @accepted_shapes.merge(shp_names)
+      @accepted_shapes.merge(shp_names.collect { |e| e.is_a?(::String) ? ::Object.const_get(e) : e })
     end
 
     # Set accepted top shapes. Deserialization only.
     # @param [Array<String>] shp_names
     def set_accepted_top_shapes(shp_names)
-      @accepted_top_shapes.merge(shp_names)
+      @accepted_top_shapes.merge(shp_names.collect { |e| e.is_a?(::String) ? ::Object.const_get(e) : e })
     end
 
     public def inspect
