@@ -39,7 +39,7 @@ module Wx::SF
     end
 
     # Perform the 'Undo' operation.
-    # @returns [String] state to undo
+    # @return [String] state to undo
     def restore_older_state
       return nil unless @current_state && @current_state_index>0
 
@@ -49,7 +49,7 @@ module Wx::SF
     end
 
     # Perform the 'Redo' operation. 
-    # @returns [String] state to redo
+    # @return [String] state to redo
     def restore_newer_state
       return nil unless @current_state && @current_state_index<(@canvas_states.size-1)
 
