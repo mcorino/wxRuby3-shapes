@@ -6,22 +6,32 @@ A wxRuby3 Shapes framework.
 
 **wxruby3/shapes** (Wx::SF) is a pure Ruby software library/framework based on wxRuby3 which allows
 easy development of software applications manipulating graphical objects (shapes) like various CASE 
-tools, technological processes modeling tools, etc. This library is a pure Ruby port of the excellent 
-[wxShapesFramework](https://sourceforge.net/projects/wxsf/) C++ library based on wxWidgets.
+tools, technological processes modeling tools, etc. This library is a pure Ruby implementation based
+on the excellent [wxShapesFramework](https://sourceforge.net/projects/wxsf/) C++ library based on 
+wxWidgets.
 
-The library consists of several classes encapsulating so called 'Shape canvas' (visual
-GUI control used for management of included diagrams; it supports serialization/
-deserialization to files (currently supported formats are JSON and YAML), clipboard and 
-drag&drop operations with diagram components, undo/redo operations, diagram export to 
-BMP files, etc), printing (and previewing) and a standard collection of diagram components 
-(basic rectangular and elliptic shapes, line and curve shape, polygonal shapes, static and 
-in-place editable text, bitmap images, etc).
+The library consists of several classes encapsulating a so called 'Shape canvas' (visual
+GUI control used for management of diagrams) providing the following features:
 
-The shape framework (and shape canvas) allows to define relationship between various
+- Create charts (diagrams) interactively in your wxRuby3 applications
+- Serialize/deserialize charts to file or any io stream in multiple formats (currently supported formats are JSON and YAML)
+- Support for Clipboard operations (Cut/Paste) and Drag&Drop of diagram components (shapes)
+- Support for Undo/Redo operations
+- Support for alignment of diagram components.
+- Support for printing of diagrams (including preview)
+- Support for diagram export to bitmap (any supported type)
+- Support for Thumbnail view of diagram
+- A standard collection of diagram components
+  - Shapes: basic rectangular, square, circle, ellipse, rounded rectangle, grid, flexible grid, text, editable text, polygonal, diamond, bitmap
+  - Lines: straight, curved, orthogonal, rounded orthogonal
+  - Line arrows: solid, open, diamond, circle
+- Highly customizable and extendable
+
+The shape framework (and shape canvas) allows to define the relationship between various
 shape types (for example which shape can be a child of another one, which shape types
 can be connected together by which connection type, how do various connections look
-like, etc) and provides ability to interactively design diagrams composited of those
-shape objects.
+like, etc) and provides an extensive set of events for customizing the interactive creation 
+of diagrams.
 
 More over, the library source code is pure Ruby based on wxRuby3 GUI toolkit, so it will
 run on any platform that supports Ruby and wxRuby3.
