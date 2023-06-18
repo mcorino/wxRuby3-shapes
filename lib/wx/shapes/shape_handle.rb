@@ -43,8 +43,6 @@ module Wx::SF
       end
 
       # Set or get handle's ID.
-      # @param [Integer] id Handle's ID
-      # @return [Integer] Handle's ID
       attr_accessor :id
 
       # Get Handle type
