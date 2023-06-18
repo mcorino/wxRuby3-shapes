@@ -123,8 +123,8 @@ module Wx::SF
       if @fill.style != Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT
         dc.with_pen(Wx::TRANSPARENT_PEN) do
           dc.with_brush(get_parent_canvas.get_shadow_fill) do
-            dc.draw_circle((pos.x + @rect_size.x/2 + get_parent_canvas.get_shadow_offset).to_i,
-                           (pos.y + @rect_size.y/2 + get_parent_canvas.get_shadow_offset).to_i,
+            dc.draw_circle((pos.x + @rect_size.x/2 + get_parent_canvas.get_shadow_offset.x).to_i,
+                           (pos.y + @rect_size.y/2 + get_parent_canvas.get_shadow_offset.y).to_i,
                            (@rect_size.x/2).to_i)
           end
         end
