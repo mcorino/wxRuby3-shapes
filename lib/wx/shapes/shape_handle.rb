@@ -190,7 +190,7 @@ module Wx::SF
           when TYPE::LEFT
             hrct = Wx::Rect.new(Wx::Point.new(brct.left, brct.top + brct.height/2), Wx::Size.new(7,7))
           when TYPE::LINECTRL
-            pt = @parent_shape.get_control_points.item(@id).data
+            pt = @parent_shape.get_control_points[@id].data
             hrct = Wx::Rect.new(Wx::Point.new(pt.x.to_i, pt.y.to_i), Wx::Size.new(7,7))
           when TYPE::LINEEND, TYPE::LINESTART
             pt = @type == TYPE::LINESTART ? @parent_shape.src_point : @parent_shape.trg_point
