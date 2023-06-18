@@ -56,7 +56,7 @@ module Wx::SF
     alias :get_connect_to_vertex :is_connected_to_vertex
 
     # Set the poly vertices which define its form.
-	  # @param [Array<Wx::RealPoint] pts Array of the vertices
+	  # @param [Array<Wx::RealPoint>] pts Array of the vertices
     def set_vertices(pts)
       ::Kernel.raise ArgumentError, 'Expected an array of Wx::RealPoint' unless pts.all? { |pt| pt.is_a?(Wx::RealPoint) }
       @vertices = pts.collect { |pt| pt.dup }
