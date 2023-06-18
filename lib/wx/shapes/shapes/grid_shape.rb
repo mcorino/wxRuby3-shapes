@@ -46,6 +46,7 @@ module Wx::SF
         @cell_space = cell_space || 0
       end
       @cells = []
+      remove_style(Shape::STYLE::SIZE_CHANGE)
     end
 
     # Set grid dimensions.
