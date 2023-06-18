@@ -378,7 +378,7 @@ module Wx::SF
     # Get pointer to the topmost parent shape
     # @return [Wx::SF::Shape] topmost parent shape
     def get_grand_parent_shape
-      @parent_shape ? @parent_shape.get_parent_shape : self
+      @parent_shape ? @parent_shape.get_grand_parent_shape : self
     end
     alias :grand_parent_shape :get_grand_parent_shape
 
