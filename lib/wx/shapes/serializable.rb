@@ -184,8 +184,8 @@ module Wx::SF
       # @overload property(*props, force: false)
       #   Specifies one or more serialized properties.
       #   The serialization framework will determine the availability of setter and getter methods
-      #   automatically by looking for methods "#{prop_id}=(v)", "set_#{prop_id}(v)" or "#{prop}(v)"
-      #   for setters and "#{prop_id}()" or "get_#{prop_id}" for getters.
+      #   automatically by looking for methods <code>"#{prop_id}=(v)"</code>, <code>"set_#{prop_id}(v)"</code> or <code>"#{prop}(v)"</code>
+      #   for setters and <code>"#{prop_id}()"</code> or <code>"get_#{prop_id}"</code> for getters.
       #   @param [Symbol,String] props one or more ids of serializable properties
       #   @param [Boolean] force overrides any #disable_serialize for the properties specified
       # @overload property(hash, force: false)

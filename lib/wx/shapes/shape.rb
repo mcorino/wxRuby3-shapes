@@ -163,11 +163,11 @@ module Wx::SF
     end
 
     # Declare a component shape property for the shape class.
-    # @overload component(*comp_ids)
+    # @overload component(*comp_id)
     #   Specifies one or more serialized component properties.
     #   The serialization framework will determine the availability of setter and getter methods
-    #   automatically by looking for methods "#{comp_id}=(v)", "set_#{comp_id}(v)" or "#{comp_id}(v)"
-    #   for setters and "#{comp_id}()" or "get_#{comp_id}" for getters.
+    #   automatically by looking for methods <code>"#{comp_id}=(v)"</code>, <code>"set_#{comp_id}(v)"</code> or <code>"#{comp_id}(v)"</code>
+    #   for setters and <code>"#{comp_id}()"</code> or <code>"get_#{comp_id}"</code> for getters.
     #   @param [String,Symbol] comp_id id of component property
     # @overload component(hash)
     #   Specifies one or more serialized component properties with associated setter/getter method ids/procs/lambda-s.
