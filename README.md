@@ -1,5 +1,7 @@
 # wxruby3/shapes
 
+![wxruby3/shapes demo](assets/screenshot.png)
+
 A wxRuby3 Shapes framework.
 
 ## Introduction
