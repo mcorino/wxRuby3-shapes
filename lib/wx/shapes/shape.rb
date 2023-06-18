@@ -339,8 +339,27 @@ module Wx::SF
     end
     private :remove_child
 
-    # Set parent shape object
+    # Adds child shape is accepted. Removes the child shape as a toplevel diagram shape if appropriate.
+    # @param [Wx::SF::Shape] child child shape to add
+    # @return [Wx::SF::Shape,nil] added child shape or nil if not accepted
+    def add_child_shape(child)
+      if is_child_accepted(child.class)
+        if child.get_diagram
+          child.get_diagram.reparent_shape(child, shape)
+        else
+          child.set_parent_shape(self)
+        end
+        child.update
+        return child
+      end
+      nil
+    end
+
+    # Set parent shape object.
     # @param [Wx::SF::Shape] parent
+    # @note Note that this does not check this shape against the acceptance list of the parent. Use #add_child_shape if that is required.
+    # @note Note that this does not add (if parent == nil) or remove (if parent != nil) the shape from the diagram's
+    # toplevel shapes. Use Diagram#reparent_shape when that is needed.
     def set_parent_shape(parent)
       @parent_shape.send(:remove_child, self) if @parent_shape
       parent.send(:add_child, self) if parent
@@ -352,7 +371,6 @@ module Wx::SF
     # Get parent shape
     # @return [Wx::SF::Shape,nil] parent shape
     def get_parent_shape
-      return nil unless @diagram
       @parent_shape
     end
     alias :parent_shape :get_parent_shape
@@ -360,7 +378,6 @@ module Wx::SF
     # Get pointer to the topmost parent shape
     # @return [Wx::SF::Shape] topmost parent shape
     def get_grand_parent_shape
-      return nil unless @diagram
       @parent_shape ? @parent_shape.get_parent_shape : self
     end
     alias :grand_parent_shape :get_grand_parent_shape
