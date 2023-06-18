@@ -531,7 +531,7 @@ module Wx::SF
     def on_handle(handle)
       case handle.type
       when Shape::Handle::TYPE::LINECTRL
-        pt = @lst_points.find { |p| p.id == handle.id }
+        pt = @lst_points[handle.id]
         if pt
           pt.x = handle.get_position.x
           pt.y = handle.get_position.y
@@ -614,7 +614,7 @@ module Wx::SF
               get_parent_canvas.get_event_handler.process_event(evt)
             end
     
-            @lst_points.delete_if { |pt| pt.id == handle.id }
+            @lst_points.delete_at(handle.id)
     
             create_handles
             show_handles(true)
