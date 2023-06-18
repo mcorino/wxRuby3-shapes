@@ -94,3 +94,11 @@ class Wx::Font
   property font_info: ->(font, *info) { font.set_native_font_info_user_desc(info.shift) unless info.empty?; font.get_native_font_info_user_desc }
 
 end
+
+class Wx::BitmapType
+
+  property :value => ->(enum) { enum.to_i }
+
+  include Wx::SF::Serializable
+
+end
