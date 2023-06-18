@@ -7,15 +7,6 @@ require 'set'
 
 module Wx::SF
 
-  RECURSIVE = true
-  NORECURSIVE = false
-  DIRECT = true
-  INDIRECT = false
-  WITHCHILDREN = true
-  WITHOUTCHILDREN = false
-  ANY = nil
-  DELAYED = true
-
   class ERRCODE < Wx::Enum
     OK = self.new(0)
     NOT_CREATED = self.new(1)

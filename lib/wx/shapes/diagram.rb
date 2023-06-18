@@ -9,11 +9,6 @@ require 'wx/shapes/shape_canvas'
 
 module Wx::SF
 
-  INCLUDE_PARENTS = true
-  WITHOUT_PARENTS = false
-  INITIALIZE = true
-  DONT_INITIALIZE = false
-
   class Diagram
 
     include Serializable

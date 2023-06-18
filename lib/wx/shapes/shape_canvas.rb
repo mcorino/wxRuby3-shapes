@@ -10,18 +10,6 @@ require 'fileutils'
 
 module Wx::SF
 
-  DEFAULT_ME_OFFSET = 5
-  SAVE_STATE = true
-  DONT_SAVE_STATE = false
-  FROM_PAINT = true
-  NOT_FROM_PAINT = false
-  TOPMOST_SHAPES = true
-  ALL_SHAPES = false
-  PROMPT = true
-  NO_PROMPT = false
-  WITH_BACKGROUND = true
-  WITHOUT_BACKGROUND = false
-
   if Wx.has_feature?(:USE_DRAG_AND_DROP)
 
     # Auxiliary class encapsulating shape drop target.
@@ -565,11 +553,11 @@ module Wx::SF
     end
 
     # Save  canvas content (diagrams).
-    # @overload save_canvas(file)
+    # @overload save_canvas(file, compact: true)
     #   @param [String] file Full file name
     #   @param [Boolean] compact specifies whether to write content in compact mode (true) or not (false)
     #   @return [self]
-    # @overload save_canvas(io)
+    # @overload save_canvas(io, compact: true)
     #   @param [IO] io IO object
     #   @param [Boolean] compact specifies whether to write content in compact mode (true) or not (false)
     #   @return [self]
