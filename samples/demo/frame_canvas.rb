@@ -121,6 +121,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
           shape.set_v_align(Wx::SF::Shape::VALIGN::TOP)
           shape.set_h_align(Wx::SF::Shape::HALIGN::CENTER)
           shape.set_v_border(10.0)
+          shape.update
 
           # set shapes policy
           shape.accept_connection(Wx::SF::ACCEPT_ALL)
