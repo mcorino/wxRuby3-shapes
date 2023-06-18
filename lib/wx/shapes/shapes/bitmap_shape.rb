@@ -63,28 +63,36 @@ module Wx::SF
       # load bitmap from the file
       @bitmap_path = file
       @bitmap_type = type
-      if File.file?(@bitmap_path)
-        @bitmap = Wx::Bitmap.new
-        success = @bitmap.load_file(@bitmap_path, type ? type : Wx::BITMAP_TYPE_ANY)
-      elsif (path = Wx::ArtLocator.find_art(@bitmap_path, art_type: :bitmap, bmp_type: type))
+      if File.file?(@bitmap_path.to_s)
         @bitmap = Wx::Bitmap.new
         success = @bitmap.load_file(@bitmap_path, type ? type : Wx::BITMAP_TYPE_ANY)
       else
-        @bitmap = nil
-        success = false
+        art_path = File.dirname(caller_path = caller_locations(1).first.absolute_path)
+        art_section = File.basename(caller_path, '.*')
+        path = Wx::ArtLocator.find_art(@bitmap_path, art_path: art_path, art_section: art_section, art_type: :bitmap, bmp_type: type)
+        if path
+          @bitmap = Wx::Bitmap.new
+          success = @bitmap.load_file(path, type ? type : Wx::BITMAP_TYPE_ANY)
+          @bitmap_path = path if success
+        else
+          @bitmap = nil
+          success = false
+        end
       end
 
       @original_bitmap = @bitmap
-    
-      @rect_size.x = @bitmap.width
-      @rect_size.y = @bitmap.height
-    
-      if @can_scale
-        add_style(Shape::STYLE::SIZE_CHANGE)
-      else
-        remove_style(Shape::STYLE::SIZE_CHANGE)
+
+      if success
+        @rect_size.x = @bitmap.width
+        @rect_size.y = @bitmap.height
+
+        if @can_scale
+          add_style(Shape::STYLE::SIZE_CHANGE)
+        else
+          remove_style(Shape::STYLE::SIZE_CHANGE)
+        end
       end
-    
+
       success
     end
 
