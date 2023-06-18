@@ -999,10 +999,10 @@ module Wx::SF
     #
     # The function is typically used by the framework for determination whether a dropped
     # shape can be assigned to an underlying shape as its child.
-    # @param [String,Class] type Class (name) of examined shape object
+    # @param [Class] type Class of examined shape object
     # @return [Boolean] true if the shape type is accepted, otherwise false.
     def is_child_accepted(type)
-      @accepted_children.include?(type.to_s) || @accepted_children.include?('*')
+      @accepted_children.include?(type) || @accepted_children.include?(ACCEPT_ALL)
     end
     alias :child_accepted? :is_child_accepted
 
@@ -1013,7 +1013,7 @@ module Wx::SF
     def accept_currently_dragged_shapes
       return false unless get_shape_canvas
 
-      unless is_child_accepted('*')
+      unless is_child_accepted(ACCEPT_ALL)
         lst_selection = get_shape_canvas.get_selected_shapes
 
         return false if lst_selection.any? { |shape| !@accepted_children.include?(shape.class.name) }
@@ -1023,11 +1023,11 @@ module Wx::SF
 
     # Add given shape type to an acceptance list. The acceptance list contains class
     # names of the shapes which can be accepted as children of this shape.
-    # Note: Keyword '*' behaves like any class name.
-    # @param [String,Class] type Class (name) of accepted shape object
+    # Note: Constant value {Wx::SF::ACCEPT_ALL} behaves like any class.
+    # @param [Class] type Class of accepted shape object
     # @see #is_child_accepted
     def accept_child(type)
-      @accepted_children << type.to_s
+      @accepted_children << type
     end
 
     # Get shape types acceptance list.
@@ -1042,20 +1042,20 @@ module Wx::SF
     # whether this shape can be connected to another one by a connection of given type).
     #
     # The function is typically used by the framework during interactive connection creation.
-    # @param [String,Class] type Class (name) of examined connection object
+    # @param [Class] type Class of examined connection object
     # @return true if the connection type is accepted, otherwise false.
     def is_connection_accepted(type)
-      @accepted_connections.include?(type.to_s) || @accepted_connections.include?('*')
+      @accepted_connections.include?(type) || @accepted_connections.include?(ACCEPT_ALL)
     end
     alias :connection_accepted? :is_connection_accepted
 
     # Add given connection type to an acceptance list. The acceptance list contains class
     # names of the connection which can be accepted by this shape.
-    # Note: Keyword '*' behaves like any class name.
-    # @param [String,Class] type Class (name) of accepted connection object
+    # Note: Constant value {Wx::SF::ACCEPT_ALL} behaves like any class.
+    # @param [Class] type Class of accepted connection object
     # @see #is_connection_accepted
     def accept_connection(type)
-      @accepted_connections << type.to_s
+      @accepted_connections << type
     end
 
     # Get connection types acceptance list.
@@ -1070,20 +1070,20 @@ module Wx::SF
     # whether this shape can be connected from another one of given type).
     #
     # The function is typically used by the framework during interactive connection creation.
-    # @param [String,Class] type Class (name) of examined connection object
+    # @param [Class] type Class of examined connection object
     # @return true if the shape type is accepted, otherwise false.
     def is_src_neighbour_accepted(type)
-      @accepted_src_neighbours.include?(type.to_s) || @accepted_src_neighbours.include?('*')
+      @accepted_src_neighbours.include?(type) || @accepted_src_neighbours.include?(ACCEPT_ALL)
     end
     alias :src_neighbour_accepted? :is_src_neighbour_accepted
 
     # Add given shape type to an source neighbours' acceptance list. The acceptance list contains class
     # names of the shape types which can be accepted by this shape as its source neighbour.
-    # Note: Keyword '*' behaves like any class name.
-    # @param [String,Class] type Class (name) of accepted connection object
+    # Note: Constant value {Wx::SF::ACCEPT_ALL} behaves like any class.
+    # @param [Class] type Class of accepted connection object
     # @see #is_src_neighbour_accepted
     def accept_src_neighbour(type)
-      @accepted_src_neighbours << type.to_s
+      @accepted_src_neighbours << type
     end
 
     # Get source neighbour types acceptance list.
@@ -1098,20 +1098,20 @@ module Wx::SF
     # whether this shape can be connected to another one of given type).
     #
     # The function is typically used by the framework during interactive connection creation.
-    # @param [String,Class] type Class (name) of examined connection object
+    # @param [Class] type Class of examined connection object
     # @return [Boolean] true if the shape type is accepted, otherwise false.
     def is_trg_neighbour_accepted(type)
-      @accepted_trg_neighbours.include?(type.to_s) || @accepted_trg_neighbours.include?('*')
+      @accepted_trg_neighbours.include?(type) || @accepted_trg_neighbours.include?(ACCEPT_ALL)
     end
     alias :trg_neighbour_accepted? :is_trg_neighbour_accepted
 
     # Add given shape type to an target neighbours' acceptance list. The acceptance list contains class
     # names of the shape types which can be accepted by this shape as its target neighbour.
-    # Note: Keyword '*' behaves like any class name.
-    # @param [String,Class] type Class (name) of accepted connection object
+    # Note: Constant value {Wx::SF::ACCEPT_ALL} behaves like any class.
+    # @param [Class] type Class of accepted connection object
     # @see #is_trg_neighbour_accepted
     def accept_trg_neighbour(type)
-      @accepted_trg_neighbours << type.to_s
+      @accepted_trg_neighbours << type
     end
 
     # Get target neighbour types acceptance list.

@@ -23,8 +23,8 @@ module Wx::SF
       @shapes = ShapeList.new
       @shape_canvas = nil
       @is_modified = false
-      @accepted_shapes = ::Set.new(['*'])
-      @accepted_top_shapes = ::Set.new(['*'])
+      @accepted_shapes = ::Set.new([ACCEPT_ALL])
+      @accepted_top_shapes = ::Set.new([ACCEPT_ALL])
     end
 
     # Returns the shape canvas.
@@ -346,11 +346,11 @@ module Wx::SF
     
     # Add given shape type to an acceptance list. The acceptance list contains class
     # names of the shapes which can be inserted into this instance of shapes canvas.
-    # Note: Keyword '*' behaves like any class name.
-    # @param [String,Class] type Class (name) of accepted shape object
+    # Note: Constant value {Wx::SF::ACCEPT_ALL} behaves like any class.
+    # @param [Class] type Class of accepted shape object
     # @see is_shape_accepted
     def accept_shape(type)
-      @accepted_shapes << type.to_s
+      @accepted_shapes << type
     end
 
     # Tells whether the given shape type is accepted by this canvas instance (it means
@@ -358,10 +358,10 @@ module Wx::SF
     #
     # The function is typically used by the framework for determination whether class type supplied
     # by add_shape or create_shape function can be inserted into shape canvas.
-    # @param [String,Class] type Class (name) of examined shape object
+    # @param [Class] type Class of examined shape object
     # @return [Boolean] true if the shape type is accepted, otherwise false.
     def is_shape_accepted(type)
-      @accepted_shapes.include?(type.to_s) || @accepted_shapes.include?('*')
+      @accepted_shapes.include?(type) || @accepted_shapes.include?(ACCEPT_ALL)
     end
     alias :shape_accepted? :is_shape_accepted
 
@@ -381,11 +381,11 @@ module Wx::SF
     # Add given shape type to list of accepted top shapes. The acceptance list contains class
     # names of the shapes which can be inserted into this instance of shapes canvas as a shape without
 	  # any parent (i.e. shape placed directly onto the canvas).
-    # Note: Keyword '*' behaves like any class name.
-    # @param [String,Class] type Class (name) of accepted shape object
+    # Note: Constant value {Wx::SF::ACCEPT_ALL} behaves like any class.
+    # @param [Class] type Class of accepted shape object
     # @see is_top_shape_accepted
     def accept_top_shape(type)
-      @accepted_top_shapes << type.to_s
+      @accepted_top_shapes << type
     end
 
     # Tells whether the given shape type is accepted by this canvas instance as a top shape
@@ -393,10 +393,10 @@ module Wx::SF
     #
     # The function is typically used by the framework for determination whether class type supplied
     # by add_shape or create_shape function can be inserted directly onto shape canvas.
-    # @param [String,Class] type Class (name) of examined shape object
+    # @param [Class] type Class of examined shape object
     # @return [Boolean] true if the shape type is accepted, otherwise false.
     def is_top_shape_accepted(type)
-      @accepted_top_shapes.include?(type.to_s) || @accepted_top_shapes.include?('*')
+      @accepted_top_shapes.include?(type) || @accepted_top_shapes.include?(ACCEPT_ALL)
     end
     alias :top_shape_accepted? :is_top_shape_accepted
 

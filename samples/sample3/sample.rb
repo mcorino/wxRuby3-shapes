@@ -66,7 +66,7 @@ class StarShape < Wx::SF::PolygonShape
     set_connect_to_vertex(false)
 
     # set accepted connections for the new shape
-    accept_connection('*')
+    accept_connection(Wx::SF::ACCEPT_ALL)
     accept_src_neighbour(StarShape)
     accept_trg_neighbour(StarShape)
 

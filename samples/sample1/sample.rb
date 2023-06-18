@@ -180,7 +180,7 @@ class SFSample1Frame < Wx::Frame
         # set accepted child shapes for the new shape
         shape.accept_child('Wx::SF::RectShape')
         # set accepted connections for the new shape
-        shape.accept_connection('*')
+        shape.accept_connection(Wx::SF::ACCEPT_ALL)
         shape.accept_src_neighbour('Wx::SF::RectShape')
         shape.accept_trg_neighbour('Wx::SF::RectShape')
         # enable emitting of shape events

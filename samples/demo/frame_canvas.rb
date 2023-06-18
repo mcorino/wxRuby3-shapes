@@ -65,7 +65,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
     # specify accepted shapes...
     get_diagram.clear_accepted_shapes
-    get_diagram.accept_shape('*')
+    get_diagram.accept_shape(Wx::SF::ACCEPT_ALL)
 
     # ... in addition, specify accepted top shapes (i.e. shapes that can be placed
     # directly onto the canvas)
@@ -93,9 +93,9 @@ class FrameCanvas < Wx::SF::ShapeCanvas
             shape.create_from_file(dlg.get_path, Wx::BitmapType::BITMAP_TYPE_BMP)
   
             # set shape policy
-            shape.accept_connection('*')
-            shape.accept_src_neighbour('*')
-            shape.accept_trg_neighbour('*')
+            shape.accept_connection(Wx::SF::ACCEPT_ALL)
+            shape.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
+            shape.accept_trg_neighbour(Wx::SF::ACCEPT_ALL)
           end
         end
       end
@@ -123,8 +123,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
           shape.set_v_border(10.0)
 
           # set shapes policy
-          shape.accept_connection('*')
-          shape.accept_src_neighbour('*')
+          shape.accept_connection(Wx::SF::ACCEPT_ALL)
+          shape.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
           shape.accept_trg_neighbour(Wx::SF::TextShape)
           shape.accept_trg_neighbour(Wx::SF::EditTextShape)
         end
@@ -137,9 +137,9 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         shape.accept_child(Wx::SF::TextShape)
         shape.accept_child(Wx::SF::EditTextShape)
 
-        shape.accept_connection('*')
-        shape.accept_src_neighbour('*')
-        shape.accept_trg_neighbour('*')
+        shape.accept_connection(Wx::SF::ACCEPT_ALL)
+        shape.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
+        shape.accept_trg_neighbour(Wx::SF::ACCEPT_ALL)
       end
 
     when MainFrame::MODE::FIXEDRECT
@@ -149,9 +149,9 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         shape.accept_child(Wx::SF::TextShape)
         shape.accept_child(Wx::SF::EditTextShape)
 
-        shape.accept_connection('*')
-        shape.accept_src_neighbour('*')
-        shape.accept_trg_neighbour('*')
+        shape.accept_connection(Wx::SF::ACCEPT_ALL)
+        shape.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
+        shape.accept_trg_neighbour(Wx::SF::ACCEPT_ALL)
       end
 
     when MainFrame::MODE::ROUNDRECT
@@ -161,20 +161,20 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         shape.accept_child(Wx::SF::TextShape)
         shape.accept_child(Wx::SF::EditTextShape)
 
-        shape.accept_connection('*')
-        shape.accept_src_neighbour('*')
-        shape.accept_trg_neighbour('*')
+        shape.accept_connection(Wx::SF::ACCEPT_ALL)
+        shape.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
+        shape.accept_trg_neighbour(Wx::SF::ACCEPT_ALL)
       end
 
     when MainFrame::MODE::RECT
       _, shape = get_diagram.create_shape(Wx::SF::RectShape, event.get_position, Wx::SF::DONT_SAVE_STATE)
       if shape
         # set shape policy
-        shape.accept_child('*')
+        shape.accept_child(Wx::SF::ACCEPT_ALL)
 
-        shape.accept_connection('*')
-        shape.accept_src_neighbour('*')
-        shape.accept_trg_neighbour('*')
+        shape.accept_connection(Wx::SF::ACCEPT_ALL)
+        shape.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
+        shape.accept_trg_neighbour(Wx::SF::ACCEPT_ALL)
         
         # child shapes can be locked accordingly to their parent's origin if the parent is resized
         # shape.add_style(Wx::SF::Shape::STYLE::LOCK_CHILDREN)
@@ -216,11 +216,11 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         # shape.set_cell_space(0)
 
         # set shape policy
-        shape.accept_child('*')
+        shape.accept_child(Wx::SF::ACCEPT_ALL)
 
-        shape.accept_connection('*')
-        shape.accept_src_neighbour('*')
-        shape.accept_trg_neighbour('*')
+        shape.accept_connection(Wx::SF::ACCEPT_ALL)
+        shape.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
+        shape.accept_trg_neighbour(Wx::SF::ACCEPT_ALL)
 
         # insert some shapes into the grid from code here (it can also be done interactively by drag&drop operations).
         # shapes inserted to the grid can be aligned relatively to its grid cell region
@@ -258,9 +258,9 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         shape.accept_child(Wx::SF::TextShape)
         shape.accept_child(Wx::SF::EditTextShape)
 
-        shape.accept_connection('*')
-        shape.accept_src_neighbour('*')
-        shape.accept_trg_neighbour('*')
+        shape.accept_connection(Wx::SF::ACCEPT_ALL)
+        shape.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
+        shape.accept_trg_neighbour(Wx::SF::ACCEPT_ALL)
       end
 
     when MainFrame::MODE::CIRCLE
@@ -272,9 +272,9 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         shape.accept_child(Wx::SF::TextShape)
         shape.accept_child(Wx::SF::EditTextShape)
 
-        shape.accept_connection('*')
-        shape.accept_src_neighbour('*')
-        shape.accept_trg_neighbour('*')
+        shape.accept_connection(Wx::SF::ACCEPT_ALL)
+        shape.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
+        shape.accept_trg_neighbour(Wx::SF::ACCEPT_ALL)
       end
 
     when MainFrame::MODE::LINE
@@ -400,9 +400,9 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       connection.accept_child(Wx::SF::TextShape)
       connection.accept_child(Wx::SF::EditTextShape)
 
-      connection.accept_connection('*')
-      connection.accept_src_neighbour('*')
-      connection.accept_trg_neighbour('*')
+      connection.accept_connection(Wx::SF::ACCEPT_ALL)
+      connection.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
+      connection.accept_trg_neighbour(Wx::SF::ACCEPT_ALL)
 		
 		  connection.set_dock_point(Wx::SF::LineShape::DEFAULT::DOCKPOINT_CENTER)
 
