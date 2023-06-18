@@ -2537,21 +2537,11 @@ module Wx::SF
           end
         end
 
-      when MODE::HANDLEMOVE
-        if event.dragging
-          @selected_handle.send(:_on_dragging, fit_position_to_grid(lpos)) if @selected_handle
-          @can_save_state_on_mouse_up = true
-        else
-          @selected_handle.send(:_on_end_drag, lpos) if @selected_handle
-          @selected_handle = nil
-          @working_mode = MODE::READY
-        end
-
-      when MODE::SHAPEMOVE, MODE::MULTIHANDLEMOVE
-        if @working_mode == MODE::MULTIHANDLEMOVE
+      when MODE::HANDLEMOVE, MODE::MULTIHANDLEMOVE, MODE::SHAPEMOVE
+        if @working_mode != MODE::SHAPEMOVE
           if event.dragging
             @selected_handle.send(:_on_dragging, fit_position_to_grid(lpos)) if @selected_handle
-            update_multiedit_size
+            update_multiedit_size if @working_mode == MODE::MULTIHANDLEMOVE
             @can_save_state_on_mouse_up = true
           else
             @selected_handle.send(:_on_end_drag, lpos) if @selected_handle
@@ -2559,7 +2549,7 @@ module Wx::SF
             @working_mode = MODE::READY
           end
         end
-        unless @working_mode == MODE::READY
+        unless @working_mode == MODE::MULTIHANDLEMOVE
           if event.dragging
             if has_style?(STYLE::GRID_USE)
               return if (event.get_position.x - @prev_mouse_pos.x).abs < @settings.grid_size.x &&
