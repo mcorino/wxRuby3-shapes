@@ -183,7 +183,13 @@ module Wx::SF
           return false if col >= @cols
 
           # add the shape to the children list if necessary
-          shape.set_parent_shape(self) unless @child_shapes.include?(shape)
+          unless @child_shapes.include?(shape)
+            if @diagram
+              @diagram.reparent_shape(shape, self)
+            else
+              shape.set_parent_shape(self)
+            end
+          end
 
           @cells.insert(row * @cols + col, shape.id)
 
@@ -204,7 +210,13 @@ module Wx::SF
           return false if index >= (@rows * @cols)
 
           # add the shape to the children list if necessary
-          shape.set_parent_shape(self) unless @child_shapes.include?(shape)
+          unless @child_shapes.include?(shape)
+            if @diagram
+              @diagram.reparent_shape(shape, self)
+            else
+              shape.set_parent_shape(self)
+            end
+          end
 
           @cells.insert(index, shape.id)
 
@@ -222,6 +234,7 @@ module Wx::SF
     # Remove shape with given ID from the grid.
     # Shifts any occupied cells beyond the cell containing the given id to the previous lexicographic position.
     # @param [Serializable::ID] id ID of shape which should be removed
+    # @note Note this does *not* remove the shape as a child shape.
     def remove_from_grid(id)
       @cells.delete(id)
     end
