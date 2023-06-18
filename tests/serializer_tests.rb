@@ -494,6 +494,18 @@ module SerializerTestMixin
     assert_nil(obj_new.get_managed_shape(1, 2))
   end
 
+  def test_bitmap_shape
+    obj = Wx::SF::BitmapShape.new
+    assert(obj.create_from_file(:motyl, Wx::BitmapType::BITMAP_TYPE_BMP))
+    obj.set_relative_position(Wx::RealPoint.new(100, 99))
+    obj_serial = obj.serialize(pretty: true)
+    obj_new = nil
+    assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
+    assert_instance_of(Wx::SF::BitmapShape, obj_new)
+    assert_equal(obj.get_relative_position, obj_new.get_relative_position)
+    assert(obj_new.instance_variable_get('@bitmap').ok?)
+  end
+
   def test_canvas
     frame = Wx::Frame.new(nil)
     frame.set_size([800, 600])
