@@ -407,7 +407,11 @@ class MainFrame < Wx::Frame
           type = Wx::BitmapType::BITMAP_TYPE_JPEG
         end
         
-        @shape_canvas.save_canvas_to_image(dlg.get_path, type, Wx::SF::WITH_BACKGROUND)
+        if @shape_canvas.save_canvas_to_image(dlg.get_path, type: type, background: Wx::SF::WITH_BACKGROUND)
+          Wx.message_box("The image has been saved to '#{dlg.get_path}'.", 'wxRuby SF Demonstration Application')
+        else
+          Wx.message_box("Unable to save image to '#{dlg.get_path}'.", 'wxRuby SF Demonstration Application', Wx::OK | Wx::ICON_ERROR)
+        end
       end
     end
   end

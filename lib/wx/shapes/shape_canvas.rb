@@ -622,13 +622,20 @@ module Wx::SF
       self
     end
 
-    # Export canvas content to image file.
-    # @param [String] file Full file name
-    # @param [Wx::BitmapType] type Image type. See Wx::BitmapType for more details. Default type is
-    #                              Wx::BITMAP_TYPE_BMP.
-    # @param [Boolean] background Export also diagram background
-    # @param [Float] scale Image scale. If -1 then current canvas scale id used.
-    def save_canvas_to_image(file, type = Wx::BITMAP_TYPE_BMP, background = true, scale = -1.0)
+    # @overload save_canvas_to_image(type: Wx::BITMAP_TYPE_BMP, background: true, scale: -1.0)
+    #   Export canvas content to image.
+    #   @param [Wx::BitmapType] type Image type. See Wx::BitmapType for more details. Default type is Wx::BITMAP_TYPE_BMP.
+    #   @param [Boolean] background Export also diagram background
+    #   @param [Float] scale Image scale. If -1 then current canvas scale id used.
+    #   @return [Wx::Bitmap,nil] exported canvas image or nil if failed to create bitmap
+    # @overload save_canvas_to_image(file, type: Wx::BITMAP_TYPE_BMP, background: true, scale: -1.0)
+    #   Export canvas content to image file.
+    #   @param [String] file Full file name
+    #   @param [Wx::BitmapType] type Image type. See Wx::BitmapType for more details. Default type is Wx::BITMAP_TYPE_BMP.
+    #   @param [Boolean] background Export also diagram background
+    #   @param [Float] scale Image scale. If -1 then current canvas scale id used.
+    #   @return [Boolean] true if saving the image to file succeeded, false otherwise
+    def save_canvas_to_image(file = nil, type: Wx::BITMAP_TYPE_BMP, background: true, scale: -1.0)
       # create memory DC a draw the canvas content into
 
       prev_scale = get_scale
@@ -673,16 +680,17 @@ module Wx::SF
 
             set_scale(prev_scale) if scale != prev_scale
 
-            if outbmp.save_file(file, type)
-              Wx.message_box("The image has been saved to '#{file}'.", 'wxRuby ShapeFramework')
+            if file
+              return outbmp.save_file(file, type)
             else
-              Wx.message_box("Unable to save image to '#{file}'.", 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_ERROR)
+              return outbmp
             end
-          else
+          elsif file
             Wx.message_box('Could not create output bitmap.', 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_ERROR)
           end
         end
       end
+      nil
     end
 
     def _start_interactive_connection(lpos, src_shape_id, cpt)
