@@ -14,7 +14,8 @@ class StarShape < Wx::SF::PolygonShape
 
   # regular property
   property :description
-  # component shape property
+  # component shape property (this specifies that this item should be serialized as a property of this class and
+  # not from any reference elsewhere like it's parents child shapes list)
   component :title
   # disable serialization of polygon vertices for this PolygonShape derivative,
   # because they are always set in constructor for this class
@@ -86,10 +87,14 @@ class StarShape < Wx::SF::PolygonShape
       # size change is not allowed:
       #@text.add_style(STYLE::SHOW_HANDLES)
 
-      # component will/should be added as child shape but not be serialized as such
-      # instead it will be serialized as a dedicated property of instances of
-      # this class
+      # we use #set_parent_shape and not #add_child_shape as we do not want it checked against the acceptance list
+      # (which is empty and we want to keep it like  that) and we already know it's not yet on the diagram so does
+      # not need to be removed as toplevel shape
       @text.set_parent_shape(self)
+      # component will/should be added as child shape but will not be serialized as such
+      # instead the 'component :title' declaration above makes sure it will be serialized
+      # as a dedicated property of instances of this class
+
     end
   end
 
