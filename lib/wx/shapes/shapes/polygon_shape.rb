@@ -188,9 +188,6 @@ module Wx::SF
     def get_extents
       return [0.0,0.0,0.0,0.0] if @vertices.empty?
 
-      minx = maxx = @vertices.first.x
-      miny = maxy = @vertices.first.y
-
       @vertices.inject(nil) do |exts, pt|
         if exts
           exts[0] = pt.x if pt.x < exts[0]
