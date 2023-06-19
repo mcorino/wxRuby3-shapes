@@ -166,10 +166,9 @@ module Wx::SF
           Serializable::ID.init_restoration_map
           # enable safe deserializing
           self.start_safe_deserialize
-          result = ::JSON.parse!(source,
-                                 {create_additions: true,
-                                  object_class: Serializable::JSON::ObjectHash})
-          # result.is_a?(HashMap) ? result.hash : result
+          ::JSON.parse!(source,
+                        {create_additions: true,
+                        object_class: Serializable::JSON::ObjectHash})
         ensure
           # reset safe deserializing
           self.end_safe_deserialize
