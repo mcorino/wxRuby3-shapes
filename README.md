@@ -9,7 +9,7 @@ A wxRuby3 Shapes framework.
 **wxruby3/shapes** (Wx::SF) is a pure Ruby software library/framework based on wxRuby3 which allows
 easy development of software applications manipulating graphical objects (shapes) like various CASE 
 tools, technological processes modeling tools, etc. This library is a pure Ruby implementation based
-on the excellent [wxShapesFramework](https://sourceforge.net/projects/wxsf/) C++ library based on 
+on the excellent [wxShapeFramework](https://sourceforge.net/projects/wxsf/) C++ library based on 
 wxWidgets.
 
 The library consists of several classes encapsulating a so called 'Shape canvas' (visual
@@ -90,6 +90,22 @@ classes and methods, rather than on how to construct an application
 overall.
 This documentation (for the latest release) is also available online
 [here](https://mcorino.github.io/wxRuby3-shapes/file.00_starting.html).
+
+### How does wxruby3/shapes compare to wxShapeFramework?
+
+**wxruby3/shapes** is not a straight port of wxShapeFramework although much of the structure is maintained 
+with the following major implementation differences:
+
+- wxruby3/shapes implements a totally different serialization scheme in which none of the XML serializer 
+code has been ported. In fact wxruby3/shapes does not offer any XML serialization out of the box but instead 
+provides a more adaptable implementation with (for now) two supported output formats; JSON and YAML.
+- Related to this the internal management of shape references has been changed as well as this was tightly 
+linked to the serialization implementation.
+- The API has been Ruby-fied with respect to constant names, method names and argument passing and return
+values.
+- The ScaledDC class has been integrated with wxRuby3 and is not part of wxruby3/shapes.
+
+In addition many small tweaks, improvements and also bugfixes have been implemented as part of the port. 
 
 ### I am getting an error trying to install wxruby3/shapes
 
