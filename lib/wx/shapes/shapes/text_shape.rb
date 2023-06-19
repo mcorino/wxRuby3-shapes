@@ -168,7 +168,7 @@ module Wx::SF
         s = x
       elsif x >= y
         s = x
-	    else
+      else
         s = y
       end
 
