@@ -1,12 +1,10 @@
-# wxruby3/shapes
+# wx/shapes - A wxRuby3 2D shapes and diagramming framework
 
-![wxruby3/shapes demo](assets/screenshot.png)
-
-A wxRuby3 Shapes framework.
+![wx/shapes demo](assets/screenshot.png)
 
 ## Introduction
 
-**wxruby3/shapes** (Wx::SF) is a pure Ruby software library/framework based on wxRuby3 which allows
+**wx/shapes** (Wx::SF) is a pure Ruby software library/framework based on wxRuby3 which allows
 easy development of software applications manipulating graphical objects (shapes) like various CASE 
 tools, technological processes modeling tools, etc. This library is a pure Ruby implementation based
 on the excellent [wxShapeFramework](https://sourceforge.net/projects/wxsf/) C++ library based on 
@@ -38,7 +36,7 @@ of diagrams.
 More over, the library source code is pure Ruby based on wxRuby3 GUI toolkit, so it will
 run on any platform that supports Ruby and wxRuby3.
 
-## wxruby3/shapes licence
+## wx/shapes licence
 
 wxruby3/shapes is free and open-source. It is distributed under the liberal
 MIT licence which is compatible with both free and commercial development.
@@ -49,13 +47,13 @@ concerning licensing of wxRuby3.
 
 ### Required Credits and Attribution
 
-Generally, neither wxRuby3 nor wxruby3/shapes require attribution, beyond
+Generally, neither wxRuby3 nor wx/shapes require attribution, beyond
 retaining existing copyright notices. 
 See [here](CREDITS.md) for more details and acknowledgements.
 
 ## FAQ
 
-### What platforms and operating systems are supported in wxruby3/shapes?
+### What platforms and operating systems are supported in wx/shapes?
 
 All platforms supporting Ruby and wxRuby3. See the [wxRuby3](https://github.com/mcorino/wxRuby3) 
 project for more information 
@@ -68,46 +66,46 @@ When asking a question, if something is not working as you expect,
 please provide a *minimal*, *runnable* sample of code that demonstrates
 the problem, and say what you expected to happen, and what actually
 happened. Please also provide basic details of your platform, Ruby,
-wxruby3/shapes, wxRuby and wxWidgets version, and make a reasonable effort 
+wx/shapes, wxRuby and wxWidgets version, and make a reasonable effort 
 to find answers in the archive and documentation before posting. People are mostly happy
 to help, but it's too much to expect them to guess what you're trying to
 do, or try and debug 1,000 lines of your application.
 Very important also; do not use offensive language and be **polite**.
 
-### How can I learn to use wxruby3/shapes?
+### How can I learn to use wx/shapes?
 
-The wxruby3/shapes API has a lot of features and takes some time to learn. 
-The wxruby3/shapes distribution comes with several samples which illustrate how 
+The wx/shapes API has a lot of features and takes some time to learn. 
+The wx/shapes distribution comes with several samples which illustrate how 
 to use many specific parts of the API. Good one's to start with are the
 basic samples (samples/sample1|2|3|4) which provide insights in various basic 
 features. The samples also include a fairly advanced and complete diagramming
-demo application showcasing most of the features of wxruby3/shapes.
+demo application showcasing most of the features of wx/shapes.
 
-Complete (more or less) wxruby/shapes API documentation should be part of any
-complete wxruby3/shapes build. This tends to focus on providing a reference
+Complete (more or less) wx/shapes API documentation should be part of any
+complete wx/shapes build. This tends to focus on providing a reference
 of all available modules, classes ad methods and how to use specific
 classes and methods, rather than on how to construct an application
 overall.
 This documentation (for the latest release) is also available online
 [here](https://mcorino.github.io/wxRuby3-shapes/file.00_starting.html).
 
-### How does wxruby3/shapes compare to wxShapeFramework?
+### How does wx/shapes compare to wxShapeFramework?
 
-**wxruby3/shapes** is not a straight port of wxShapeFramework although much of the structure is maintained 
+**wx/shapes** is not a straight port of wxShapeFramework although much of the structure is maintained 
 with the following major implementation differences:
 
-- wxruby3/shapes implements a totally different serialization scheme in which none of the XML serializer 
-code has been ported. In fact wxruby3/shapes does not offer any XML serialization out of the box but instead 
+- wx/shapes implements a totally different serialization scheme in which none of the XML serializer 
+code has been ported. In fact wx/shapes does not offer any XML serialization out of the box but instead 
 provides a more adaptable implementation with (for now) two supported output formats; JSON and YAML.
 - Related to this the internal management of shape references has been changed as well as this was tightly 
 linked to the serialization implementation.
 - The API has been Ruby-fied with respect to constant names, method names and argument passing and return
 values.
-- The ScaledDC class has been integrated with wxRuby3 and is not part of wxruby3/shapes.
+- The ScaledDC class has been integrated with wxRuby3 and is not part of wx/shapes.
 
 In addition many small tweaks, improvements and also bugfixes have been implemented as part of the port. 
 
-### I am getting an error trying to install wxruby3/shapes
+### I am getting an error trying to install wx/shapes
 
 Please double-check the [INSTALL](INSTALL.md) documents, and search issue archives. If
 this doesn't help, please post your question using GitHub Issues.

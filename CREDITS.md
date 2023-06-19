@@ -1,9 +1,9 @@
 
 # Credits
 
-## wxruby3/shapes
+## wx/shapes
 
-Martin Corino established the wxruby/shapes project in 2023.
+Martin Corino established the wx/shapes project in 2023.
 
 ### Lead Maintainer
 
