@@ -122,7 +122,8 @@ module SerializerTestMixin
     assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
 
-    obj = Struct.new('MyStruct', :one, :two).new(one: Wx::Point.new(10, 90), two: Wx::Point.new(20, 80))
+    Struct.new('MyStruct', :one, :two) unless defined? Struct::MyStruct
+    obj = Struct::MyStruct.new(one: Wx::Point.new(10, 90), two: Wx::Point.new(20, 80))
     obj_serial = obj.serialize
     assert_nothing_raised { obj_new = Wx::SF::Serializable.deserialize(obj_serial) }
     assert_equal(obj, obj_new)
