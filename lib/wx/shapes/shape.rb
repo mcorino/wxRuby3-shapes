@@ -458,7 +458,7 @@ module Wx::SF
     # Get the shape's absolute position in the canvas (calculated as a summation
     # of all relative positions in the shapes' hierarchy. The function can be overridden if necessary.
     # @return [Wx::RealPoint] Shape's position
-	  def get_absolute_position
+    def get_absolute_position
       # HINT: overload it for custom actions...
       parent_shape = get_parent_shape
       if parent_shape
@@ -799,7 +799,7 @@ module Wx::SF
       fit_to_children unless has_style?(STYLE::NO_FIT_TO_CHILDREN)
 
       # do it recursively on all parent shapes
-	    if parent = get_parent_shape
+      if (parent = get_parent_shape)
         parent.update
       end
     end
@@ -1702,12 +1702,12 @@ module Wx::SF
                   neighbours << opposite
                 end
               end
-           else
+            else
              opposite.__send__(:_get_neighbours, shape_info, condir, direct, neighbours, processed)
             end
           end
-       end
-     end
+        end
+      end
     end
 
     # Auxiliary function called by GetCompleteBoundingBox function.
@@ -1969,7 +1969,7 @@ module Wx::SF
 
           when Wx::K_DOWN
             move_by(0, dy) if has_style?(STYLE::POSITION_CHANGE)
-         end
+          end
         end
 
         if !f_refresh_all
@@ -2080,8 +2080,6 @@ module Wx::SF
     # @param [Wx::RealPoint] to2
     # @return [Wx::RealPoint,nil] intersection point or nil
     def self.lines_intersection(from1, to1, from2, to2)
-      i = Wx::RealPoint.new
-
       # create line 1 info
       a1 = to1.y - from1.y
       b1 = from1.x - to1.x
