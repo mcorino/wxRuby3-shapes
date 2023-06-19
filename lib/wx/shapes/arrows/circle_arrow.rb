@@ -27,7 +27,6 @@ module Wx::SF
     # @param [Wx::RealPoint] to End of the virtual line
     # @param [Wx::DC] dc Device context for drawing
     def draw(from, to, dc)
-      rarrow = translate_arrow(DiamondArrow.diamond_arrow, from, to)
       dc.with_pen(@pen) do |dc|
         dc.with_brush(@fill) do |dc|
           dc.draw_circle(to.to_point, @radius)
