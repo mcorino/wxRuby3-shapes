@@ -2,6 +2,7 @@
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/shapes/rect_shape'
+require 'pathname'
 
 module Wx::SF
 
@@ -21,6 +22,7 @@ module Wx::SF
     #   @param [Wx::SF::Diagram] diagram parent diagram
     def initialize(*args)
       @bitmap = Wx::NULL_BITMAP
+      @art_path = @art_section = nil
       if args.empty?
         super
         @bitmap_path = nil
@@ -56,10 +58,13 @@ module Wx::SF
     alias :get_can_scale :can_scale?
 
 	  # Load a bitmap from the file.
-    # @param [String] file File name (absolute or relative)
+    # @param [String,Symbol] file File name (absolute or relative) or base name for art file (for Wx::ArtLocator)
     # @param [Wx::BitmapType,nil] type Bitmap type (see the wxBitmap class reference)
+    # @param [String] art_path base path to look up the art file for Wx::ArtLocator
+    # @param [String,nil] art_section optional owner folder name for art files for Wx::ArtLocator
     # @return [Boolean] true on success, otherwise false
-    def create_from_file(file, type = nil)
+    # @see Wx::ArtLocator
+    def create_from_file(file, type = nil, art_path: nil, art_section: nil)
       # load bitmap from the file
       @bitmap_path = file
       @bitmap_type = type
@@ -67,13 +72,17 @@ module Wx::SF
         @bitmap = Wx::Bitmap.new
         success = @bitmap.load_file(@bitmap_path, type ? type : Wx::BITMAP_TYPE_ANY)
       else
-        art_path = File.dirname(caller_path = caller_locations(1).first.absolute_path)
-        art_section = File.basename(caller_path, '.*')
+        art_path ||= File.dirname(caller_locations(1).first.absolute_path)
+        art_section ||= File.basename(caller_locations(1).first.absolute_path, '.*')
         path = Wx::ArtLocator.find_art(@bitmap_path, art_path: art_path, art_section: art_section, art_type: :bitmap, bmp_type: type)
         if path
           @bitmap = Wx::Bitmap.new
           success = @bitmap.load_file(path, type ? type : Wx::BITMAP_TYPE_ANY)
-          @bitmap_path = path if success
+          if success
+            p = Pathname.new(art_path)
+            @art_path = p.relative? ? art_path : p.relative_path_from(Dir.getwd).to_s
+            @art_section = art_section
+          end
         else
           @bitmap = nil
           success = false
@@ -229,7 +238,7 @@ module Wx::SF
     # Serialization only.
     def get_bitmap
       if @bitmap && @bitmap.ok?
-        [@bitmap_path, @bitmap_type]
+        [@bitmap_path, @bitmap_type, @art_path, @art_section]
       else
         [nil,nil]
       end
@@ -237,9 +246,9 @@ module Wx::SF
 
     # Deserialization only.
     def set_bitmap(bmp_data)
-      path, type = bmp_data
-      if path
-        create_from_file(path, type)
+      file, type, art_path, art_section = bmp_data
+      if file
+        create_from_file(file, type, art_path: art_path, art_section: art_section)
       end
     end
 
