@@ -109,9 +109,9 @@ module Wx::SF
         # draw linesegment being updated
         dc.with_pen(Wx::Pen.new(Wx::BLACK, 1, Wx::PenStyle::PENSTYLE_DOT)) do
           if !@lst_points.empty?
-            a,b,c,d = get_segment_quaternion(0)
+            _,_,c,_ = get_segment_quaternion(0)
           else
-            b,c = get_direct_line
+            _,c = get_direct_line
           end
           dc.draw_line(@unfinished_point, c.to_point)
         end
@@ -216,7 +216,7 @@ module Wx::SF
       # used polynomials
       c1 = (-pom2*t + 2*pom2 - t)  / 2
       c2 = (3*pom2*t - 5*pom2 + 2) / 2
-      c3 = (-3*pom2*t + 4*pom2 +t) / 2
+      c3 = (-3*pom2*t + 4*pom2 + t) / 2
       c4 = pom1*pom2 / 2
 
       # calculation of curve point for t = <0,1>
