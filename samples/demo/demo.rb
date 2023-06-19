@@ -132,8 +132,9 @@ class MainFrame < Wx::Frame
     @shape_canvas = FrameCanvas.new(@diagram, @canvas_panel, Wx::ID_ANY)
     @canvas_sizer.add(@shape_canvas, 1, Wx::EXPAND, 0)
     @canvas_panel.layout
-    # set whether Wx::GraphicsContext should be used (valid only if wxUSE_GRAPHICS_CONTEXT if set to 1 for wxRuby)
-    Wx::SF::ShapeCanvas::enable_gc(false)
+    # enable using Wx::GraphicsContext by default
+    # (effective only if wxUSE_GRAPHICS_CONTEXT if set to 1 for wxRuby)
+    Wx::SF::ShapeCanvas::enable_gc
     
     # create and show canvas thumbnail
     @thumb_frm = ThumbFrame.new(self)
