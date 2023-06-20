@@ -2098,16 +2098,10 @@ module Wx::SF
       ka = a1 / a2
       kb = b1 / b2
 
-      return nil if(ka == kb)
+      return nil if ka == kb
 
-      # find intersection point
-      if Wx::PLATFORM == 'WXMSW'
-        xi = (((b1*c2 - c1*b2) / (a1*b2 - a2*b1)) + 0.5).floor
-        yi = ((-(a1*c2 - a2*c1) / (a1*b2 - a2*b1)) + 0.5).floor
-      else
-        xi = (b1*c2 - c1*b2) / (a1*b2 - a2*b1)
-        yi = -(a1*c2 - a2*c1) / (a1*b2 - a2*b1)
-      end
+      xi = (b1*c2 - c1*b2) / (a1*b2 - a2*b1)
+      yi = -(a1*c2 - a2*c1) / (a1*b2 - a2*b1)
 
       if( ((from1.x - xi)*(xi - to1.x) >= 0.0) &&
         ((from2.x - xi)*(xi - to2.x) >= 0.0) &&
