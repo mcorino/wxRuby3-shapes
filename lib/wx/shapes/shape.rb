@@ -1044,6 +1044,7 @@ module Wx::SF
     # @param [Class] type Class of accepted shape object
     # @see #is_child_accepted
     def accept_child(type)
+      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class) || type == ACCEPT_ALL
       @accepted_children << type
     end
 
@@ -1072,6 +1073,7 @@ module Wx::SF
     # @param [Class] type Class of accepted connection object
     # @see #is_connection_accepted
     def accept_connection(type)
+      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class) || type == ACCEPT_ALL
       @accepted_connections << type
     end
 
@@ -1100,6 +1102,7 @@ module Wx::SF
     # @param [Class] type Class of accepted connection object
     # @see #is_src_neighbour_accepted
     def accept_src_neighbour(type)
+      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class) || type == ACCEPT_ALL
       @accepted_src_neighbours << type
     end
 
@@ -1128,6 +1131,7 @@ module Wx::SF
     # @param [Class] type Class of accepted connection object
     # @see #is_trg_neighbour_accepted
     def accept_trg_neighbour(type)
+      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class) || type == ACCEPT_ALL
       @accepted_trg_neighbours << type
     end
 

@@ -350,6 +350,7 @@ module Wx::SF
     # @param [Class] type Class of accepted shape object
     # @see is_shape_accepted
     def accept_shape(type)
+      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class) || type == ACCEPT_ALL
       @accepted_shapes << type
     end
 
@@ -385,6 +386,7 @@ module Wx::SF
     # @param [Class] type Class of accepted shape object
     # @see is_top_shape_accepted
     def accept_top_shape(type)
+      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class) || type == ACCEPT_ALL
       @accepted_top_shapes << type
     end
 
