@@ -1,0 +1,71 @@
+# CI workflow building wxRuby3 under Windows.
+name: Windows wxMSW builds
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - v*
+    paths-ignore:
+      - '.github/workflows/**'
+      - '**.md'
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '.github/workflows/**'
+      - '**.md'
+      - 'Gemfile'
+      - '.yardopts'
+      - '.gitignore'
+      - 'LICENSE'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOXYGEN_ROOT: ${{ github.workspace }}\doxygen
+  WXWIDGETS_ROOT: ${{ github.workspace }}\ext\wxWidgets
+  WXWIN_ROOT: ${{ github.workspace }}\ext\wxWidgets\install
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} wxMSW ${{ matrix.CXX }} ruby-${{ matrix.ruby }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            platform: 'x64'
+            CXX: g++-12
+            ruby: '2.7'
+            swig: '4'
+          - os: windows-2022
+            platform: 'x64'
+            CXX: g++-12
+            ruby: '3.2'
+            swig: '4'
+
+    steps:
+      - name: Checkout wxRuby3-shapes
+        uses: actions/checkout@v3
+
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+
+      - name: Setup Ruby gems
+        run: |
+          bundle install
+
+      - name: Run wxRuby3 regression tests
+        run: |
+          bundle exec rake test

@@ -1,0 +1,149 @@
+name: Linux wxGTK builds
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - v*
+    paths-ignore:
+      - '.github/workflows/**'
+      - '**.md'
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '.github/workflows/**'
+      - '**.md'
+      - 'Gemfile'
+      - '.yardopts'
+      - '.gitignore'
+      - 'LICENSE'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  WXWIDGETS_ROOT: ${{ github.workspace }}/ext/wxWidgets
+  WXWIN_INSTALL: ${{ github.workspace }}/ext/wxWidgets/install
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            gtk_version: 3
+            CC: gcc-11
+            CXX: g++-11
+            ruby: '3.0'
+            wxWidgets: '3.2.2.1'
+            swig: '4'
+            configure_flags:
+            use_xvfb: true
+          - os: ubuntu-22.04
+            gtk_version: 3
+            CC: gcc-12
+            CXX: g++-12
+            ruby: '3.2'
+            wxWidgets: '3.2.2.1'
+            swig: '4'
+            configure_flags:
+            use_xvfb: true
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} GTK ${{ matrix.gtk_version }} ${{ matrix.CXX }} ruby-${{ matrix.ruby }} wxWidgets-${{ matrix.wxWidgets }}
+    env:
+      wxGTK_VERSION: ${{ matrix.gtk_version && matrix.gtk_version || 3 }}
+      wxCONFIGURE_FLAGS: ${{ matrix.configure_flags }}
+      wxUSE_ASAN: ${{ matrix.use_asan && 1 || 0 }}
+      wxUSE_XVFB: ${{ matrix.use_xvfb && 1 || 0 }}
+      WX_EXTRA_PACKAGES: doxygen patchelf
+      CC: ${{ matrix.CC }}
+      CXX: ${{ matrix.CXX }}
+    steps:
+    - name: Checkout wxRuby3-shapes
+      uses: actions/checkout@v3
+
+    - name: Install Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+
+    - name: checkout wxWidgets
+      uses: actions/checkout@v3
+      with:
+        repository: wxWidgets/wxWidgets
+        path: ${{ env.WXWIDGETS_ROOT }}
+        ref: v${{ matrix.wxWidgets }}
+        submodules: 'recursive'
+
+    - name: Set up build environment
+      run: |
+        # Install locales used by our tests to run all the tests instead of
+        # skipping them.
+        sudo locale-gen de_DE.utf8 de_CH.utf8 en_US.utf8 fr_FR.utf8 sv_SE.utf8
+        
+        $WXWIDGETS_ROOT/build/tools/before_install.sh
+
+    - name: Display build environment
+      run: |
+        echo $PATH
+        ruby -v
+        doxygen -v
+        gcc -v
+        g++ -v
+
+    - name: Configuring wxWidgets
+      if: matrix.wxw_type != 'embed'
+      run: |
+        wxCONFIGURE_OPTIONS="$wxCONFIGURE_FLAGS"
+        if [ -n "${{ matrix.gtk_version }}" ]; then
+          wxCONFIGURE_OPTIONS="--with-gtk=${{ matrix.gtk_version }} $wxCONFIGURE_OPTIONS"
+        fi
+        pushd $WXWIDGETS_ROOT
+        if [ "${{ matrix.wxw_type }}" == "develop" ]; then
+          ./configure $wxCONFIGURE_OPTIONS --prefix=$WXWIN_INSTALL --disable-tests --without-subdirs --disable-debug_info || rc=$?
+        else
+          ./configure $wxCONFIGURE_OPTIONS --disable-tests --without-subdirs --disable-debug_info || rc=$?
+        fi
+        popd
+        if [ -n "$rc" ]; then
+          echo '*** Configuring failed, contents of config.log follows: ***'
+          echo '-----------------------------------------------------------'
+          cat $WXWIDGETS_ROOT/config.log
+          echo '-----------------------------------------------------------'
+          exit $rc
+        fi
+
+    - name: Build wxWidgets
+      run: |
+        pushd $WXWIDGETS_ROOT
+        make && sudo make install && sudo ldconfig
+        popd
+
+    - name: Remove wxWidgets
+      if: matrix.wxw_type != 'develop'
+      run: rm -rf $WXWIDGETS_ROOT
+
+    - name: Setup Ruby gems
+      run: |
+        bundle install
+
+    - name: Run wxRuby3-shapes regression tests
+      run: |
+        ulimit -c unlimited
+        TEST_CMD="bundle exec rake test"
+        /bin/bash -o pipefail -c "xvfb-run -a -s '-screen 0 1600x1200x24' $TEST_CMD 2>&1 | tee -a wxtest.out" || rc=$?
+        if [ -n "$rc" ]; then
+          if fgrep -q '(core dumped)' wxtest.out; then
+            echo '*** Test crashed, trying to get more information ***'
+            gdb --quiet --core=core -ex 'where' -ex 'thread apply all bt' -ex 'q' --args $TEST_CMD
+          fi
+          exit $rc
+        fi
