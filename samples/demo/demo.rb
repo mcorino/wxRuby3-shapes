@@ -242,7 +242,11 @@ class MainFrame < Wx::Frame
   attr_reader :zoom_slider
 
   def setup_frame
-    set_size_hints([1024,700])
+    if Wx::PLATFORM == 'WXMSW'
+      set_size_hints([1024,700])
+    else
+      set_size_hints([1100,700])
+    end
     
     @menu_bar = Wx::MenuBar.new(0)
     @file_menu = Wx::Menu.new
