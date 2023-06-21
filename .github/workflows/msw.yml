@@ -31,8 +31,7 @@ permissions:
 
 env:
   DOXYGEN_ROOT: ${{ github.workspace }}\doxygen
-  WXWIDGETS_ROOT: ${{ github.workspace }}\ext\wxWidgets
-  WXWIN_ROOT: ${{ github.workspace }}\ext\wxWidgets\install
+  WXRUBY_ROOT: ${{ github.workspace }}\wxRuby3
 
 jobs:
   build:
@@ -47,25 +46,89 @@ jobs:
             CXX: g++-12
             ruby: '2.7'
             swig: '4'
+            wxWidgets: '3.2.2.1'
+            wxr_type: local
           - os: windows-2022
             platform: 'x64'
             CXX: g++-12
             ruby: '3.2'
             swig: '4'
+            wxr_type: remote
 
     steps:
       - name: Checkout wxRuby3-shapes
         uses: actions/checkout@v3
+
+      - name: checkout wxRuby3
+        if: matrix.wxr_type == 'local'
+        uses: actions/checkout@v3
+        with:
+          repository: mcorino/wxRuby3
+          path: ${{ env.WXRUBY_ROOT }}
+          ref: master
 
       - name: Install Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
 
+      - name: Cache Doxygen
+        if: matrix.wxr_type == 'local'
+        id: cache-doxygen
+        uses: actions/cache@v3
+        with:
+          path: doxygen-1.9.6.windows.x64.bin.zip
+          key: ${{ runner.os }}-doxygen
+
+      - name: Download Doxygen tool
+        if: matrix.wxr_type == 'local' && steps.cache-doxygen.outputs.cache-hit != 'true'
+        run: |
+          wget.exe https://www.doxygen.nl/files/doxygen-1.9.6.windows.x64.bin.zip
+          $hash = 'bdf1af97a733edd0a60fce2cf375c5c3'
+          if ((Get-FileHash doxygen-1.9.6.windows.x64.bin.zip -Algorithm MD5).Hash -ne $hash) {
+            del doxygen-1.9.6.windows.x64.bin.zip
+            throw "Doxygen Hash doesn't match!"
+          }
+
+      - name: Install Doxygen package
+        if: matrix.wxr_type == 'local'
+        run: |
+          Expand-Archive -LiteralPath '.\doxygen-1.9.6.windows.x64.bin.zip' -DestinationPath $env:DOXYGEN_ROOT -Force
+          echo "$env:DOXYGEN_ROOT" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Setup Ruby gems for wxRuby3
+        if: matrix.wxr_type == 'local'
+        run: |
+          Push-Location $env:WXRUBY_ROOT
+          bundle install
+          Pop-Location
+
+      - name: Configure wxRuby3
+        if: matrix.wxr_type == 'local'
+        run: |
+          bundle exec rake configure[--with-wxwin]
+
+      - name: Build wxRuby3
+        if: matrix.wxr_type == 'local'
+        run: |
+          bundle exec rake build
+
+      - name: Build wxRuby3 bingem
+        if: matrix.wxr_type == 'local'
+        run: |
+          bundle exec rake bingem
+
       - name: Setup Ruby gems
         run: |
-          bundle install
+          If ("${{ matrix.wxr_type }}" -eq "local") {
+            bundle config set --local without 'wxruby'
+            bundle install 
+            foreach ($f in Get-ChildItem -Path $env:WXRUBY_ROOT\pkg\*.gem) { gem install $f }
+          } 
+          Else {
+            bundle install 
+          }
 
-      - name: Run wxRuby3 regression tests
+      - name: Run wxRuby3-shapes regression tests
         run: |
           bundle exec rake test
