@@ -69,7 +69,7 @@ module Wx::SF
           Serializable::ID.init_restoration_map
           allowed_classes =(YAML.serializables + Serializable.serializables.to_a).map(&:to_s)
           class_loader = RestrictedRelaxed.new(allowed_classes)
-          scanner      = ::YAML::ScalarScanner.new(class_loader, strict_integer: false)
+          scanner      = ::YAML::ScalarScanner.new(class_loader)
           visitor = ::YAML::Visitors::NoAliasRuby.new(scanner, class_loader, symbolize_names: false, freeze: false)
           visitor.extend(YamlSerializePatch)
           result = visitor.accept result
