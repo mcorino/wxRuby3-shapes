@@ -100,7 +100,6 @@ jobs:
         g++ -v
 
     - name: Configuring wxWidgets
-      if: matrix.wxw_type != 'embed'
       run: |
         wxCONFIGURE_OPTIONS="$wxCONFIGURE_FLAGS"
         if [ -n "${{ matrix.gtk_version }}" ]; then
@@ -128,12 +127,19 @@ jobs:
         popd
 
     - name: Remove wxWidgets
-      if: matrix.wxw_type != 'develop'
-      run: rm -rf $WXWIDGETS_ROOT
+      run: |
+        rm -rf $WXWIDGETS_ROOT
 
     - name: Setup Ruby gems
       run: |
-        bundle install
+        /bin/bash -o pipefail -c "xvfb-run -a -s '-screen 0 1600x1200x24' bundle install 2>&1 | tee -a gembuild.out" || rc=$?
+        if [ -n "$rc" ]; then
+          if fgrep -q '(core dumped)' gembuild.out; then
+            echo '*** Test crashed, trying to get more information ***'
+            gdb --quiet --core=core -ex 'where' -ex 'thread apply all bt' -ex 'q' --args $BUILD_CMD
+          fi
+          exit $rc
+        fi
 
     - name: Run wxRuby3-shapes regression tests
       run: |

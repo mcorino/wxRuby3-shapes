@@ -106,17 +106,23 @@ jobs:
       - name: Configure wxRuby3
         if: matrix.wxr_type == 'local'
         run: |
+          Push-Location $env:WXRUBY_ROOT
           bundle exec rake configure[--with-wxwin]
+          Pop-Location
 
       - name: Build wxRuby3
         if: matrix.wxr_type == 'local'
         run: |
+          Push-Location $env:WXRUBY_ROOT
           bundle exec rake build
+          Pop-Location
 
       - name: Build wxRuby3 bingem
         if: matrix.wxr_type == 'local'
         run: |
+          Push-Location $env:WXRUBY_ROOT
           bundle exec rake bingem
+          Pop-Location
 
       - name: Setup Ruby gems
         run: |
