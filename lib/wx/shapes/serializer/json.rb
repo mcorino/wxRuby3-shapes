@@ -167,8 +167,8 @@ module Wx::SF
           # enable safe deserializing
           self.start_safe_deserialize
           ::JSON.parse!(source,
-                        {create_additions: true,
-                        object_class: Serializable::JSON::ObjectHash})
+                        **{create_additions: true,
+                           object_class: Serializable::JSON::ObjectHash})
         ensure
           # reset safe deserializing
           self.end_safe_deserialize
