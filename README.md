@@ -1,3 +1,10 @@
+[![Linux wxGTK](https://github.com/mcorino/wxRuby3-shapes/actions/workflows/linux.yml/badge.svg)](https://github.com/mcorino/wxRuby3-shapes/actions/workflows/linux.yml)
+[![Windows wxMSW](https://github.com/mcorino/wxRuby3-shapes/actions/workflows/msw.yml/badge.svg)](https://github.com/mcorino/wxRuby3-shapes/actions/workflows/msw.yml)
+[![License](https://img.shields.io/badge/license-MIT-yellowgreen.svg)](LICENSE)
+[![Gem Version](https://badge.fury.io/rb/wxruby3-shapes.svg)](https://badge.fury.io/rb/wxruby3-shapes)
+
+[![Documentation](https://img.shields.io/badge/docs-pages-blue.svg)](https://mcorino.github.io/wxRuby3-shapes)
+
 # wx/shapes - A wxRuby3 2D shapes and diagramming framework
 
 ![wx/shapes demo](assets/screenshot.png)
