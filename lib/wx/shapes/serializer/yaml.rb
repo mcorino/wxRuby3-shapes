@@ -21,12 +21,23 @@ module Wx::SF
 
         ALLOWED_ALIASES = [Serializable::ID, Wx::Pen, Wx::Colour, Wx::Brush, Wx::Enum, Wx::Rect, Wx::Point, Wx::RealPoint, Wx::Size]
 
-        def revive(klass, node)
-          if Wx::SF::Serializable > klass
-            s = register(node, klass.create_for_deserialize(data = revive_hash({}, node, true)))
-            init_with(s, data, node)
-          else
-            super
+        if ::RUBY_VERSION >= '3.1.0'
+          def revive(klass, node)
+            if Wx::SF::Serializable > klass
+              s = register(node, klass.create_for_deserialize(data = revive_hash({}, node, true)))
+              init_with(s, data, node)
+            else
+              super
+            end
+          end
+        else
+          def revive(klass, node)
+            if Wx::SF::Serializable > klass
+              s = register(node, klass.create_for_deserialize(data = revive_hash({}, node)))
+              init_with(s, data, node)
+            else
+              super
+            end
           end
         end
         def visit_Psych_Nodes_Alias o
@@ -70,7 +81,7 @@ module Wx::SF
           allowed_classes =(YAML.serializables + Serializable.serializables.to_a).map(&:to_s)
           class_loader = RestrictedRelaxed.new(allowed_classes)
           scanner      = ::YAML::ScalarScanner.new(class_loader)
-          visitor = ::YAML::Visitors::NoAliasRuby.new(scanner, class_loader, symbolize_names: false, freeze: false)
+          visitor = ::YAML::Visitors::NoAliasRuby.new(scanner, class_loader)
           visitor.extend(YamlSerializePatch)
           result = visitor.accept result
         ensure
