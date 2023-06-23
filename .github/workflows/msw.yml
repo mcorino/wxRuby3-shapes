@@ -137,4 +137,9 @@ jobs:
 
       - name: Run wxRuby3-shapes regression tests
         run: |
-          bundle exec rake test
+          If ("${{ matrix.wxr_type }}" -eq "local") {
+            rake test
+          } 
+          Else {
+            bundle exec rake test
+          }
