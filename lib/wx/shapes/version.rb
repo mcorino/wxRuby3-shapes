@@ -5,7 +5,7 @@ module Wx
 
   module SF
 
-    VERSION = '0.9.0-beta.3'
+    VERSION = '0.9.0-beta.4'
 
   end
 
