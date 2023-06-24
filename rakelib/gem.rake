@@ -7,12 +7,12 @@ require_relative './gem'
 
 namespace :wxruby_shapes do
 
-  task :gem => ['bin:build', WXRuby3Shapes::Gem.gem_file('wxruby3', WXRuby3Shapes::WXSF_VERSION)]
+  task :gem => ['bin:build', WXRuby3Shapes::Gem.gem_file('wxruby3_shapes', WXRuby3Shapes::WXSF_VERSION)]
 
 end
 
 # source gem file
-file WXRuby3Shapes::Gem.gem_file('wxruby3', WXRuby3Shapes::WXSF_VERSION) => WXRuby3Shapes::Gem.manifest do
+file WXRuby3Shapes::Gem.gem_file('wxruby3_shapes', WXRuby3Shapes::WXSF_VERSION) => WXRuby3Shapes::Gem.manifest do
   gemspec = WXRuby3Shapes::Gem.define_spec('wxruby3-shapes', WXRuby3Shapes::WXSF_VERSION) do |gem|
     gem.summary = %Q{wxRuby3 2D shapes and diagramming framework}
     gem.description = %Q{wx/shapes is a pure Ruby library providing 2D shapes and diagramming framework base on wxRuby3}
@@ -29,7 +29,7 @@ file WXRuby3Shapes::Gem.gem_file('wxruby3', WXRuby3Shapes::WXSF_VERSION) => WXRu
     gem.add_dependency 'rake'
     gem.add_dependency 'minitest', '~> 5.15'
     gem.add_dependency 'test-unit', '~> 3.5'
-    gem.add_dependency 'wxruby3', '~> 0.9.0.pre.beta.12'
+    gem.add_dependency 'wxruby3', '~> 0.9.0.pre.beta.14'
     gem.metadata = {
       "bug_tracker_uri"   => "https://github.com/mcorino/wxRuby3-shapes/issues",
       "source_code_uri"   => "https://github.com/mcorino/wxRuby3-shapes",
@@ -56,5 +56,5 @@ file WXRuby3Shapes::Gem.gem_file('wxruby3', WXRuby3Shapes::WXSF_VERSION) => WXRu
   WXRuby3Shapes::Gem.build_gem(gemspec)
 end
 
-desc 'Build wxRuby3-shapes gem'
+desc 'Build wxruby3-shapes gem'
 task :gem => 'wxruby_shapes:gem'
