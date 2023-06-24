@@ -56,7 +56,7 @@ jobs:
             wxr_type: remote
 
     steps:
-      - name: Checkout wxRuby3-shapes
+      - name: Checkout wxRuby3/Shapes
         uses: actions/checkout@v3
 
       - name: checkout wxRuby3
@@ -135,7 +135,7 @@ jobs:
             bundle install 
           }
 
-      - name: Run wxRuby3-shapes regression tests
+      - name: Run wxRuby3/Shapes regression tests
         run: |
           If ("${{ matrix.wxr_type }}" -eq "local") {
             rake test

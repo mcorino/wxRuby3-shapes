@@ -1,5 +1,5 @@
 ###
-# wxRuby3-shapes rake gem support
+# wxRuby3/Shapes rake gem support
 # Copyright (c) M.J.N. Corino, The Netherlands
 ###
 

@@ -67,7 +67,7 @@ jobs:
       CC: ${{ matrix.CC }}
       CXX: ${{ matrix.CXX }}
     steps:
-    - name: Checkout wxRuby3-shapes
+    - name: Checkout wxRuby3/Shapes
       uses: actions/checkout@v3
 
     - name: Install Ruby
@@ -141,7 +141,7 @@ jobs:
           exit $rc
         fi
 
-    - name: Run wxRuby3-shapes regression tests
+    - name: Run wxRuby3/Shapes regression tests
       run: |
         ulimit -c unlimited
         TEST_CMD="bundle exec rake test"

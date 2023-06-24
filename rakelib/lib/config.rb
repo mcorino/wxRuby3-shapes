@@ -1,5 +1,5 @@
 ###
-# wxRuby3-shapes rake configuration
+# wxRuby3/Shapes rake configuration
 # Copyright (c) M.J.N. Corino, The Netherlands
 ###
 
@@ -27,10 +27,10 @@ module WXRuby3Shapes
     RB_CONFIG = ::Config::CONFIG
   end unless defined? RB_CONFIG
 
-  # Ruby 2.5 is the minimum version for wxRuby3-shapes
+  # Ruby 2.5 is the minimum version for wxRuby3/Shapes
   __rb_ver = RUBY_VERSION.split('.').collect {|v| v.to_i}
   if (__rb_major = __rb_ver.shift) < 2 || (__rb_major == 2 && __rb_ver.shift < 5)
-    STDERR.puts 'ERROR: wxRuby3-shapes requires Ruby >= 2.5.0!'
+    STDERR.puts 'ERROR: wxRuby3/Shapes requires Ruby >= 2.5.0!'
     exit(1)
   end
 

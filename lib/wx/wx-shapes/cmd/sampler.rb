@@ -12,7 +12,7 @@ module WxShapes
       }
 
       def self.description
-        "    sampler help|[SAMPLE [copy PATH]]\tRun wx/shapes sample application (or copy sample)."
+        "    sampler help|[SAMPLE [copy PATH]]\tRun wxRuby3/Shapes sample application (or copy sample)."
       end
 
       def self.run(argv)

@@ -7,15 +7,15 @@ require_relative './gem'
 
 namespace :wxruby_shapes do
 
-  task :gem => ['bin:build', WXRuby3Shapes::Gem.gem_file('wxruby3_shapes', WXRuby3Shapes::WXSF_VERSION)]
+  task :gem => ['bin:build', WXRuby3Shapes::Gem.gem_file('wxruby3-shapes', WXRuby3Shapes::WXSF_VERSION)]
 
 end
 
 # source gem file
-file WXRuby3Shapes::Gem.gem_file('wxruby3_shapes', WXRuby3Shapes::WXSF_VERSION) => WXRuby3Shapes::Gem.manifest do
+file WXRuby3Shapes::Gem.gem_file('wxruby3-shapes', WXRuby3Shapes::WXSF_VERSION) => WXRuby3Shapes::Gem.manifest do
   gemspec = WXRuby3Shapes::Gem.define_spec('wxruby3-shapes', WXRuby3Shapes::WXSF_VERSION) do |gem|
     gem.summary = %Q{wxRuby3 2D shapes and diagramming framework}
-    gem.description = %Q{wx/shapes is a pure Ruby library providing 2D shapes and diagramming framework base on wxRuby3}
+    gem.description = %Q{wx/shapes is a pure Ruby library providing 2D shapes and diagramming framework based on wxRuby3}
     gem.email = 'mcorino@m2c-software.nl'
     gem.homepage = "https://github.com/mcorino/wxRuby3-shapes"
     gem.authors = ['Martin Corino']
@@ -38,19 +38,19 @@ file WXRuby3Shapes::Gem.gem_file('wxruby3_shapes', WXRuby3Shapes::WXSF_VERSION) 
     }
     gem.post_install_message = <<~__MSG
 
-      wxRuby3-shapes has been successfully installed including the 'wx-shapes' utility.
+      wxRuby3/Shapes has been successfully installed including the 'wx-shapes' utility.
 
       You can run the regression tests to verify the installation by executing:
 
       $ ./wx-shapes test
 
-      The wxRuby3-shapes samples can be run by executing:
+      The wxRuby3/Shapes samples can be run by executing:
 
       $ ./wx-shapes sampler <sample>
 
       Where sample is 'sample1', 'sample2', 'sample3', 'sample4' or 'demo'.
 
-      Have fun using wxRuby3-shapes.
+      Have fun using wxRuby3/Shapes.
       __MSG
   end
   WXRuby3Shapes::Gem.build_gem(gemspec)

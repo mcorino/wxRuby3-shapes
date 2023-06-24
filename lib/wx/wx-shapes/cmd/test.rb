@@ -8,7 +8,7 @@ module WxShapes
   module Commands
     class Test
       def self.description
-        "    test\t\t\tRun wx/shapes regression tests."
+        "    test\t\t\tRun wxRuby3/Shapes regression tests."
       end
 
       def self.run(argv)
