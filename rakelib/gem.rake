@@ -15,7 +15,7 @@ end
 file WXRuby3Shapes::Gem.gem_file('wxruby3-shapes', WXRuby3Shapes::WXSF_VERSION) => WXRuby3Shapes::Gem.manifest do
   gemspec = WXRuby3Shapes::Gem.define_spec('wxruby3-shapes', WXRuby3Shapes::WXSF_VERSION) do |gem|
     gem.summary = %Q{wxRuby3 2D shapes and diagramming framework}
-    gem.description = %Q{wx/shapes is a pure Ruby library providing 2D shapes and diagramming framework based on wxRuby3}
+    gem.description = %Q{wxRuby3/Shapes is a pure Ruby library providing 2D shapes and diagramming framework based on wxRuby3}
     gem.email = 'mcorino@m2c-software.nl'
     gem.homepage = "https://github.com/mcorino/wxRuby3-shapes"
     gem.authors = ['Martin Corino']
