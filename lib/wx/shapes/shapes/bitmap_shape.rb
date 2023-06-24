@@ -80,7 +80,16 @@ module Wx::SF
           success = @bitmap.load_file(path, type ? type : Wx::BITMAP_TYPE_ANY)
           if success
             p = Pathname.new(art_path)
-            @art_path = p.relative? ? art_path : p.relative_path_from(Dir.getwd).to_s
+            if Wx::PLATFORM == 'WXMSW'
+              # take possibility of different drive into account
+              @art_path = if p.relative? || art_path[0] != Dir.getwd[0]
+                            art_path
+                          else
+                            p.relative_path_from(Dir.getwd).to_s
+                          end
+            else
+              @art_path = p.relative? ? art_path : p.relative_path_from(Dir.getwd).to_s
+            end
             @art_section = art_section
           end
         else
