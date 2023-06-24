@@ -16,7 +16,7 @@ module WxShapes
           description
         else
           Dir[File.join(WxShapes::ROOT, 'tests', 'test_*.rb')].each do |test|
-            system(RUBY, test)
+            exit(1) unless system(RUBY, test)
           end
         end
       end
