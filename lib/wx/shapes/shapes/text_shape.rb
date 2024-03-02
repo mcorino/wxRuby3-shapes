@@ -175,7 +175,7 @@ module Wx::SF
       size = @font.get_point_size * s
       size = 5 if size < 5
 
-      @font.set_point_size(size)
+      @font.set_point_size(size.to_i)
       update_rect_size
     end
 
