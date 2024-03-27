@@ -1247,12 +1247,12 @@ module Wx::SF
     #   @return [Wx::Rect] Device position
     def lp2dp(arg)
       if arg.is_a?(Wx::Rect)
-        x, y = calc_unscrolled_position(arg.x, arg.y)
+        x, y = calc_scrolled_position(arg.x, arg.y)
         Wx::Rect.new((x*@settings.scale).to_i, (y*@settings.scale).to_i,
                      (arg.width*@settings.scale).to_i, (arg.height*@settings.scale).to_i)
       else
         arg = arg.to_point
-        x, y = calc_unscrolled_position(arg.x, arg.y)
+        x, y = calc_scrolled_position(arg.x, arg.y)
         Wx::Point.new((x*@settings.scale).to_i, (y*@settings.scale).to_i)
       end
     end
