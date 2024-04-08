@@ -129,7 +129,7 @@ module Wx::SF
               else
                 @list.at(key.to_i)
               end
-      shape || (recursive && @list.find { |child| child.get(key, recursive) })
+      shape || (recursive && @list.find { |child| child.instance_variable_get('@child_shapes').get(key, recursive) })
     end
     alias :[] :get
 
