@@ -6,7 +6,7 @@ gem 'rake'
 gem 'minitest', '~> 5.15'
 gem 'test-unit', '~> 3.5'
 group :wxruby do
-  gem 'wxruby3', '~> 0.9.8'
+  gem 'wxruby3', '~> 1.1'
 end
 group :documentation, optional: true do
   gem 'nokogiri', '~> 1.12'
