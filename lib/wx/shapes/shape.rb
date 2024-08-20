@@ -465,7 +465,7 @@ module Wx::SF
       if parent_shape
         @relative_position + get_parent_absolute_position
       else
-        @relative_position.dup
+        @relative_position
       end
     end
 
@@ -841,7 +841,7 @@ module Wx::SF
     # @return [Wx::RealPoint] Current relative position
     # @see #get_absolute_position
     def get_relative_position
-      @relative_position.dup
+      @relative_position
     end
 
 	  # Set vertical alignment of this shape inside its parent

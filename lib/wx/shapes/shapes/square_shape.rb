@@ -56,7 +56,7 @@ module Wx::SF
     # @param [Shape::Handle] handle Reference to dragged handle
     # @see #on_handle
     def do_on_handle(handle)
-      prev_size = @rect_size.dup
+      prev_x, prev_y = @rect_size
   
       # perform standard operations
       case handle.type
@@ -75,7 +75,7 @@ module Wx::SF
       end
     
       # calculate common size and some auxiliary values
-      if (prev_size.x < @rect_size.x) || (prev_size.y < @rect_size.y)
+      if (prev_x < @rect_size.x) || (prev_y < @rect_size.y)
         if @rect_size.x >= @rect_size.y
           maxsize = @rect_size.x
         else

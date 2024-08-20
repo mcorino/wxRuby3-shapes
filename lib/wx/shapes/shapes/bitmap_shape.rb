@@ -152,7 +152,7 @@ module Wx::SF
     def do_begin_handle
       if @can_scale
         @rescale_in_progress = true
-        @prev_pos = get_absolute_position
+        @prev_pos = get_absolute_position.dup
       end
     end
 

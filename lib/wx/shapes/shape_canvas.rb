@@ -1433,7 +1433,7 @@ module Wx::SF
           shape_bb = shape.get_bounding_box
 
           if cnt == 0
-            min_pos = pos
+            min_pos = pos.dup
             max_pos = Wx::RealPoint.new(pos.x + shape_bb.width, pos.y + shape_bb.height)
           else
             min_pos.x = pos.x if pos.x < min_pos.x

@@ -405,11 +405,11 @@ module Wx::SF
         return get_direct_line if index == 0
       else
         if index == 0
-          return [get_src_point, @lst_points.first.dup]
+          return [get_src_point, @lst_points.first]
         elsif index == @lst_points.size
-          return [@lst_points.last.dup, get_trg_point]
+          return [@lst_points.last, get_trg_point]
         elsif index > 0 && index < @lst_points.size
-          return @lst_points[index-1, 2].collect {|p| p.dup}
+          return @lst_points[index-1, 2].collect {|p| p}
         end
       end
       [Wx::RealPoint.new, Wx::RealPoint.new]
@@ -589,7 +589,7 @@ module Wx::SF
     # @param [Wx::Point] pos Current mouse position
 	  # @see Wx::SF::ShapeCanvas
     def on_begin_drag(pos)
-      @prev_position = get_absolute_position
+      @prev_position = get_absolute_position.dup
 
       super
     end
@@ -824,7 +824,7 @@ module Wx::SF
     
       if @src_offset != DEFAULT::OFFSET
         bb_rct = src_shape.get_bounding_box
-        mod_point = src_shape.get_absolute_position
+        mod_point = src_shape.get_absolute_position.dup
     
         mod_point.x += bb_rct.width.to_f * @src_offset.x
         mod_point.y += bb_rct.height.to_f * @src_offset.y
@@ -846,7 +846,7 @@ module Wx::SF
 
       if @trg_offset != DEFAULT::OFFSET
         bb_rct = trg_shape.get_bounding_box
-        mod_point = trg_shape.get_absolute_position
+        mod_point = trg_shape.get_absolute_position.dup
 
         mod_point.x += bb_rct.width.to_f * @trg_offset.x
         mod_point.y += bb_rct.height.to_f * @trg_offset.y
