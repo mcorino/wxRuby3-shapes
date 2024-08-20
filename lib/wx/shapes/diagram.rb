@@ -246,9 +246,7 @@ module Wx::SF
       end
 
       # remove the shape and it's children from canvas cache and shape index list
-      lst_children.each do |child|
-        @shape_canvas.send(:remove_from_temporaries, shape) if @shape_canvas
-      end
+      @shape_canvas.send(:remove_from_temporaries, shape) if @shape_canvas
 
       # remove the shape
       shape.set_parent_shape(nil) # also removes shape from parent if it had a parent
