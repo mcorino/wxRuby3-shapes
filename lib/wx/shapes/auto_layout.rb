@@ -145,7 +145,7 @@ module Wx::SF
         rct_bb = node.get_bounding_box
         curr_max_width = rct_bb.width if rct_bb.width > curr_max_width
         
-        lst_neighbours = node.get_neighbours(Shape, Shape::CONNECTMODE::STARTING)
+        lst_neighbours = node.get_neighbours(LineShape, Shape::CONNECTMODE::STARTING)
     
         if lst_neighbours.empty?
           min_x += curr_max_width + @h_space
@@ -204,7 +204,7 @@ module Wx::SF
         rct_bb = node.get_bounding_box
         curr_max_height = rct_bb.height if rct_bb.height > curr_max_height
 
-        lst_neighbours = node.get_neighbours(Shape, Shape::CONNECTMODE::STARTING)
+        lst_neighbours = node.get_neighbours(LineShape, Shape::CONNECTMODE::STARTING)
 
         if lst_neighbours.empty?
           min_y += curr_max_height + @v_space
