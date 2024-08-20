@@ -421,18 +421,19 @@ module Wx::SF
     
       # calculate control points area if they exist
       if !@lst_points.empty?
-        prev_pt = get_src_point
+        prev_pt = get_src_point.to_point
     
         @lst_points.each do |pt|
+          pt = pt.to_point
           if line_rct.nil?
-            line_rct = Wx::Rect.new(prev_pt.to_point, pt.to_point)
+            line_rct = Wx::Rect.new(prev_pt, pt)
           else
-            line_rct.union!(Wx::Rect.new(prev_pt.to_point, pt.to_point))
+            line_rct.union!(Wx::Rect.new(prev_pt, pt))
           end
           prev_pt = pt
         end
     
-        line_rct.union!(Wx::Rect.new(prev_pt.to_point, get_trg_point.to_point))
+        line_rct.union!(Wx::Rect.new(prev_pt, get_trg_point.to_point))
       else
         # include starting point
         pt = get_src_point
