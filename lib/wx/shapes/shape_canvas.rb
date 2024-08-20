@@ -192,37 +192,32 @@ module Wx::SF
 
     # Default values
     module DEFAULT
-      # Default value of Wx::SF::CanvasSettings @background_color data member
-      BACKGROUNDCOLOR = Wx::Colour.new(240, 240, 240) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :BACKGROUNDCOLOR) { Wx::Colour.new(240, 240, 240) }
+      class << self
+        # Default value of Wx::SF::CanvasSettings @background_color data member
+        def background_color; Wx::Colour.new(240, 240, 240); end
+        # Default value of Wx::SF::CanvasSettings @common_hover_color data member
+        def hover_color; Wx::Colour.new(120, 120, 255); end
+        # Default value of Wx::SF::CanvasSettings @grid_color data member
+        def grid_color; Wx::Colour.new(200, 200, 200); end
+        # Default value of Wx::SF::CanvasSettings @gradient_from data member
+        def gradient_from; Wx::Colour.new(240, 240, 240); end
+        # Default value of Wx::SF::CanvasSettings @gradient_to data member
+        def gradient_to; Wx::Colour.new(200, 200, 255); end
+        # Default shadow colour
+        def shadow_color; Wx::Colour.new(150, 150, 150, 128); end
+        # Default value of Wx::SF::CanvasSettings @shadow_fill data member
+        def shadow_brush; Wx::Brush.new(shadow_color, Wx::BrushStyle::BRUSHSTYLE_SOLID); end
+      end
       # Default value of Wx::SF::CanvasSettings @grid_size data member
       GRIDSIZE = Wx::Size.new(10, 10)
       # Default value of Wx::SF::CanvasSettings @grid_line_mult data member
       GRIDLINEMULT = 1
-      # Default value of Wx::SF::CanvasSettings @grid_color data member
-      GRIDCOLOR = Wx::Colour.new(200, 200, 200) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :GRIDCOLOR) { Wx::Colour.new(200, 200, 200) }
       # Default value of Wx::SF::CanvasSettings @grid_style data member
       GRIDSTYLE = Wx::PenStyle::PENSTYLE_SOLID
-      # Default value of Wx::SF::CanvasSettings @common_hover_color data member
-      HOVERCOLOR = Wx::Colour.new(120, 120, 255) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :HOVERCOLOR) { Wx::Colour.new(120, 120, 255) }
-      # Default value of Wx::SF::CanvasSettings @gradient_from data member
-      GRADIENT_FROM = Wx::Colour.new(240, 240, 240) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :GRADIENT_FROM) { Wx::Colour.new(240, 240, 240) }
-      # Default value of Wx::SF::CanvasSettings @gradient_to data member
-      GRADIENT_TO = Wx::Colour.new(200, 200, 255) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :GRADIENT_TO) { Wx::Colour.new(200, 200, 255) }
       # Default value of Wx::SF::CanvasSettings @style data member
       CANVAS_STYLE = STYLE::DEFAULT_CANVAS_STYLE
       # Default value of Wx::SF::CanvasSettings @shadow_offset data member
       SHADOWOFFSET = Wx::RealPoint.new(4, 4)
-      # Default shadow colour 
-      SHADOWCOLOR = Wx::Colour.new(150, 150, 150, 128) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :SHADOWCOLOR) { Wx::Colour.new(150, 150, 150, 128) }
-      # Default value of Wx::SF::CanvasSettings @shadow_fill data member
-      SHADOWBRUSH = Wx::Brush.new(SHADOWCOLOR.call, Wx::BrushStyle::BRUSHSTYLE_SOLID) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :SHADOWBRUSH) { Wx::Brush.new(Wx::Colour.new(150, 150, 150, 128), Wx::BrushStyle::BRUSHSTYLE_SOLID) }
       # Default value of Wx::SF::CanvasSettings @print_h_align data member
       PRINT_HALIGN = HALIGN::CENTER
       # Default value of Wx::SF::CanvasSettings @print_v_align data member
@@ -363,17 +358,17 @@ module Wx::SF
         @scale = 1.0
         @min_scale = SCALE_MIN
         @max_scale = SCALE_MAX
-        @background_color = BACKGROUNDCOLOR
-        @common_hover_color = HOVERCOLOR
+        @background_color = DEFAULT.background_color
+        @common_hover_color = DEFAULT.hover_color
         @grid_size = GRIDSIZE.dup
         @grid_line_mult = GRIDLINEMULT
-        @grid_color = GRIDCOLOR
+        @grid_color = DEFAULT.grid_color
         @grid_style = GRIDSTYLE
-        @gradient_from = GRADIENT_FROM
-        @gradient_to = GRADIENT_TO
+        @gradient_from = DEFAULT.gradient_from
+        @gradient_to = DEFAULT.gradient_to
         @style = CANVAS_STYLE
         @shadow_offset = SHADOWOFFSET.dup
-        @shadow_fill = SHADOWBRUSH
+        @shadow_fill = DEFAULT.shadow_brush
         @print_h_align = PRINT_HALIGN
         @print_v_align = PRINT_VALIGN
         @print_mode = PRINT_MODE
