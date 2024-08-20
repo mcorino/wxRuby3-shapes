@@ -9,11 +9,12 @@ module Wx::SF
 
     # Default values
     module DEFAULT
+      class << self
+        # Default value of LineShape @pen data member.
+        def pen; Wx::Pen.new(Wx::BLACK); end
+     end
       # Default value of undefined ID. 
       UNKNOWNID = nil
-      # Default value of LineShape @pen data member.
-      PEN = Wx::Pen.new(Wx::BLACK) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :PEN) { Wx::Pen.new(Wx::BLACK) }
       # Default value of LineShape @dock_point data member.
       DOCKPOINT = 0
       # Default value of LineShape @dock_point data member (start line point).
@@ -89,7 +90,7 @@ module Wx::SF
       @trg_arrow = nil
 
       @dock_point = DEFAULT::DOCKPOINT
-      @pen = DEFAULT::PEN
+      @pen = DEFAULT.pen
 
       @src_offset = DEFAULT::OFFSET.dup
       @trg_offset = DEFAULT::OFFSET.dup

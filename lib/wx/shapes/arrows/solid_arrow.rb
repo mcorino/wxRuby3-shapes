@@ -19,8 +19,8 @@ module Wx::SF
     # @param [Wx::SF::Shape] parent parent shape
     def initialize(parent=nil)
       super
-      @fill = DEFAULT::FILL
-      @pen = DEFAULT::BORDER
+      @fill = DEFAULT.fill
+      @pen = DEFAULT.border
     end
 
     # Get arrow fill brush

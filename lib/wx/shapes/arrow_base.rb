@@ -11,10 +11,10 @@ module Wx::SF
     include Wx::SF::Serializable
 
     module DEFAULT
-      FILL = Wx::Brush.new(Wx::WHITE) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :FILL) { Wx::Brush.new(Wx::WHITE) }
-      BORDER = Wx::Pen.new(Wx::BLACK) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :BORDER) { Wx::Pen.new(Wx::BLACK) }
+      class << self
+        def fill; Wx::Brush.new(Wx::WHITE); end
+        def border; Wx::Pen.new(Wx::BLACK); end
+      end
     end
 
     # Constructor

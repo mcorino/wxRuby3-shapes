@@ -123,10 +123,10 @@ module Wx::SF
     module DEFAULT
       CONTROLOFFSET = 0
       PROCESSEVENTS = EVTPROCESSING::KEY2CANVAS | EVTPROCESSING::MOUSE2CANVAS
-      MODFILL = Wx::Brush.new(Wx::BLUE, Wx::BrushStyle::BRUSHSTYLE_BDIAGONAL_HATCH) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :MODFILL) { Wx::Brush.new(Wx::BLUE, Wx::BrushStyle::BRUSHSTYLE_BDIAGONAL_HATCH) }
-      MODBORDER = Wx::Pen.new(Wx::BLUE, 1, Wx::PenStyle::PENSTYLE_SOLID) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :MODBORDER) { Wx::Pen.new(Wx::BLUE, 1, Wx::PenStyle::PENSTYLE_SOLID) }
+      class << self
+        def mod_fill; Wx::Brush.new(Wx::BLUE, Wx::BrushStyle::BRUSHSTYLE_BDIAGONAL_HATCH); end
+        def mod_border; Wx::Pen.new(Wx::BLUE, 1, Wx::PenStyle::PENSTYLE_SOLID); end
+      end
     end
 
     property :event_processing, :control_offset, :mod_fill, :mod_border
@@ -150,8 +150,8 @@ module Wx::SF
       end
       add_style(Shape::STYLE::PROCESS_DEL)
       @process_events = DEFAULT::PROCESSEVENTS
-      @mod_fill = DEFAULT::MODFILL
-      @mod_border = DEFAULT::MODBORDER
+      @mod_fill = DEFAULT.mod_fill
+      @mod_border = DEFAULT.mod_border
       @control_offset = DEFAULT::CONTROLOFFSET
 
       @event_sink = EventSink.new(self)

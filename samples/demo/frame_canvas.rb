@@ -33,8 +33,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     # set_background_colour(DEFAULT::SHAPECANVAS_BACKGROUNDCOLOR)
     # ... or by a gradient fill
     add_style(STYLE::GRADIENT_BACKGROUND)
-    set_gradient_from(DEFAULT::GRADIENT_FROM)
-    set_gradient_to(DEFAULT::GRADIENT_TO)
+    set_gradient_from(DEFAULT.gradient_from)
+    set_gradient_to(DEFAULT.gradient_to)
 
     # also shadows style can be set here:
     # set_shadow_fill(Wx::Brush.new(Wx::Colour.new(100, 100, 100), Wx::CROSSDIAG_HATCH)) # standard values can be DEFAULT::SHAPECANVAS_SHADOWBRUSH or DEFAULT::SHAPECANVAS_SHADOWCOLOR
@@ -146,6 +146,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     when MainFrame::MODE::FIXEDRECT
       _, shape = get_diagram.create_shape(Wx::SF::SquareShape, event.get_position, Wx::SF::DONT_SAVE_STATE)
       if shape
+        shape.get_border.set_width(10)
         # set shape policy
         shape.accept_child(Wx::SF::TextShape)
         shape.accept_child(Wx::SF::EditTextShape)

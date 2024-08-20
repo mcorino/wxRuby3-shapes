@@ -132,13 +132,14 @@ module Wx::SF
 
     # Default values
     module DEFAULT
+      class << self
+        # Default value of Wx::SF::Shape @hoverColor data member
+        def hover_colour; Wx::Colour.new(120, 120, 255); end
+      end
       # Default value of Wx::SF::Shape @visible data member
       VISIBILITY = true
       # Default value of Wx::SF::Shape @active data member
       ACTIVITY = true
-      # Default value of Wx::SF::Shape @hoverColor data member
-      HOVERCOLOUR = Wx::Colour.new(120, 120, 255) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :HOVERCOLOUR) { Wx::Colour.new(120, 120, 255) }
       # Default value of Wx::SF::Shape @relativePosition data member
       POSITION = Wx::RealPoint.new(0, 0)
       # Default value of Wx::SF::Shape @vAlign data member
@@ -251,10 +252,10 @@ module Wx::SF
         if @diagram.shape_canvas
           @hover_color = @diagram.shape_canvas.hover_colour
         else
-          @hover_color = DEFAULT::HOVERCOLOUR;
+          @hover_color = DEFAULT.hover_colour;
         end
       else
-        @hover_color = DEFAULT::HOVERCOLOUR;
+        @hover_color = DEFAULT.hover_colour;
       end
 
       @selected = false

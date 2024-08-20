@@ -7,14 +7,14 @@ module Wx::SF
 
     # default values
     module DEFAULT
+      class << self
+        # Default value of RectShape @fill data member.
+        def fill; Wx::Brush.new(Wx::WHITE); end
+        # Default value of RectShape @border data member.
+        def border; Wx::Pen.new(Wx::BLACK); end
+      end
       # Default value of RectShape @rect_size data member.
       SIZE = Wx::RealPoint.new(100, 50)
-      # Default value of RectShape @fill data member.
-      FILL = Wx::Brush.new(Wx::WHITE) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :FILL) { Wx::Brush.new(Wx::WHITE) }
-      # Default value of RectShape @border data member.
-      BORDER = Wx::Pen.new(Wx::BLACK) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :BORDER) { Wx::Pen.new(Wx::BLACK) }
     end
 
     property :rect_size, :fill, :border
@@ -35,8 +35,8 @@ module Wx::SF
         super(pos, diagram)
       end
       @rect_size = size ? size.to_real_point : DEFAULT::SIZE.dup
-      @fill = DEFAULT::FILL
-      @border = DEFAULT::BORDER
+      @fill = DEFAULT.fill
+      @border = DEFAULT.border
       @prev_size = @prev_position = Wx::RealPoint
     end
 
@@ -200,7 +200,7 @@ module Wx::SF
     end
 
     # Scale the shape size by in both directions. The function can be overridden if necessary
-    # (new implementation should call default one ore scale shape's children manualy if neccesary).
+    # (new implementation should call default one ore scale shape's children manually if necessary).
     # @param [Float] x Horizontal scale factor
     # @param [Float] y Vertical scale factor
     # @param [Boolean] children true if the shape's children should be scaled as well, otherwise the shape will be updated after scaling via update() function.

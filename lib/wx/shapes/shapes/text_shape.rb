@@ -9,12 +9,12 @@ module Wx::SF
 
     # default values
     module DEFAULT
-      # Default value of TextShape @font data member.
-      FONT = Wx::SWISS_FONT if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :FONT) { Wx::SWISS_FONT }
-      # Default value of TextShape @text_color data member.
-      TEXTCOLOR = Wx::BLACK if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :TEXTCOLOR) { Wx::BLACK }
+      class << self
+        # Default value of TextShape @font data member.
+        def font; Wx::SWISS_FONT; end
+        # Default value of TextShape @text_color data member.
+        def text_color; Wx::BLACK; end
+      end
     end
 
     property :font, :text_colour, :text
@@ -34,12 +34,12 @@ module Wx::SF
         pos, txt, diagram = args
         super(pos, Wx::RealPoint.new, diagram)
       end
-      @font = DEFAULT::FONT
+      @font = DEFAULT.font
       @font.set_point_size(12)
 
       @line_height = 12
 
-      @text_color = DEFAULT::TEXTCOLOR
+      @text_color = DEFAULT.text_color
       @text = txt || 'Text'
 
       @fill = Wx::TRANSPARENT_BRUSH
