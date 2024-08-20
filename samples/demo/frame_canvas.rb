@@ -146,7 +146,6 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     when MainFrame::MODE::FIXEDRECT
       _, shape = get_diagram.create_shape(Wx::SF::SquareShape, event.get_position, Wx::SF::DONT_SAVE_STATE)
       if shape
-        shape.get_border.set_width(10)
         # set shape policy
         shape.accept_child(Wx::SF::TextShape)
         shape.accept_child(Wx::SF::EditTextShape)
