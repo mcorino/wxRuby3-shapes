@@ -13,7 +13,7 @@ module Wx::SF
   WITHOUTCHILDREN = false
   ANY = nil
   DELAYED = true
-  ACCEPT_ALL = :*
+  ACCEPT_ALL = ::NilClass
 
   INCLUDE_PARENTS = true
   WITHOUT_PARENTS = false
