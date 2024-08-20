@@ -22,7 +22,7 @@ module Wx::SF
       # Default value of LineShape @dock_point data member (end line point).
       DOCKPOINT_END = -2
       # Default value of LineShape @dock_point data member (middle dock point).
-      DOCKPOINT_CENTER = 2**64
+      DOCKPOINT_CENTER = (2**64).to_i
       # Default value of LineShape @src_offset and LineShape @trg_offset data members.
       OFFSET = Wx::RealPoint.new(-1, -1)
       # Default value of LineShape @src_point and LineShape @trg_point data members.
