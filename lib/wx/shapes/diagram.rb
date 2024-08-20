@@ -28,7 +28,7 @@ module Wx::SF
     end
 
     # Returns the shape canvas.
-    # @return [Wx::SF::ShapeCanvas]
+    # @return [Wx::SF::ShapeCanvas, nil]
     def get_shape_canvas
       @shape_canvas
     end
@@ -81,7 +81,7 @@ module Wx::SF
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new connection object. the object is added to the shape canvas automatically.
     # @see start_interactive_connection
     def create_connection(src_id, trg_id, *rest)
-      err = shape = nil
+      shape = nil
       if rest.first.is_a?(LineShape)
         line = rest.shift
         save_state = rest.empty? ? true : rest.shift
@@ -131,7 +131,7 @@ module Wx::SF
 
         parent_shape = nil
         # update given position
-        lpos = pos;
+        lpos = pos
         lpos = @shape_canvas.fit_position_to_grid(@shape_canvas.dp2lp(pos)) if @shape_canvas
         # line shapes can be assigned to root only
         parent_shape = get_shape_at_position(lpos) unless shape.is_a?(LineShape)
@@ -417,7 +417,7 @@ module Wx::SF
 
     # Find shape with given ID.
     # @param [Wx::SF::Serializable::ID] id Shape's ID
-    # @return [Wx::SF::Shape] shape if exists, otherwise nil
+    # @return [Wx::SF::Shape, nil] shape if exists, otherwise nil
     def find_shape(id)
       @shapes.get(id, true)
     end
@@ -430,7 +430,7 @@ module Wx::SF
     # @return [Array<Wx::SF::Shape>] shape list
 	  # @see Wx::SF::Shape::CONNECTMODE
     def get_assigned_connections(parent, shape_info, mode, lines = [])
-      return lines unless parent && parent.get_id
+      return lines unless parent&.get_id
 
       # lines are all toplevel so we do not have to search recursively...
       lst_lines = @shapes.select { |shape| shape.is_a?(shape_info) }
@@ -478,7 +478,7 @@ module Wx::SF
 	  # @param [Wx::Point] pos Logical position
 	  # @param [Integer] zorder Z-order of searched shape (useful if several shapes are located at the given position)
 	  # @param [SEARCHMODE] mode Search mode
-	  # @return [Wx::SF::Shape] shape if found, otherwise nil
+	  # @return [Wx::SF::Shape, nil] shape if found, otherwise nil
 	  # @see SEARCHMODE
     # @see Wx::SF::ShapeCanvas::dp2lp
     # @see Wx::SF::ShapeCanvas#get_shape_under_cursor
@@ -576,6 +576,7 @@ module Wx::SF
           shape.get_neighbours(shape_info, condir, direct, neighbours)
         end
       end
+      neighbours
     end
 
     private
