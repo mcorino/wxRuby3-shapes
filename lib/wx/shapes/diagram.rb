@@ -628,11 +628,24 @@ module Wx::SF
       end
     end
 
-    # Shape lis (de-)serialization
+    # Shape list (de-)serialization
     def serialize_shapes(*arg)
       unless arg.empty?
-        @shapes = arg.shift
-        @shapes.each { |shape| shape.set_diagram(self); shape.create_handles }
+        @shapes = arg.shift # get deserialized shapes
+        # initialize deserialized shapes
+        @shapes.each do |shape|
+          # set diagram for shape (incl. children)
+          shape.set_diagram(self)
+          shape.create_handles
+          if has_children(shape)
+            # get shape's children (if exist)
+            lst_children = shape.get_child_shapes(ANY, RECURSIVE)
+            # initialize shape's children
+            lst_children.each do |child|
+              child.create_handles
+            end
+          end
+        end
       end
       @shapes
     end
