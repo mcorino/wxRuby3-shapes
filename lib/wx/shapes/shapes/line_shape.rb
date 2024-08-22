@@ -725,7 +725,7 @@ module Wx::SF
         # draw unfinished line segment if any (for interactive line creation)
         dc.with_pen(Wx::Pen.new(Wx::BLACK, 1, Wx::PENSTYLE_DOT)) do
           if @lst_points.size > 0
-            dc.draw_line(trg, @unfinished_point)
+            dc.draw_line(trg.to_point, @unfinished_point)
           else
             src_shape = diagram.find_shape(@src_shape_id)
             if src_shape
