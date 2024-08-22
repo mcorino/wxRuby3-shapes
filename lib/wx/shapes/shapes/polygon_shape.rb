@@ -166,12 +166,14 @@ module Wx::SF
     def fit_vertices_to_bounding_box
       minx, miny, maxx, maxy = get_extents
 
-      sx = rect_size.x/(maxx - minx)
-      sy = rect_size.y/(maxy - miny)
+      width = (maxx - minx)
+      height = (maxy - miny)
+      sx = rect_size.x/width
+      sy = rect_size.y/height
 
       @vertices.each do |pt|
-        pt.x *= sx
-        pt.y *= sy
+        pt.x = (width != 0.0) ? pt.x*sx : minx
+        pt.y = (height != 0.0) ? pt.y*sy : miny
       end
     end
 
