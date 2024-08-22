@@ -6,14 +6,12 @@ module Wx
   class RealPoint
 
     # Returns distance from this point to given point.
-    # @param [Wx::RealPoint,Wx::Point,Array(Integer,Integer)] pt2
+    # @param [Wx::RealPoint,Wx::Point,Array(Integer,Integer),Array(Float,Float)] pt2
     # @return [Float] distance to given point
     def distance_to(pt2)
-      if Array === pt2 && pt2.size == 2
-        to_x, to_y = pt2
-      else
-        to_x = pt2.x; to_y = pt2.y
-      end
+      to_x, to_y = pt2
+      to_x = to_x.to_f
+      to_y = to_y.to_f
       Math.sqrt((to_x - self.x)*(to_x - self.x) + (to_y - self.y)*(to_y - self.y))
     end
     alias :distance :distance_to
