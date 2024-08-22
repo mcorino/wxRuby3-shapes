@@ -356,6 +356,15 @@ module Wx::SF
       nil
     end
 
+
+    # Find child shape with given ID.
+    # @param [Wx::SF::Serializable::ID] id Shape's ID
+    # @param [Boolean] recursive pass true to search recursively, false for non-recursive
+    # @return [Wx::SF::Shape, nil] shape if exists, otherwise nil
+    def find_child_shape(id, recursive = false)
+      @child_shapes.get(id, recursive)
+    end
+
     # Set parent shape object.
     # @param [Wx::SF::Shape] parent
     # @note Note that this does not check this shape against the acceptance list of the parent. Use #add_child_shape if that is required.

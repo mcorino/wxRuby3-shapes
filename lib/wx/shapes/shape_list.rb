@@ -129,11 +129,20 @@ module Wx::SF
               else
                 @list.at(key.to_i)
               end
-      shape || (recursive && @list.find { |child| child.instance_variable_get('@child_shapes').get(key, recursive) })
+      shape || (recursive && key.is_a?(Serializable::ID) && find_child_shape(key, recursive))
     end
     alias :[] :get
 
     private
+
+    # Find (first) child shape with given ID.
+    # @param [Wx::SF::Serializable::ID] id Shape's ID
+    # @param [Boolean] recursive pass true to search recursively, false for non-recursive
+    # @return [Wx::SF::Shape, nil] shape if exists, otherwise nil
+    def find_child_shape(id, recursive = false)
+      child = nil
+      @list.find { |shape| child = shape.find_child_shape(id, recursive) } && child
+    end
 
     # Get shape array. Serialization only.
     # @return [Array<Shape>]
