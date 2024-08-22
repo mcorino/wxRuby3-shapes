@@ -3,7 +3,7 @@
 
 module Wx
 
-  class Wx::RealPoint
+  class RealPoint
 
     # Returns distance from this point to given point.
     # @param [Wx::RealPoint,Wx::Point,Array(Integer,Integer)] pt2
