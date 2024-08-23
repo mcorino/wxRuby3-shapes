@@ -102,8 +102,8 @@ module Wx::SF
       HIGHLIGHTING = self.new(16)
       # Shape is always inside its parent
       ALWAYS_INSIDE = self.new(32)
-      # User data is destroyed at the shape deletion
-      DELETE_USER_DATA = self.new(64)
+      # available
+      # XXX = self.new(64)
       # The DEL key is processed by the shape (not by the shape canvas)
       PROCESS_DEL = self.new(128)
       # Show handles if the shape is selected
@@ -127,7 +127,7 @@ module Wx::SF
       # Propagate hovering to parent.
       PROPAGATE_HIGHLIGHTING = self.new(131072)
       # Default shape style
-      DEFAULT_SHAPE_STYLE = PARENT_CHANGE | POSITION_CHANGE | SIZE_CHANGE | HOVERING | HIGHLIGHTING | SHOW_HANDLES | ALWAYS_INSIDE | DELETE_USER_DATA
+      DEFAULT_SHAPE_STYLE = PARENT_CHANGE | POSITION_CHANGE | SIZE_CHANGE | HOVERING | HIGHLIGHTING | SHOW_HANDLES | ALWAYS_INSIDE
     end
 
     # Default values
@@ -511,7 +511,7 @@ module Wx::SF
 
     # Set shape's style.
     #
-    # Default value is STYLE::PARENT_CHANGE | STYLE::POSITION_CHANGE | STYLE::SIZE_CHANGE | STYLE::HOVERING | STYLE::HIGHLIGHTING | STYLE::SHOW_HANDLES | STYLE::ALWAYS_INSIDE | STYLE::DELETE_USER_DATA
+    # Default value is STYLE::PARENT_CHANGE | STYLE::POSITION_CHANGE | STYLE::SIZE_CHANGE | STYLE::HOVERING | STYLE::HIGHLIGHTING | STYLE::SHOW_HANDLES | STYLE::ALWAYS_INSIDE
     # @param [Integer] style Combination of the shape's styles
     # @see STYLE
     def set_style(style)
