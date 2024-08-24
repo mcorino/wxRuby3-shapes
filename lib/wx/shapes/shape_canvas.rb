@@ -1021,7 +1021,7 @@ module Wx::SF
           end
 
           # verify newly added shapes (may remove shapes from list)
-          @diagram.send(:check_new_shapes, new_shapes)
+          @diagram.send(:on_import, new_shapes)
 
           update_virtual_size # update for new shapes
 
@@ -3234,7 +3234,7 @@ module Wx::SF
           end
 
           # verify newly added shapes (may remove shapes from list)
-          @diagram.send(:check_new_shapes, lst_new_content)
+          @diagram.send(:on_import, lst_new_content)
 
           update_virtual_size # update for new shapes
 
