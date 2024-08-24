@@ -204,7 +204,7 @@ module Wx::SF
     # @param [Float] x Horizontal scale factor
     # @param [Float] y Vertical scale factor
     # @param [Boolean] children true if the shape's children should be scaled as well, otherwise the shape will be updated after scaling via update() function.
-    def scale(x, y, children = WITHCHILDREN)
+    def scale(x, y, children: WITHCHILDREN)
       # HINT: overload it for custom actions...
       if x > 0 && y > 0
         scale_rectangle(x, y)

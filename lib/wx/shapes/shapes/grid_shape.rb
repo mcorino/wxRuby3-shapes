@@ -2,6 +2,7 @@
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/shapes/rect_shape'
+require 'wx/shapes/shapes/manager_shape'
 
 module Wx::SF
   
@@ -9,6 +10,8 @@ module Wx::SF
   # container able to manage other assigned child shapes (it can control their position). The managed
   # shapes are aligned into defined grid with a behaviour similar to classic Wx::GridSizer class.
   class GridShape < RectShape
+
+    include ManagerShape
 
     # default values
     module DEFAULT
@@ -108,26 +111,41 @@ module Wx::SF
       end
     end
 
+    # Clear the cell at given row and column index
+    # @param [Integer] row
+    # @param [Integer] col
+    # @return [Boolean] true if cell existed, false otherwise
+    # Note that this function doesn't remove managed (child) shapes from the parent grid shape
+    # (they are still its child shapes but aren't managed anymore).
     def clear_cell(row, col)
       if row>=0 && row<@rows && col>=0 && col<@cols
         @cells[row*@cols + col] = nil
+        true
+      else
+        false
       end
     end
 
+    # Get the shape Id stored in cell at given row and column index
+    # @param [Integer] row
+    # @param [Integer] col
+    # @return [Wx::SF::Serializable::ID, nil] id if cell exists and not empty, nil otherwise
     def get_cell(row, col)
       if row>=0 && row<@rows && col>=0 && col<@cols
         @cells[row*@cols + col]
+      else
+        nil
       end
     end
 
     # Get managed shape specified by lexicographic cell index.
     # @overload get_managed_shape(index)
     #   @param [Integer] index Lexicographic index of requested shape
-    #   @return [Shape] shape object of given cell index if exists, otherwise nil
+    #   @return [Shape, nil] shape object of given cell index if exists, otherwise nil
     # @overload get_managed_shape(row, col)
     #   @param [Integer] row Zero-base row index
     #   @param [Integer] col Zero-based column index
-    #   @return [Shape] shape object stored in specified grid cell if exists, otherwise nil
+    #   @return [Shape, nil] shape object stored in specified grid cell if exists, otherwise nil
     def get_managed_shape(*args)
       index = args.size == 1 ? args.first : (args[0]*@cols)+args[1]
       if index>=0 && index<@cells.size && @cells[index]
@@ -240,7 +258,7 @@ module Wx::SF
       @cells.delete(id)
     end
 
-    # Update shape (align all child shapes an resize it to fit them)
+    # Update shape (align all child shapes and resize it to fit them)
     def update
       # check for existence of de-assigned shapes
       @cells.delete_if do |id|
@@ -267,9 +285,7 @@ module Wx::SF
 
     # Resize the shape to bound all child shapes. The function can be overridden if necessary.
     def fit_to_children
-      # HINT: overload it for custom actions...
-  
-      # get bounding box of the shape and children set be inside it
+      # get bounding box of the shape and children set to be inside it
       abs_pos = get_absolute_position
       ch_bb = Wx::Rect.new(abs_pos.to_point, [0, 0])
   
@@ -324,6 +340,15 @@ module Wx::SF
     end
 
     protected
+
+    # called after the shape has been newly imported/pasted/dropped
+    # checks the cells for stale links
+    def on_import
+      # check for existence of non-included shapes
+      @cells.delete_if do |id|
+        @child_shapes.find { |child| child.id == id }.nil?
+      end
+    end
 
     # Move and resize given shape so it will fit the given bounding rectangle.
     #

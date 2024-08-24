@@ -579,8 +579,8 @@ module Wx::SF
 
     private
 
-    # Update connection shapes after importing/dropping of new shapes
-    def check_new_shapes(new_shapes)
+    # Update shapes after importing/dropping of new shapes
+    def on_import(new_shapes)
       # deserializing will create unique ids synchronized across all deserialized shapes
       # lines and both connected shapes should have matching ids
       # we will remove any lines for which one or both connected shapes are missing (not copied)
@@ -600,29 +600,16 @@ module Wx::SF
           true # keep
         end
       end
-      # deserializing will create unique ids synchronized across all deserialized shapes
-      # so that grids and shapes linked to it's cells should have matching ids
-      # we will clear any cells for which shapes are missing (not copied)
-      update_grids(new_shapes) unless new_shapes.empty?
-    end
-
-    # Update grid shapes after importing/dropping of new shapes
-    def update_grids(new_shapes)
-      # deserializing will create unique ids synchronized across all deserialized shapes
-      # so that grids and shapes linked to it's cells will have matching ids
-      # we will clear any cells for which shapes are missing (not copied)
+      # deserializing will create unique ids which should have synchronized across
+      # all deserialized shapes and their internal links
+      # existing links to shapes that have not been copied/imported may be dangling
+      # and should be cleared
+      # iterate all accepted imported shapes and signal them to check links (if any)
       new_shapes.each do |shape|
-        if shape.is_a?(GridShape)
-          shape.each_cell do |row, col, id|
-            shape.clear_cell(row, col) unless id.nil? || @shapes.include?(id)
-          end
-        elsif shape.has_children?
+        shape.__send__(:on_import)
+        if shape.has_children?
           shape.get_children_recursively(nil, Shape::SEARCHMODE::DFS).each do |child|
-            if child.is_a?(GridShape)
-              child.each_cell do |row, col, id|
-                child.clear_cell(row, col) unless id.nil? || @shapes.include?(id)
-              end
-            end
+            child.__send__(:on_import)
           end
         end
       end

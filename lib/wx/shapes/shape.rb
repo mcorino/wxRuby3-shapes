@@ -2,6 +2,7 @@
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/serializable'
+require 'wx/shapes/shapes/manager_shape'
 
 require 'set'
 
@@ -274,7 +275,7 @@ module Wx::SF
       @h_border = DEFAULT::HBORDER
       @custom_dock_point = DEFAULT::DOCK_POINT
 
-      if pos && get_parent_shape
+      if pos && @parent_shape
         @relative_position = pos.to_real_point - get_parent_absolute_position
       else
         @relative_position = DEFAULT::POSITION.dup
@@ -470,8 +471,7 @@ module Wx::SF
     # @return [Wx::RealPoint] Shape's position
     def get_absolute_position
       # HINT: overload it for custom actions...
-      parent_shape = get_parent_shape
-      if parent_shape
+      if @parent_shape
         @relative_position + get_parent_absolute_position
       else
         @relative_position
@@ -699,17 +699,31 @@ module Wx::SF
       @diagram.set_modified(true) if @diagram
     end
 
+    # Returns true if this shape manages (size/position/alignment) of it's child shapes.
+    # Returns false by default.
+    # @return [Boolean]
+    def is_manager
+      false
+    end
+    alias :manager? :is_manager
+
+    # Returns true if this shape is managed (size/position/alignment) by it's parent shape.
+    # @return [Boolean]
+    def is_managed
+      !!@parent_shape&.is_manager
+    end
+    alias :managed? :is_managed
+
+
     # Update the shape's position in order to its alignment
     def do_alignment
-      parent = get_parent_shape
-
-      if parent && !parent.is_a?(Wx::SF::GridShape)
-
-        if parent.is_a?(Wx::SF::LineShape)
+      # align to parent unless parent is manager
+      unless @parent_shape.nil? || managed?
+        if @parent_shape.is_a?(Wx::SF::LineShape)
           line_pos = get_parent_absolute_position
           parent_bb = Wx::Rect.new(line_pos.x.to_i, line_pos.y.to_i, 1, 1)
         else
-          parent_bb = parent.get_bounding_box
+          parent_bb = @parent_shape.get_bounding_box
         end
 
         shape_bb = get_bounding_box
@@ -732,8 +746,8 @@ module Wx::SF
           end
 
         when VALIGN::LINE_START
-          if parent.is_a?(Wx::SF::LineShape)
-            line_start, line_end = parent.get_line_segment(0)
+          if @parent_shape.is_a?(Wx::SF::LineShape)
+            line_start, line_end = @parent_shape.get_line_segment(0)
 
             if line_end.y >= line_start.y
               @relative_position.y = line_start.y - line_pos.y + @v_border
@@ -743,8 +757,8 @@ module Wx::SF
           end
 
         when VALIGN::LINE_END
-          if parent.is_a?(Wx::SF::LineShape)
-            line_start, line_end = parent.get_line_segment(parent.get_control_points.get_count)
+          if @parent_shape.is_a?(Wx::SF::LineShape)
+            line_start, line_end = @parent_shape.get_line_segment(parent.get_control_points.get_count)
 
             if line_end.y >= line_start.y
               @relative_position.y = line_end.y - line_pos.y - shape_bb.height - @v_border
@@ -772,8 +786,8 @@ module Wx::SF
           end
 
         when HALIGN::LINE_START
-          if parent.is_a?(Wx::SF::LineShape)
-            line_start, line_end = parent.get_line_segment(0)
+          if @parent_shape.is_a?(Wx::SF::LineShape)
+            line_start, line_end = @parent_shape.get_line_segment(0)
 
             if line_end.x >= line_start.x
 
@@ -784,8 +798,8 @@ module Wx::SF
           end
 
         when HALIGN::LINE_END
-          if parent.is_a?(Wx::SF::LineShape)
-            line_start, line_end = parent.get_line_segment(parent.get_control_points.get_count)
+          if @parent_shape.is_a?(Wx::SF::LineShape)
+            line_start, line_end = @parent_shape.get_line_segment(@parent_shape.get_control_points.get_count)
 
             if line_end.x >= line_start.x
               @relative_position.x = line_end.x - line_pos.x - shape_bb.width - @h_border
@@ -1252,16 +1266,16 @@ module Wx::SF
     # @overload add_connection_point(type, persistent: true)
     #   @param [Wx::SF::ConnectionPoint::CPTYPE] type Connection point type
 	  #   @param [Boolean] persistent true if the connection point should be serialized
-	  #   @return [Wx::SF::ConnectionPoint] new connection point
+	  #   @return [Wx::SF::ConnectionPoint, nil] new connection point if succeeded, otherwise nil
     # @overload add_connection_point(relpos, id=-1, persistent: true)
     #   @param [Wx::RealPoint] relpos Relative position in percentages
     #   @param [Integer] id connection point ID
     #   @param [Boolean] persistent true if the connection point should be serialized
-    #   @return [Wx::SF::ConnectionPoint] new connection point
+    #   @return [Wx::SF::ConnectionPoint, nil] new connection point if succeeded, otherwise nil
     # @overload add_connection_point(cp, persistent: true)
     #   @param [Wx::SF::ConnectionPoint] cp connection point (shape will take the ownership)
     #   @param [Boolean] persistent true if the connection point should be serialized
-    #   @return [Wx::SF::ConnectionPoint] added connection point
+    #   @return [Wx::SF::ConnectionPoint, nil] added connection point if succeeded, otherwise nil
 	  # @see Wx::SF::ConnectionPoint::CPTYPE
     def add_connection_point(arg, *rest, persistent: true)
       cp = nil
@@ -1560,7 +1574,7 @@ module Wx::SF
     end
 
     def to_s
-      "#<#{self.class}:#{id.to_i}#{parent_shape ? " parent=#{parent_shape.id.to_i}" : ''}>"
+      "#<#{self.class}:#{id.to_i}#{@parent_shape ? " parent=#{@parent_shape.id.to_i}" : ''}>"
     end
 
     def inspect
@@ -1568,6 +1582,13 @@ module Wx::SF
     end
 
     protected
+
+    # called after the shape has been newly imported/pasted/dropped
+    # allows for checking stale links
+    # by default does nothing
+    def on_import
+      # nothing
+    end
 
 	  # Draw the shape in the normal way. The function can be overridden if necessary.
 	  # @param [Wx::DC] _dc Reference to device context where the shape will be drawn to
@@ -1624,11 +1645,11 @@ module Wx::SF
 	  # Get absolute position of the shape parent.
 	  # @return [Wx::RealPoint] Absolute position of the shape parent if exists, otherwise 0,0
     def get_parent_absolute_position
-      if parent = get_parent_shape
-        if parent.is_a?(Wx::SF::LineShape) && @custom_dock_point != DEFAULT::DOCK_POINT
-          return parent.get_dock_point_position(@custom_dock_point)
+      if @parent_shape
+        if @parent_shape.is_a?(Wx::SF::LineShape) && @custom_dock_point != DEFAULT::DOCK_POINT
+          return @parent_shape.get_dock_point_position(@custom_dock_point)
         else
-          return parent.get_absolute_position
+          return @parent_shape.get_absolute_position
         end
       end
 
@@ -1638,7 +1659,7 @@ module Wx::SF
     private
 
     # Auxiliary function called by GetNeighbours function.
-	  # @param [Class,nil] shapeInfo Line object type
+	  # @param [Class,nil] shape_info Line object type
 	  # @param [CONNECTMODE] condir Connection direction
 	  # @param [Boolean] direct Set this flag to TRUE if only closest shapes should be found,
 	  #     otherwise also shapes connected by forked lines will be found (also
@@ -1882,8 +1903,8 @@ module Wx::SF
       @first_move = true
       on_begin_drag(pos)
 
-      if get_parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
-          get_parent_shape.__send__(:_on_begin_drag, pos)
+      if @parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
+        @parent_shape.__send__(:_on_begin_drag, pos)
       end
     end
 
@@ -1919,8 +1940,8 @@ module Wx::SF
         @first_move = false
       end
 
-      if get_parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
-        get_parent_shape.__send__(:_on_dragging, pos)
+      if @parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
+        @parent_shape.__send__(:_on_dragging, pos)
       end
     end
 
@@ -1934,8 +1955,8 @@ module Wx::SF
 
       on_end_drag(pos)
 
-      if get_parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
-        get_parent_shape.__send__(:_on_end_drag, pos)
+      if @parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
+        @parent_shape.__send__(:_on_end_drag, pos)
       end
     end
 
@@ -1966,7 +1987,7 @@ module Wx::SF
         end
 
         prev_bb = Wx::Rect.new
-        if !f_refresh_all
+        unless f_refresh_all
           prev_bb = get_complete_bounding_box(prev_bb, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
         end
 
@@ -2113,10 +2134,10 @@ module Wx::SF
       xi = (b1*c2 - c1*b2) / (a1*b2 - a2*b1)
       yi = -(a1*c2 - a2*c1) / (a1*b2 - a2*b1)
 
-      if( ((from1.x - xi)*(xi - to1.x) >= 0.0) &&
-        ((from2.x - xi)*(xi - to2.x) >= 0.0) &&
-        ((from1.y - yi)*(yi - to1.y) >= 0.0) &&
-        ((from2.y - yi)*(yi - to2.y) >= 0.0) )
+      if ((from1.x - xi) * (xi - to1.x) >= 0.0) &&
+        ((from2.x - xi) * (xi - to2.x) >= 0.0) &&
+        ((from1.y - yi) * (yi - to1.y) >= 0.0) &&
+        ((from2.y - yi) * (yi - to2.y) >= 0.0)
         return Wx::RealPoint.new(xi, yi)
       end
 
