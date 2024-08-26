@@ -1080,6 +1080,14 @@ module Wx::SF
     end
     alias :accepted_children :get_accepted_children
 
+    # Tells whether the shape does not accept ANY children
+    # @return [Boolean] true if no children accepted, false otherwise
+    def does_not_accept_children?
+      @accepted_children.empty?
+    end
+    alias :no_children_accepted? :does_not_accept_children?
+    alias :accepts_no_children? :does_not_accept_children?
+
     # Tells whether the given connection type is accepted by this shape (it means
     # whether this shape can be connected to another one by a connection of given type).
     #

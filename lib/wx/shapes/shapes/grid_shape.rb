@@ -267,7 +267,11 @@ module Wx::SF
 
       # check whether all child shapes' IDs are present in the cells array...
       @child_shapes.each do |child|
-        @cells << child.id unless @cells.include?(child.id)
+        unless @cells.include?(child.id)
+          # see if we can match the position of the new child with the position of another
+          # (previously assigned) managed shape
+          find_child_cell(child)
+        end
       end
 
       # do self-alignment
@@ -337,6 +341,18 @@ module Wx::SF
     # @param [Shape] child dropped shape
     def on_child_dropped(_pos, child)
       append_to_grid(child) if child && !child.is_a?(LineShape)
+      # see if we can match the position of the new child with the position of another
+      # (previously assigned) managed shape
+      if child && !child.is_a?(LineShape)
+        # if the child already had a slot
+        if @cells.index(child.id)
+          # remove it from there; this provides support for reordering child shapes by dragging
+          remove_from_grid(child.id)
+        end
+
+        # insert child based on it's current (possibly dropped) position
+        find_child_cell(child)
+      end
     end
 
     protected
@@ -350,52 +366,57 @@ module Wx::SF
       end
     end
 
-    # Move and resize given shape so it will fit the given bounding rectangle.
-    #
-    # The shape is aligned inside the given bounding rectangle in accordance to the shape's
-    # valign and halign flags.
-    # @param [Shape] shape modified shape
-    # @param [Wx::Rect] rct Bounding rectangle
-    # @see Shape#set_v_align
-    # @see Shape#set_h_align
-    def fit_shape_to_rect(shape, rct)
-      shape_bb = shape.get_bounding_box
-      prev_pos = shape.get_relative_position
-  
-      # do vertical alignment
-      case shape.get_v_align
-      when VALIGN::TOP
-        shape.set_relative_position(prev_pos.x, rct.top + shape.get_v_border)
-      when VALIGN::MIDDLE
-        shape.set_relative_position(prev_pos.x, rct.top + (rct.height/2 - shape_bb.height/2))
-      when VALIGN::BOTTOM
-        shape.set_relative_position(prev_pos.x, rct.bottom - shape_bb.height - shape.get_v_border)
-      when VALIGN::EXPAND
-        if shape.has_style?(STYLE::SIZE_CHANGE)
-          shape.set_relative_position(prev_pos.x, rct.top + shape.get_v_border)
-          shape.scale(1.0, (rct.height - 2*shape.get_v_border).to_f/shape_bb.height)
+    def find_child_cell(child)
+      crct = child.get_bounding_box
+      # if the child intersects this box shape we look
+      # for the cell it should go into (if any)
+      if @cells.size>0 && intersects?(crct)
+
+        max_rect = Wx::Rect.new(0,0,0,0)
+        # get maximum size of all managed (child) shapes
+        @cells.each do |id|
+          shape = id ? @child_shapes[id] : nil
+          if shape
+            curr_rect = shape.get_bounding_box
+
+            max_rect.set_width(curr_rect.width) if shape.get_h_align != HALIGN::EXPAND && curr_rect.width > max_rect.width
+            max_rect.set_height(curr_rect.height) if shape.get_v_align != VALIGN::EXPAND && curr_rect.height > max_rect.height
+          end
         end
-      else
-          shape.set_relative_position(prev_pos.x, rct.top)
+
+        # find the cell where the new child is positioned above and in front of
+        inserted = false
+        offset = get_bounding_box.top_left
+        @cells.each_index do |cell|
+          col = (cell % @cols)
+          row = (cell / @cols)
+
+          cell_rct = Wx::Rect.new(col*max_rect.width + (col+1)*@cell_space,
+                                  row*max_rect.height + (row+1)*@cell_space,
+                                  max_rect.width, max_rect.height).offset!(offset)
+          if crct.right <= cell_rct.right && crct.bottom <= cell_rct.bottom
+            if @cells[cell] # is cell occupied?
+              # insert and shift other cells
+              @cells.insert(cell, child.id)
+              # adjust row count if necessary
+              if @cells.size > (@rows * @cols)
+                @rows = @cells.size / @cols
+              end
+            else
+              # use empty cell
+              @cells[cell] = child.id
+            end
+            inserted = true
+            break
+          end
+        end
+        return if inserted
       end
-  
-      prev_pos = shape.get_relative_position
-  
-      # do horizontal alignment
-      case shape.get_h_align
-      when HALIGN::LEFT
-        shape.set_relative_position(rct.left + shape.get_h_border, prev_pos.y)
-      when HALIGN::CENTER
-        shape.set_relative_position(rct.left + (rct.width/2 - shape_bb.width/2), prev_pos.y)
-      when HALIGN::RIGHT
-        shape.set_relative_position(rct.right - shape_bb.width - shape.get_h_border, prev_pos.y)
-      when HALIGN::EXPAND
-        if shape.has_style?(STYLE::SIZE_CHANGE)
-          shape.set_relative_position(rct.left + shape.get_h_border, prev_pos.y)
-          shape.scale((rct.width - 2*shape.get_h_border).to_f/shape_bb.width, 1.9)
-        end
-      else
-        shape.set_relative_position(rct.left, prev_pos.y)
+      # otherwise append
+      @cells << child.id
+      # adjust row count if necessary
+      if @cells.size > (@rows * @cols)
+        @rows = @cells.size / @cols
       end
     end
 

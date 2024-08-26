@@ -2366,7 +2366,7 @@ module Wx::SF
           # notify shape
           shape.send(:_on_end_drag, lpos)
           # reparent based on new position
-          reparent_shape(shape, lpos)
+          reparent_dropped_shape(shape, lpos)
         end
   
         if lst_selection.size>1
@@ -2904,15 +2904,23 @@ module Wx::SF
     #  Assign give shape to parent at given location (if exists)
     # @param [Wx::SF::Shape] shape
     # @param [Wx::Point] parentpos
-    def reparent_shape(shape, parentpos)
+    def reparent_dropped_shape(shape, parentpos)
       return unless @diagram
-      # is shape dropped into accepting shape?
-      parent_shape = get_shape_at_position(parentpos, 1, SEARCHMODE::UNSELECTED)
 
-      parent_shape = nil if parent_shape && !parent_shape.is_child_accepted(shape.class)
-
-      # set new parent
+      # set new parent if possible
       if shape.has_style?(Shape::STYLE::PARENT_CHANGE) && !shape.is_a?(LineShape)
+        # is shape dropped into accepting shape?
+        parent_shape = get_shape_at_position(parentpos, 1, SEARCHMODE::UNSELECTED)
+        # In case the matching shape does not accept ANY children see if this shape has a
+        # parent that does also match the position and DOES accept children.
+        # This allows dropping shapes onto child shapes inside a (container) shapes like
+        # grids and/or boxes.
+        while parent_shape&.does_not_accept_children? && parent_shape.parent_shape
+          parent_shape = parent_shape.parent_shape
+          parent_shape = nil unless parent_shape.get_bounding_box.contains?(parentpos)
+        end
+        parent_shape = nil if parent_shape && !parent_shape.is_child_accepted(shape.class)
+
         prev_parent = shape.get_parent_shape
     
         if parent_shape

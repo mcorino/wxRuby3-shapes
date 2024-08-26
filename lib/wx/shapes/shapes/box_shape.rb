@@ -191,7 +191,7 @@ module Wx::SF
 
     # Update shape (align all child shapes and resize it to fit them)
     def update
-      # check for existence of de-assigned shapes
+      # check for stale links to of de-assigned shapes
       @slots.delete_if do |id|
         @child_shapes.find { |child| child.id == id }.nil?
       end
@@ -201,17 +201,7 @@ module Wx::SF
         unless @slots.include?(child.id)
           # see if we can match the position of the new child with the position of another
           # (previously assigned) managed shape
-          slot = @slots.find_index do |id|
-            shape = @child_shapes.find { |_c| _c.id == id }
-            shape && shape.contains?(child.get_bounding_box.position)
-          end
-          if slot # if found
-            # insert before other shape
-            @slots.insert(slot, child)
-          else
-            # otherwise append
-            @slots << child.id
-          end
+          find_child_slot(child)
         end
       end
 
@@ -267,17 +257,17 @@ module Wx::SF
       end
 
       offset = Wx::Point.new(@spacing,@spacing)
-      @slots.each_with_index do |id, slot|
+      @slots.each do |id|
         shape = @child_shapes[id]
 
         if @orientation == ORIENTATION::VERTICAL
-          shape_h = shape.get_bounding_box.height
+          shape_h = shape.get_bounding_box.height + (2*shape.get_v_border).to_i
           fit_shape_to_rect(shape, Wx::Rect.new(@spacing,
                                                 offset.y,
                                                 max_size.width, shape_h))
           offset.y += shape_h+@spacing
         else
-          shape_w = shape.get_bounding_box.width
+          shape_w = shape.get_bounding_box.width + (2*shape.get_h_border).to_i
           fit_shape_to_rect(shape, Wx::Rect.new(offset.x,
                                                 @spacing,
                                                 shape_w, max_size.height))
@@ -293,7 +283,18 @@ module Wx::SF
     # @param [Wx::RealPoint] _pos Relative position of dropped shape
     # @param [Shape] child dropped shape
     def on_child_dropped(_pos, child)
-      append_to_box(child) if child && !child.is_a?(LineShape)
+      # see if we can match the position of the new child with the position of another
+      # (previously assigned) managed shape
+      if child && !child.is_a?(LineShape)
+        # if the child already had a slot
+        if @slots.index(child.id)
+          # remove it from there; this provides support for reordering child shapes by dragging
+          remove_from_box(child.id)
+        end
+
+        # insert child based on it's current (possibly dropped) position
+        find_child_slot(child)
+      end
     end
 
     protected
@@ -307,53 +308,35 @@ module Wx::SF
       end
     end
 
-    # Move and resize given shape so it will fit the given bounding rectangle.
-    #
-    # The shape is aligned inside the given bounding rectangle in accordance to the shape's
-    # valign and halign flags.
-    # @param [Shape] shape modified shape
-    # @param [Wx::Rect] rct Bounding rectangle
-    # @see Shape#set_v_align
-    # @see Shape#set_h_align
-    def fit_shape_to_rect(shape, rct)
-      shape_bb = shape.get_bounding_box
-      prev_pos = shape.get_relative_position
-
-      # do vertical alignment
-      case shape.get_v_align
-      when VALIGN::TOP
-        shape.set_relative_position(prev_pos.x, rct.top + shape.get_v_border)
-      when VALIGN::MIDDLE
-        shape.set_relative_position(prev_pos.x, rct.top + (rct.height/2 - shape_bb.height/2))
-      when VALIGN::BOTTOM
-        shape.set_relative_position(prev_pos.x, rct.bottom - shape_bb.height - shape.get_v_border)
-      when VALIGN::EXPAND
-        if shape.has_style?(STYLE::SIZE_CHANGE)
-          shape.set_relative_position(prev_pos.x, rct.top + shape.get_v_border)
-          shape.scale(1.0, (rct.height - 2*shape.get_v_border).to_f/shape_bb.height)
+    def find_child_slot(child)
+      crct = child.get_bounding_box
+      # if the child intersects this box shape we look
+      # for the slot it should go into
+      if intersects?(crct)
+        # find the slot with a shape that is positioned below/after
+        # the new child
+        slot = @slots.find_index do |id|
+          shape = @child_shapes.find { |_c| _c.id == id }
+          rc = false
+          if shape
+            # determine if new child is positioned above/in front of existing child shape
+            srct = shape.get_bounding_box
+            rc = if @orientation == ORIENTATION::VERTICAL
+              crct.bottom <= srct.bottom || crct.top <= srct.top
+            else
+              crct.right <= srct.right || crct.left <= srct.left
+            end
+          end
+          rc
         end
-      else
-        shape.set_relative_position(prev_pos.x, rct.top)
-      end
-
-      prev_pos = shape.get_relative_position
-
-      # do horizontal alignment
-      case shape.get_h_align
-      when HALIGN::LEFT
-        shape.set_relative_position(rct.left + shape.get_h_border, prev_pos.y)
-      when HALIGN::CENTER
-        shape.set_relative_position(rct.left + (rct.width/2 - shape_bb.width/2), prev_pos.y)
-      when HALIGN::RIGHT
-        shape.set_relative_position(rct.right - shape_bb.width - shape.get_h_border, prev_pos.y)
-      when HALIGN::EXPAND
-        if shape.has_style?(STYLE::SIZE_CHANGE)
-          shape.set_relative_position(rct.left + shape.get_h_border, prev_pos.y)
-          shape.scale((rct.width - 2*shape.get_h_border).to_f/shape_bb.width, 1.9)
+        if slot # if found
+          # insert before other shape
+          @slots.insert(slot, child.id)
+          return
         end
-      else
-        shape.set_relative_position(rct.left, prev_pos.y)
       end
+      # otherwise append
+      @slots << child.id
     end
 
     private

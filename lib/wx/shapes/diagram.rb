@@ -135,10 +135,20 @@ module Wx::SF
         lpos = @shape_canvas.fit_position_to_grid(@shape_canvas.dp2lp(pos)) if @shape_canvas
         # line shapes can be assigned to root only
         parent_shape = get_shape_at_position(lpos) unless shape.is_a?(LineShape)
-
+        # In case the matching shape does not accept ANY children see if this shape has a
+        # parent that does also match the position and DOES accept children.
+        # This allows dropping shapes onto child shapes inside a (container) shapes like
+        # grids and/or boxes.
+        while parent_shape&.does_not_accept_children? && parent_shape.parent_shape
+          parent_shape = parent_shape.parent_shape
+          parent_shape = nil unless parent_shape.get_bounding_box.contains?(lpos)
+        end
+        # see if the located parent (if any) accepts this particular type of child
         if parent_shape && parent_shape.is_child_accepted(shape_info)
+          # add shape as child of located parent
           err = add_shape(shape, parent_shape, pos - parent_shape.get_absolute_position.to_point, INITIALIZE, save_state)
         else
+          # add shape as new toplevel shape (if acceptable)
           err = add_shape(shape, nil, pos, INITIALIZE, save_state)
         end
 
