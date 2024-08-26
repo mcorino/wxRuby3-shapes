@@ -3220,12 +3220,20 @@ module Wx::SF
           end
 
           parent = @diagram.get_shape_at_position(lpos, 1, SEARCHMODE::UNSELECTED)
+          # In case the located shape does not accept ANY children see if this shape has a
+          # parent that does also match the position and DOES accept children.
+          # This allows dropping shapes onto child shapes inside a (container) shapes like
+          # grids and/or boxes.
+          while parent&.does_not_accept_children? && parent.parent_shape && !parent.selected?
+            parent = parent.parent_shape
+            parent = nil unless parent.get_bounding_box.contains?(lpos)
+          end
 
           # add each shape to diagram keeping only those that are accepted
           lst_new_content.select! do |shape|
             shape.move_by(dx, dy)
             # do not reparent connection lines
-            rc = if shape.is_a?(LineShape) && !shape.stand_alone?
+            rc = if (shape.is_a?(LineShape) && !shape.stand_alone?) || parent.nil?
                    @diagram.add_shape(shape,
                                       nil,
                                       lp2dp(shape.get_absolute_position.to_point),
