@@ -2101,7 +2101,6 @@ module Wx::SF
     def update_child_parents
       @child_shapes.each do |shape|
         shape.instance_variable_set(:@parent_shape, self)
-        shape.send(:update_child_parents)
       end
     end
 
@@ -2109,6 +2108,10 @@ module Wx::SF
     def serialize_child_shapes(*val)
       unless val.empty?
         @child_shapes = val.first
+        # @parent_shape is not serialized, instead we rely on child shapes being (de-)serialized
+        # by their parent (child shapes restored before restoring parent child list) and let
+        # the parent reset the @parent_shape attributes of their children.
+        # That way the links never get out of sync.
         update_child_parents
       end
       @child_shapes
