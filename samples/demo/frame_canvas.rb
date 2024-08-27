@@ -401,6 +401,13 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       # show basic info
       msg = "Class name: #{shape.class}, ID: #{shape.get_id}\n"
 
+      msg << "\nBounding box: #{shape.get_bounding_box.inspect}\n"
+
+      # show parent (if any)
+      if shape.parent_shape
+        msg << "\nParent: #{shape.parent_shape.class}, ID: #{shape.parent_shape.id}\n"
+      end
+
       # show info about shape's children
       lst_shapes = shape.get_child_shapes(nil, Wx::SF::RECURSIVE)
       unless lst_shapes.empty?
