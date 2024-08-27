@@ -394,7 +394,7 @@ module Wx::SF
     alias :grand_parent_shape :get_grand_parent_shape
 
     # Refresh (redraw) the shape
-    # @param [Boolean] delayed If true then the shape canvas will be rather invalidated than refreshed.
+    # @param [Boolean] delayed If true then the shape canvas will be invalidated rather than refreshed.
     # @see ShapeCanvas#invalidate_rect
     # @see ShapeCanvas#refresh_invalidated_rect
     def refresh(delayed = false)
