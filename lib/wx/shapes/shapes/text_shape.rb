@@ -160,8 +160,6 @@ module Wx::SF
     # @param [Float] x Horizontal scale factor
     # @param [Float] y Vertical scale factor
     def scale_rectangle(x, y)
-	    s = 1.0
-
       if x == 1.0
         s = y
       elsif y == 1.0
@@ -235,7 +233,7 @@ module Wx::SF
 
 	  # Draw the shape in the highlighted mode (another shape is dragged over this
     # shape and this shape will accept the dragged one if it will be dropped on it).
-    # The function can be overridden if neccessary.
+    # The function can be overridden if necessary.
 	  # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_highlighted(dc)
       super
@@ -277,7 +275,7 @@ module Wx::SF
     end
 
     # Event handler called during dragging of the right shape handle.
-    # The function can be overridden if neccessary.
+    # The function can be overridden if necessary.
 	  # @param [Shape::Handle] handle Reference to dragged shape handle
     def on_right_handle(handle)
       # HINT: overload it for custom actions...
@@ -286,7 +284,7 @@ module Wx::SF
     end
 
     # Event handler called during dragging of the bottom shape handle.
-    # The function can be overridden if neccessary.
+    # The function can be overridden if necessary.
 	  # @param [Shape::Handle] handle Reference to dragged shape handle
     def on_bottom_handle(handle)
       # HINT: overload it for custom actions...
@@ -298,7 +296,7 @@ module Wx::SF
 	  # @param [Wx::DC] dc Device context where the text shape will be drawn to
     def draw_text_content(dc)
       dc.with_brush(@fill) do
-        dc.set_background_mode(Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT)
+        dc.set_background_mode(Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT.to_i)
         dc.set_text_foreground(@text_color)
         dc.with_font(@font) do
           pos = get_absolute_position
@@ -311,13 +309,13 @@ module Wx::SF
     end
 
     # Deserialize attributes and recalculate rectangle size afterwards.
-    # @param [Hash] data
     # @return [self]
-    def from_serialized(data)
-      super
+    def deserialize_finalize
       update_rect_size
       self
     end
+
+    define_deserialize_finalizer :deserialize_finalize
 
   end
 

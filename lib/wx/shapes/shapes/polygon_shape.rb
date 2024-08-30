@@ -104,8 +104,9 @@ module Wx::SF
         intersection
       else
         success = false
+        min_dist = 0.0
         pts.each_with_index do |pt, i|
-          if tmp_intersection = Wx::SF::Shape.lines_intersection(pt, pts[(i+1) % pts.size], start, end_pt)
+          if (tmp_intersection = Wx::SF::Shape.lines_intersection(pt, pts[(i+1) % pts.size], start, end_pt))
             if !success
               min_dist = intersection.distance_to(end_pt)
               intersection = tmp_intersection
@@ -282,14 +283,14 @@ module Wx::SF
     end
 
     # Deserialize attributes and recalculate rectangle size afterwards.
-    # @param [Hash] data
     # @return [self]
-    def from_serialized(data)
-      super
+    def deserialize_finalize
       normalize_vertices
       fit_vertices_to_bounding_box
       self
     end
+
+    define_deserialize_finalizer :deserialize_finalize
 
   end
 

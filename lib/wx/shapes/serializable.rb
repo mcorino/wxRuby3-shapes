@@ -120,7 +120,7 @@ module Wx::SF
       end
       private :setter
 
-      def getter_fail(obj)
+      def getter_fail(_obj)
         ::Kernel.raise RuntimeError, "Missing getter for property #{@id} of #{@klass}"
       end
       private :getter_fail
@@ -280,6 +280,12 @@ module Wx::SF
         self.new
       end
 
+      # Defines a finalizer method/proc/block to be called after all
+      def define_deserialize_finalizer(meth=nil, &block)
+        self.set_deserialize_finalizer(meth, &block)
+      end
+      alias :deserialize_finalizer :define_deserialize_finalizer
+
     end
 
     # Mixin module for classes that get Wx::SF::Serializable included.
@@ -303,7 +309,7 @@ module Wx::SF
       # Returns true if regular serialization for this object has been disabled, false otherwise (default).
       # Disabled serialization can be overridden for single objects (not objects maintained in property containers
       # like arrays and sets).
-      # @return [Boolean]
+      # @return [true,false]
       def serialize_disabled?
         !!@serialize_disabled # true for any value but false
       end
@@ -326,6 +332,11 @@ module Wx::SF
       # @!method from_serialized(hash)
       #   Restores the properties of a deserialized instance.
       #   @param [Hash] hash deserialized properties hash
+      #   @return [self]
+
+      # #!method finalize_from_serialized()
+      #   Finalizes the instance initialization after property restoration.
+      #   Calls any user defined finalizer.
       #   @return [self]
 
     end
@@ -365,6 +376,7 @@ module Wx::SF
       # provide serialized property definition support
 
       # provide serialized classes with their own serialized properties (exclusion) list
+      # and a deserialization finalizer setter/getter
       base.singleton_class.class_eval do
         def serializer_properties
           @serializer_props ||= []
@@ -372,7 +384,54 @@ module Wx::SF
         def excluded_serializer_properties
           @excluded_serializer_props ||= ::Set.new
         end
+        def set_deserialize_finalizer(meth=nil, &block)
+          if block and not meth
+            # the given block should expect and use the given object instance
+            @finalize_from_deserialized = block
+          elsif meth and not block
+            h_meth = case meth
+                     when Symbol, String then self.instance_method(meth)
+                     when Proc then meth
+                     when UnboundMethod then meth
+                     end
+            # bind unbound method with given object instance to call
+            if UnboundMethod === h_meth
+              # check arity == 0
+              if h_meth.arity>0
+                Kernel.raise ArgumentError,
+                             "Deserialize finalizer method should not expect any argument",
+                             caller
+              end
+              @finalize_from_deserialized = ->(obj) { h_meth.bind(obj).call }
+            else
+              # check arity == 1
+              if h_meth.arity != 1
+                Kernel.raise ArgumentError,
+                             "Deserialize finalizer Proc should expect a single argument",
+                             caller
+              end
+              @finalize_from_deserialized = h_meth
+            end
+          else
+            Kernel.raise ArgumentError,
+                         "Specify deserialize finalizer with a method, name, proc OR block",
+                         caller
+          end
+        end
+        def get_deserialize_finalizer
+          @finalize_from_deserialized
+        end
       end
+
+      # Check if the derived class has the default deserialize finalizer method defined (a #create method
+      # without arguments) defined. If so install that method as the deserialize finalizer.
+      if base.method_defined?(:create, false)
+        create_mtd = base.instance_method :create
+        if create_mtd.arity == 0
+          base.set_deserialize_finalizer(create_mtd)
+        end
+      end
+
       # add class methods
       base.extend(SerializeClassMethods)
 
@@ -392,10 +451,18 @@ module Wx::SF
         end
         protected :from_serialized
 
+        def finalize_from_serialized
+          if (f = self.class.get_deserialize_finalizer) 
+            f.call(self)
+          end
+          self
+        end
+        protected :finalize_from_serialized
+
         def self.has_serializer_property?(id)
           self.serializer_properties.any? { |p| p.id == id.to_sym } 
         end
-        __CODE
+      __CODE
       # add inheritance support
       base.class_eval do
         def self.inherited(derived)
@@ -416,10 +483,26 @@ module Wx::SF
               protected :from_serialized
             end
             include SerializerMethods
-            __CODE
+          __CODE
           derived.class_eval do
             def self.has_serializer_property?(id)
               self.serializer_properties.any? { |p| p.id == id.to_sym } || self.superclass.has_serializer_property?(id)
+            end
+          end
+          # add derived class support for deserialization finalizer
+          derived.singleton_class.class_eval <<~__CODE
+            def get_deserialize_finalizer
+              @finalize_from_deserialized || #{derived.name}.superclass.get_deserialize_finalizer 
+            end
+          __CODE
+
+          # Check if the derived class has the default deserialize finalizer method defined (a #create method
+          # without arguments) defined. If so install that method as the deserialize finalizer (it is expected
+          # this method will call any superclass finalizer that may be defined).
+          if derived.method_defined?(:create, false)
+            create_mtd = derived.instance_method :create
+            if create_mtd.arity == 0
+              derived.set_deserialize_finalizer(create_mtd)
             end
           end
 

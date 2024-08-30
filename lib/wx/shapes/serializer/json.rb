@@ -185,6 +185,7 @@ module Wx::SF
       def json_create(object)
         create_for_deserialize(data = object['data'])
           .__send__(:from_serialized, data)
+          .__send__(:finalize_from_serialized)
       end
 
     end
@@ -204,6 +205,7 @@ module Wx::SF
     class ID
 
       def self.json_create(object)
+        # does not need calls to #from_serialized or #finalize_from_serialized
         create_for_deserialize(data = object['data'])
       end
 

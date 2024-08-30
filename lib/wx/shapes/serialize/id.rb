@@ -57,6 +57,14 @@ module Wx::SF::Serializable
     end
     protected :from_serialized
 
+    # Noop for ID instances.
+    # @return [self]
+    def finalize_from_serialized
+      # no finalization necessary
+      self
+    end
+    protected :finalize_from_serialized
+
     # Always returns false for IDs.
     # @return [Boolean]
     def serialize_disabled?

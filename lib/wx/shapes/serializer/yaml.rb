@@ -102,6 +102,7 @@ module Wx::SF
 
       def init_with(coder)
         from_serialized(coder.map)
+        finalize_from_serialized
       end
 
     end
