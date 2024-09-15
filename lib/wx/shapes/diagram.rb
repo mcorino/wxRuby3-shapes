@@ -11,7 +11,7 @@ module Wx::SF
 
   class Diagram
 
-    include Serializable
+    include FIRM::Serializable
 
     property shapes: :serialize_shapes
     property :accepted_shapes, :accepted_top_shapes
@@ -63,19 +63,19 @@ module Wx::SF
     # This function creates new simple connection line (without arrows) between given
     # shapes.
     # @overload create_connection(src_id, trg_id, save_state = true)
-    #   @param [Wx::Serializable::ID] src_id id of a source shape
-    #   @param [Wx::Serializable::ID] trg_id id of target shape
+    #   @param [FIRM::Serializable::ID] src_id id of a source shape
+    #   @param [FIRM::Serializable::ID] trg_id id of target shape
     #   @param [Boolean] save_state set the parameter true if you wish to save canvas state after the operation
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new connection object. the object is added to the shape canvas automatically.
     # @overload create_connection(src_id, trg_id, line_info, save_state = true)
-    #   @param [Wx::Serializable::ID] src_id id of a source shape
-    #   @param [Wx::Serializable::ID] trg_id id of target shape
+    #   @param [FIRM::Serializable::ID] src_id id of a source shape
+    #   @param [FIRM::Serializable::ID] trg_id id of target shape
     #   @param [Class] line_info Connection type (any class inherited from Wx::SF::LineShape)
     #   @param [Boolean] save_state set the parameter true if you wish to save canvas state after the operation
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new connection object. the object is added to the shape canvas automatically.
     # @overload create_connection(src_id, trg_id, line, save_state = true)
-    #   @param [Wx::Serializable::ID] src_id id of a source shape
-    #   @param [Wx::Serializable::ID] trg_id id of target shape
+    #   @param [FIRM::Serializable::ID] src_id id of a source shape
+    #   @param [FIRM::Serializable::ID] trg_id id of target shape
     #   @param [Wx::SF::LineShape] line the line shape
     #   @param [Boolean] save_state set the parameter true if you wish to save canvas state after the operation
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new connection object. the object is added to the shape canvas automatically.
@@ -424,7 +424,7 @@ module Wx::SF
     alias :accepted_top_shapes :get_accepted_top_shapes
 
     # Find shape with given ID.
-    # @param [Wx::SF::Serializable::ID] id Shape's ID
+    # @param [FIRM::Serializable::ID] id Shape's ID
     # @return [Wx::SF::Shape, nil] shape if exists, otherwise nil
     def find_shape(id)
       @shapes.get(id, true)

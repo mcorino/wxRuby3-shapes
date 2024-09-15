@@ -313,7 +313,7 @@ module Wx::SF
         end
       end
 
-      include Serializable
+      include FIRM::Serializable
 
       property :version_info
 
@@ -345,7 +345,7 @@ module Wx::SF
     # Auxiliary serializable class encapsulating the canvas properties.
     class Settings
 
-      include Serializable
+      include FIRM::Serializable
 
       include DEFAULT
 
@@ -526,7 +526,7 @@ module Wx::SF
       # get IO stream to read from
       ios = io.is_a?(::String) ? File.open(io, 'r') : io
       begin
-        _, @settings, diagram = Serializable.deserialize(ios)
+        _, @settings, diagram = FIRM.deserialize(ios)
       rescue SFException
         ::Kernel.raise
       rescue ::Exception
@@ -1014,7 +1014,7 @@ module Wx::SF
         if clipboard.fetch(data_obj)
 
           # deserialize shapes
-          new_shapes = Wx::SF::Serializable.deserialize(data_obj.get_data_here)
+          new_shapes = FIRM.deserialize(data_obj.get_data_here)
           # add new shapes to diagram and remove those that are not accepted
           new_shapes.select! do |shape|
             ERRCODE::OK == @diagram.add_shape(shape, nil, shape.get_relative_position, INITIALIZE, DONT_SAVE_STATE)
@@ -1123,7 +1123,7 @@ module Wx::SF
     # @param [String,nil] state to restore
     def restore_canvas_state(state)
       return unless state
-      set_diagram(Wx::SF::Serializable.deserialize(state))
+      set_diagram(FIRM.deserialize(state))
       update_virtual_size
       @diagram.set_modified
       refresh(false)
@@ -3207,7 +3207,7 @@ module Wx::SF
 	  # @see Wx::SF::CanvasDropTarget
     def _on_drop(x, y, deflt, data)
       if data && Wx::SF::ShapeDataObject === data
-        lst_new_content = Wx::SF::Serializable.deserialize(data.get_data_here)
+        lst_new_content = FIRM.deserialize(data.get_data_here)
         if lst_new_content && !lst_new_content.empty?
           lst_parents_to_update = []
           lpos = dp2lp(Wx::Point.new(x, y))

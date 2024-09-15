@@ -8,7 +8,7 @@ module Wx::SF
 
   class ArrowBase
 
-    include Wx::SF::Serializable
+    include FIRM::Serializable
 
     module DEFAULT
       class << self

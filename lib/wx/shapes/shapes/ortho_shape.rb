@@ -14,8 +14,8 @@ module Wx::SF
     # @overload initialize()
     #   default constructor
     # @overload initialize(src, trg, path, manager)
-    #   @param [Wx::SF::Serializable::ID] src ID of the source shape
-    #   @param [Wx::SF::Serializable::ID] trg ID of the target shape
+    #   @param [FIRM::Serializable::ID] src ID of the source shape
+    #   @param [FIRM::Serializable::ID] trg ID of the target shape
     #   @param [Array<Wx::RealPoint>] path List of the line control points (can be empty)
     #   @param [Diagram] diagram containing diagram
     def initialize(*args)

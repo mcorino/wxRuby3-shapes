@@ -30,7 +30,7 @@ module Wx::SF
   # mostly triggered by a parent shape canvas.
   class Shape
 
-    include Serializable
+    include FIRM::Serializable
 
     property :id, :active, :visibility, :style,
              :accepted_children, :accepted_connections,
@@ -243,7 +243,7 @@ module Wx::SF
       ::Kernel.raise ArgumentError, "Invalid arguments pos: #{pos}, diagram: #{diagram}" unless
         args.empty? || (Wx::RealPoint === pos && (diagram.nil? || Wx::SF::Diagram === diagram))
 
-      @id = Serializable::ID.new
+      @id = FIRM::Serializable::ID.new
       @diagram = diagram
       @parent_shape = nil
       @child_shapes = ShapeList.new
@@ -291,14 +291,14 @@ module Wx::SF
     end
 
     # Get the shape's id
-    # @return [Wx::SF::Serializable::ID]
+    # @return [FIRM::Serializable::ID]
     def get_id
       @id
     end
     alias :id :get_id
 
     # Set the shape's id. Deserialization only.
-    # @param [Wx::SF::Serializable::ID] id
+    # @param [FIRM::Serializable::ID] id
     def set_id(id)
       @id = id
     end
@@ -359,7 +359,7 @@ module Wx::SF
 
 
     # Find child shape with given ID.
-    # @param [Wx::SF::Serializable::ID] id Shape's ID
+    # @param [FIRM::Serializable::ID] id Shape's ID
     # @param [Boolean] recursive pass true to search recursively, false for non-recursive
     # @return [Wx::SF::Shape, nil] shape if exists, otherwise nil
     def find_child_shape(id, recursive = false)
@@ -966,7 +966,7 @@ module Wx::SF
     # Associate user data with the shape.
     # If the data object is properly set then its marked properties will be serialized
     # together with the parent shape. This means the user data must either be a serializable
-    # core type or a Wx::SF::Serializable.
+    # core type or a FIRM::Serializable.
     # @param [Object] data user data
     def set_user_data(data)
       @user_data = data

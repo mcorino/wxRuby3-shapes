@@ -8,7 +8,7 @@ module Wx::SF
   # This class implements an indexed container for unique, non-nil, shapes (no duplicates).
   class ShapeList
 
-    include Serializable
+    include FIRM::Serializable
     include ::Enumerable
 
     property :list
@@ -94,23 +94,23 @@ module Wx::SF
     end
 
     # Removes a shape matching the key given from the list and returns that.
-    # @param [Shape,Serializable::ID] key shape or shape ID to match
+    # @param [Shape,FIRM::Serializable::ID] key shape or shape ID to match
     # @return [Shape,nil] removed shape or nil if none matched
     def delete(key)
       if key.is_a?(Shape)
         return @list.delete(key) if @index.delete(key.id)
-      elsif key.is_a?(Serializable::ID)
+      elsif key.is_a?(FIRM::Serializable::ID)
         return @list.delete(@index.delete(key)) if @index.has_key?(key)
       end
       nil
     end
 
     # Returns true if a shape matches the given key or false if no shape matches.
-    # @param [Shape,Serializable::ID] key shape or shape ID to match
+    # @param [Shape,FIRM::Serializable::ID] key shape or shape ID to match
     # @param [Boolean] recursive pass true to search recursively, false for non-recursive
     # @return [Boolean]
     def include?(key, recursive = false)
-      found = if key.is_a?(Serializable::ID)
+      found = if key.is_a?(FIRM::Serializable::ID)
                 @index.has_key?(key)
               else
                 @list.include?(key)
@@ -120,23 +120,23 @@ module Wx::SF
 
     # Returns the shape matching the given key or nil if no shape matches.
     # Does not modify the list.
-    # @param [Integer,Serializable::ID] key shape list index or shape ID to match
+    # @param [Integer,FIRM::Serializable::ID] key shape list index or shape ID to match
     # @param [Boolean] recursive pass true to search recursively, false for non-recursive
     # @return [Shape,nil] matched shape or nil if none matched
     def get(key, recursive = false)
-      shape = if key.is_a?(Serializable::ID)
+      shape = if key.is_a?(FIRM::Serializable::ID)
                 @index[key]
               else
                 @list.at(key.to_i)
               end
-      shape || (recursive && key.is_a?(Serializable::ID) && find_child_shape(key, recursive))
+      shape || (recursive && key.is_a?(FIRM::Serializable::ID) && find_child_shape(key, recursive))
     end
     alias :[] :get
 
     private
 
     # Find (first) child shape with given ID.
-    # @param [Wx::SF::Serializable::ID] id Shape's ID
+    # @param [FIRM::Serializable::ID] id Shape's ID
     # @param [Boolean] recursive pass true to search recursively, false for non-recursive
     # @return [Wx::SF::Shape, nil] shape if exists, otherwise nil
     def find_child_shape(id, recursive = false)

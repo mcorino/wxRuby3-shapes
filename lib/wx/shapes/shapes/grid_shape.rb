@@ -91,7 +91,7 @@ module Wx::SF
     # @overload each_cell(&block)
     #   @yieldparam [Integer] row
     #   @yieldparam [Integer] col
-    #   @yieldparam [Wx::SF::Serializable::ID,nil] id
+    #   @yieldparam [FIRM::Serializable::ID,nil] id
     #   @return [Object]
     def each_cell(&block)
       if block
@@ -129,7 +129,7 @@ module Wx::SF
     # Get the shape Id stored in cell at given row and column index
     # @param [Integer] row
     # @param [Integer] col
-    # @return [Wx::SF::Serializable::ID, nil] id if cell exists and not empty, nil otherwise
+    # @return [FIRM::Serializable::ID, nil] id if cell exists and not empty, nil otherwise
     def get_cell(row, col)
       if row>=0 && row<@rows && col>=0 && col<@cols
         @cells[row*@cols + col]
@@ -252,7 +252,7 @@ module Wx::SF
 
     # Remove shape with given ID from the grid.
     # Shifts any occupied cells beyond the cell containing the given id to the previous lexicographic position.
-    # @param [Serializable::ID] id ID of shape which should be removed
+    # @param [FIRM::Serializable::ID] id ID of shape which should be removed
     # @note Note this does *not* remove the shape as a child shape.
     def remove_from_grid(id)
       @cells.delete(id)

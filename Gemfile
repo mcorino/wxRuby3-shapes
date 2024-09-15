@@ -5,6 +5,7 @@ source "https://rubygems.org"
 gem 'rake'
 gem 'minitest', '~> 5.15'
 gem 'test-unit', '~> 3.5'
+gem 'firm', '~> 0.9'
 group :wxruby do
   gem 'wxruby3', '~> 1.1'
 end

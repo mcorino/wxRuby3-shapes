@@ -84,7 +84,7 @@ module Wx::SF
     #   @return [Enumerator]
     # @overload each_slot(&block)
     #   @yieldparam [Integer] slot
-    #   @yieldparam [Wx::SF::Serializable::ID,nil] id
+    #   @yieldparam [FIRM::Serializable::ID,nil] id
     #   @return [Object]
     def each_slot(&block)
       if block
@@ -116,7 +116,7 @@ module Wx::SF
 
     # Get the shape Id stored in slot at given index
     # @param [Integer] slot
-    # @return [Wx::SF::Serializable::ID, nil] id if slot exists, nil otherwise
+    # @return [FIRM::Serializable::ID, nil] id if slot exists, nil otherwise
     def get_slot(slot)
       if slot>=0 && slot<@slots.size
         @slots[slot]
@@ -183,7 +183,7 @@ module Wx::SF
 
     # Remove shape with given ID from the box.
     # Shifts any occupied cells beyond the slots containing the given id to the previous position.
-    # @param [Serializable::ID] id ID of shape which should be removed
+    # @param [FIRM::Serializable::ID] id ID of shape which should be removed
     # @note Note this does *not* remove the shape as a child shape.
     def remove_from_box(id)
       @slots.delete(id)

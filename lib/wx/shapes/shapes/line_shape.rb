@@ -47,8 +47,8 @@ module Wx::SF
     # @overload initialize()
     #   default constructor
     # @overload initialize(src, trg, path, manager)
-    #   @param [Wx::SF::Serializable::ID] src ID of the source shape
-    #   @param [Wx::SF::Serializable::ID] trg ID of the target shape
+    #   @param [FIRM::Serializable::ID] src ID of the source shape
+    #   @param [FIRM::Serializable::ID] trg ID of the target shape
     #   @param [Array<Wx::RealPoint>] path List of the line control points (can be empty)
     #   @param [Diagram] diagram containing diagram
     # @overload initialize(src, trg, path, manager)
@@ -72,7 +72,7 @@ module Wx::SF
           @trg_point = trg.to_real_point
           @src_shape_id = @trg_shape_id = DEFAULT::UNKNOWNID
           @stand_alone = true
-        elsif src.is_a?(Wx::SF::Serializable::ID) && trg.is_a?(Wx::SF::Serializable::ID)
+        elsif src.is_a?(FIRM::Serializable::ID) && trg.is_a?(FIRM::Serializable::ID)
           @src_point = DEFAULT::POINT.dup
           @trg_point = DEFAULT::POINT.dup
           @src_shape_id = src
@@ -101,28 +101,28 @@ module Wx::SF
     end
 
     # Get source shape id.
-    # @return [Wx::SF::Serializable::ID]
+    # @return [FIRM::Serializable::ID]
     def get_src_shape_id
       @src_shape_id
     end
     alias :src_shape_id :get_src_shape_id
 
     # Set source shape id.
-    # @param [Wx::SF::Serializable::ID] id
+    # @param [FIRM::Serializable::ID] id
     def set_src_shape_id(id)
       @src_shape_id = id
     end
     alias :src_shape_id= :set_src_shape_id
 
     # Get target shape id.
-    # @return [Wx::SF::Serializable::ID]
+    # @return [FIRM::Serializable::ID]
     def get_trg_shape_id
       @trg_shape_id
     end
     alias :trg_shape_id :get_trg_shape_id
 
     # Set target shape id.
-    # @param [Wx::SF::Serializable::ID] id
+    # @param [FIRM::Serializable::ID] id
     def set_trg_shape_id(id)
       @trg_shape_id = id
     end
