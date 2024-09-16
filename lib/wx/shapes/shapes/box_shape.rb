@@ -12,6 +12,7 @@ module Wx::SF
   # classic Wx::BoxSizer class. The box will be automatically resized along it's primary axis to accommodate
   # the combined sizes of the managed shapes. The minimum size of the box along it's secondary axis is
   # determined by the maximum size of the managed shapes.
+  # When adding or removing shapes the stack of shapes will always be kept contiguous (without empty slots).
   # Managed shapes will never be resized along the primary axis but may be resized and/or positioned along
   # the secondary axis according to the contained shape's alignment setting (EXPAND).
   class BoxShape < RectShape
@@ -58,7 +59,15 @@ module Wx::SF
       @slots = []
     end
 
+    # Get the box shape orientation.
+    # @return [Wx::SF::BoxShape::ORIENTATION]
+    def get_orientation
+      @orientation
+    end
+    alias :orientation :get_orientation
+
     # Get number of filled slots (i.e. managed shapes)
+    # @return [Integer]
     def get_slot_count
       @slots.size
     end
@@ -66,6 +75,7 @@ module Wx::SF
 
     # Set space between slots (managed shapes).
     # @param [Integer] spacing Spacing size
+    # @return [Integer] new spacing size
     def set_spacing(spacing)
       @spacing = spacing
     end
@@ -78,50 +88,25 @@ module Wx::SF
     end
     alias :spacing :get_spacing
 
-    # Iterate all slots. If a block is given passes slot index and id for each slot to block.
+    # Iterate all slots. If a block is given passes slot index and shape for each slot to block.
     # Returns Enumerator if no block given.
     # @overload each_slot()
     #   @return [Enumerator]
     # @overload each_slot(&block)
     #   @yieldparam [Integer] slot
-    #   @yieldparam [FIRM::Serializable::ID,nil] id
+    #   @yieldparam [Shape,nil] shape
     #   @return [Object]
     def each_slot(&block)
       if block
-        @slots.each_with_index do |id, slot|
-          block.call(slot, id)
+        @slots.each_with_index do |shape, slot|
+          block.call(slot, shape)
         end
       else
         ::Enumerator.new do |y|
-          @slots.each_with_index do |id, slot|
-            y << [slot, id]
+          @slots.each_with_index do |shape, slot|
+            y << [slot, shape]
           end
         end
-      end
-    end
-
-    # Remove the slot at given index
-    # @param [Integer] slot
-    # @return [Boolean] true if slot existed, false otherwise
-    # Note that this function doesn't remove managed (child) shapes from the parent box shape
-    # (they are still its child shapes but aren't managed anymore).
-    def clear_slot(slot)
-      if slot>=0 && slot<@slots.size
-        @slots.delete_at(slot)
-        true
-      else
-        false
-      end
-    end
-
-    # Get the shape Id stored in slot at given index
-    # @param [Integer] slot
-    # @return [FIRM::Serializable::ID, nil] id if slot exists, nil otherwise
-    def get_slot(slot)
-      if slot>=0 && slot<@slots.size
-        @slots[slot]
-      else
-        nil
       end
     end
 
@@ -129,10 +114,7 @@ module Wx::SF
     # @param [Integer] slot slot index of requested shape
     # @return [Shape, nil] shape object of given slot if exists, otherwise nil
     def get_managed_shape(slot)
-      if slot>=0 && slot<@slots.size
-        return @child_shapes.find { |child| @slots[slot] == child.id }
-      end
-      nil
+      @slots[slot]
     end
 
     # Clear information about managed shapes and remove all slots.
@@ -160,7 +142,7 @@ module Wx::SF
     def insert_to_box(slot, shape)
       if shape && shape.is_a?(Shape) && is_child_accepted(shape.class)
         # protect duplicated occurrences
-        return false if @slots.index(shape.id)
+        return false if @slots.index(shape)
 
         # protect unbounded index
         return false if slot > @slots.size
@@ -174,31 +156,31 @@ module Wx::SF
           end
         end
 
-        @slots.insert(slot, shape.id)
+        @slots.insert(slot, shape)
 
         return true
       end
       false
     end
 
-    # Remove shape with given ID from the box.
-    # Shifts any occupied cells beyond the slots containing the given id to the previous position.
-    # @param [FIRM::Serializable::ID] id ID of shape which should be removed
+    # Remove given shape from the box.
+    # Shifts any occupied cells beyond the slots containing the given shape to the previous position.
+    # @param [Shape] shape shape which should be removed
     # @note Note this does *not* remove the shape as a child shape.
-    def remove_from_box(id)
-      @slots.delete(id)
+    def remove_from_box(shape)
+      @slots.delete(shape)
     end
 
     # Update shape (align all child shapes and resize it to fit them)
     def update
       # check for stale links to of de-assigned shapes
-      @slots.delete_if do |id|
-        @child_shapes.find { |child| child.id == id }.nil?
+      @slots.delete_if do |shape|
+        !@child_shapes.include?(shape)
       end
 
-      # check whether all child shapes' IDs are present in the slots array...
+      # check whether all child shapes are present in the slots array...
       @child_shapes.each do |child|
-        unless @slots.include?(child.id)
+        unless @slots.include?(child)
           # see if we can match the position of the new child with the position of another
           # (previously assigned) managed shape
           find_child_slot(child)
@@ -257,9 +239,7 @@ module Wx::SF
       end
 
       offset = Wx::Point.new(@spacing,@spacing)
-      @slots.each do |id|
-        shape = @child_shapes[id]
-
+      @slots.each do |shape|
         if @orientation == ORIENTATION::VERTICAL
           shape_h = shape.get_bounding_box.height + (2*shape.get_v_border).to_i
           fit_shape_to_rect(shape, Wx::Rect.new(@spacing,
@@ -287,9 +267,9 @@ module Wx::SF
       # (previously assigned) managed shape
       if child && !child.is_a?(LineShape)
         # if the child already had a slot
-        if @slots.index(child.id)
+        if @slots.index(child)
           # remove it from there; this provides support for reordering child shapes by dragging
-          remove_from_box(child.id)
+          remove_from_box(child)
         end
 
         # insert child based on it's current (possibly dropped) position
@@ -303,8 +283,8 @@ module Wx::SF
     # checks the slots for stale links
     def on_import
       # check for existence of non-included shapes
-      @slots.delete_if do |id|
-        @child_shapes.find { |child| child.id == id }.nil?
+      @slots.delete_if do |shape|
+        !@child_shapes.include?(shape)
       end
     end
 
@@ -315,28 +295,23 @@ module Wx::SF
       if intersects?(crct)
         # find the slot with a shape that is positioned below/after
         # the new child
-        slot = @slots.find_index do |id|
-          shape = @child_shapes.find { |_c| _c.id == id }
-          rc = false
-          if shape
-            # determine if new child is positioned above/in front of existing child shape
-            srct = shape.get_bounding_box
-            rc = if @orientation == ORIENTATION::VERTICAL
-              crct.bottom <= srct.bottom || crct.top <= srct.top
-            else
-              crct.right <= srct.right || crct.left <= srct.left
-            end
+        slot = @slots.find_index do |shape|
+          # determine if new child is positioned above/in front of existing child shape
+          srct = shape.get_bounding_box
+          if @orientation == ORIENTATION::VERTICAL
+            crct.bottom <= srct.bottom || crct.top <= srct.top
+          else
+            crct.right <= srct.right || crct.left <= srct.left
           end
-          rc
         end
         if slot # if found
           # insert before other shape
-          @slots.insert(slot, child.id)
+          @slots.insert(slot, child)
           return
         end
       end
       # otherwise append
-      @slots << child.id
+      @slots << child
     end
 
     private
@@ -348,14 +323,6 @@ module Wx::SF
     def set_orientation(orientation)
       @orientation = orientation
     end
-    alias :orientation= :set_orientation
-
-    # Get the box shape orientation.
-    # @return [Wx::SF::BoxShape::ORIENTATION]
-    def get_orientation
-      @orientation
-    end
-    alias :orientation :get_orientation
 
     def get_slots
       @slots
