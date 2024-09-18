@@ -15,42 +15,53 @@ module Wx::SF
 
     # default values
     module DEFAULT
-      # Default value of GridShape @rows data member.
-      ROWS = 3
       # Default value of GridShape @cols data member.
       COLS  = 3
       # Default value of GridShape @cell_space data member.
       CELLSPACE  = 5
     end
 
-    property :rows, :cols, :cell_space, :cells
+    property :cols, :max_rows, :cell_space, :cells
 
     # @overload initialize()
     #   Default constructor.
-    # @overload initialize(pos, size, rows, cols, cell_space, diagram)
+    # @overload initialize(pos, size, cols, max_rows, cell_space, diagram)
     #   User constructor.
     #   @param [Wx::RealPoint] pos Initial position
     #   @param [Wx::RealPoint] size Initial size
     #   @param [Integer] cols Number of grid rows
-    #   @param [Integer] rows Number of grid columns
+    #   @param [Integer] max_rows Maximum number of grid columns
     #   @param [Integer] cell_space Additional space between managed shapes
     #   @param [Wx::SF::Diagram] diagram parent diagram
     def initialize(*args)
       if args.empty?
         super()
-        @rows = DEFAULT::ROWS
         @cols = DEFAULT::COLS
+        @max_rows = 0
         @cell_space = DEFAULT::CELLSPACE
       else
-        pos, size, rows, cols, cell_space, diagram = args
+        pos, size, cols, max_rows, cell_space, diagram = args
         super(pos, size, diagram)
-        @rows = rows || 0
-        @cols = cols || 0
-        @cell_space = cell_space || 0
+        @cols = [1, (cols || DEFAULT::COLS).to_i].max   # at least one column
+        @max_rows = [0, max_rows.to_i].max              # no or >=1 max rows
+        @cell_space = [0, (cell_space || DEFAULT::CELLSPACE).to_i].max
       end
+      @rows = 1
       @cells = []
       remove_style(Shape::STYLE::SIZE_CHANGE)
     end
+
+    attr_reader :max_rows
+
+    # Sets the maximum number of rows for the grid (by default there this value is 0 == no maximum).
+    # In case the number of already managed cells exceeds the new maximum no change is made.
+    # @return [Integer] the active maximum
+    def set_max_rows(num)
+      # only change as long as this does not invalidate already managed cells
+      @max_rows = num unless (num * @cols) < @cells.size
+      @max_rows
+    end
+    alias :max_rows= :set_max_rows
 
     # Set grid dimensions.
     # @param [Integer] rows Number of rows
@@ -70,6 +81,13 @@ module Wx::SF
       [@rows, @cols]
     end
 
+    # Get number of available grid cells
+    # @return [Integer]
+    def get_cell_count
+      @rows * @cols
+    end
+    alias :cell_count :get_cell_count
+
     # Set space between grid cells (managed shapes).
     # @param [Integer] cellspace Cellspace size
     def set_cell_space(cellspace)
@@ -84,14 +102,14 @@ module Wx::SF
     end
     alias :cell_space :get_cell_space
     
-    # Iterate all cells. If a block is given passes row, col and id for each cell to block.
+    # Iterate all cells. If a block is given passes row, col and shape (if any) for each cell to block.
     # Returns Enumerator if no block given.
     # @overload each_cell()
     #   @return [Enumerator]
     # @overload each_cell(&block)
     #   @yieldparam [Integer] row
     #   @yieldparam [Integer] col
-    #   @yieldparam [FIRM::Serializable::ID,nil] id
+    #   @yieldparam [shape,nil] shape
     #   @return [Object]
     def each_cell(&block)
       if block
@@ -126,18 +144,6 @@ module Wx::SF
       end
     end
 
-    # Get the shape Id stored in cell at given row and column index
-    # @param [Integer] row
-    # @param [Integer] col
-    # @return [FIRM::Serializable::ID, nil] id if cell exists and not empty, nil otherwise
-    def get_cell(row, col)
-      if row>=0 && row<@rows && col>=0 && col<@cols
-        @cells[row*@cols + col]
-      else
-        nil
-      end
-    end
-
     # Get managed shape specified by lexicographic cell index.
     # @overload get_managed_shape(index)
     #   @param [Integer] index Lexicographic index of requested shape
@@ -148,10 +154,7 @@ module Wx::SF
     #   @return [Shape, nil] shape object stored in specified grid cell if exists, otherwise nil
     def get_managed_shape(*args)
       index = args.size == 1 ? args.first : (args[0]*@cols)+args[1]
-      if index>=0 && index<@cells.size && @cells[index]
-        return @child_shapes.find { |child| @cells[index] == child.id }
-      end
-      nil
+      @cells[index]
     end
 
     # Clear information about managed shapes and set number of rows and columns to zero.
@@ -188,7 +191,7 @@ module Wx::SF
     #   the existing item 'index', thus insert_to_grid(0, something) will insert an item in such way that it will become
     #   the first grid element. Any occupied grid cells at given position or beyond will be shifted to the next
     #   lexicographic position.
-    #   @param [Integer] index Lexicographic position of inserted shape
+    #   @param [Integer] index Lexicographic position of inserted shape (>= 0)
     #   @param [Shape] shape shape to insert
     #   @return [Boolean] true on success, otherwise false
     def insert_to_grid(*args)
@@ -196,10 +199,12 @@ module Wx::SF
         row, col, shape = args
         if shape && shape.is_a?(Shape) && is_child_accepted(shape.class)
           # protect duplicated occurrences
-          return false if @cells.index(shape.id)
+          return false if @cells.index(shape)
 
           # protect unbounded horizontal index (grid can grow in a vertical direction only)
           return false if col >= @cols
+          # protect maximum rows
+          return false if @max_rows > 0 && row >= @max_rows
 
           # add the shape to the children list if necessary
           unless @child_shapes.include?(shape)
@@ -210,11 +215,11 @@ module Wx::SF
             end
           end
 
-          @cells.insert(row * @cols + col, shape.id)
+          @cells.insert(row * @cols + col, shape)
 
           # adjust row count if necessary
-          if @cells.size > (@rows * @cols)
-            @rows = @cells.size / @cols
+          if @cells.size > cell_count
+            update_rows
           end
 
           return true
@@ -223,10 +228,10 @@ module Wx::SF
         index, shape = args
         if shape && shape.is_a?(Shape) && is_child_accepted(shape.class)
           # protect duplicated occurrences
-          return false if @cells.index(shape.id)
+          return false if @cells.index(shape)
 
           # protect unbounded index
-          return false if index >= (@rows * @cols)
+          return false if index < 0 || (@max_rows > 0 && index >= (@cols * @max_rows))
 
           # add the shape to the children list if necessary
           unless @child_shapes.include?(shape)
@@ -237,11 +242,11 @@ module Wx::SF
             end
           end
 
-          @cells.insert(index, shape.id)
+          @cells.insert(index, shape)
 
           # adjust row count if necessary
-          if @cells.size > (@rows * @cols)
-            @rows = @cells.size / @cols
+          if @cells.size > cell_count
+            update_rows
           end
 
           return true
@@ -250,27 +255,36 @@ module Wx::SF
       false
     end
 
-    # Remove shape with given ID from the grid.
-    # Shifts any occupied cells beyond the cell containing the given id to the previous lexicographic position.
-    # @param [FIRM::Serializable::ID] id ID of shape which should be removed
+    # Remove given shape from the grid.
+    # Shifts any occupied cells beyond the cell containing the given shape to the previous lexicographic position.
+    # @param [Shape] shape shape which should be removed
+    # @return [Shape,nil] removed shape or nil if not found
     # @note Note this does *not* remove the shape as a child shape.
-    def remove_from_grid(id)
-      @cells.delete(id)
+    def remove_from_grid(shape)
+      if @cells.delete(shape)
+        # remove trailing empty cells
+        @cells.pop until @cells.last
+        # update row count
+        @rows = @cells.size / @cols
+        @rows += 1 if (@cells.size % @cols) > 0
+        return shape
+      end
+      nil
     end
 
     # Update shape (align all child shapes and resize it to fit them)
     def update
       # check for existence of de-assigned shapes
-      @cells.delete_if do |id|
-        @child_shapes.find { |child| child.id == id }.nil?
+      @cells.delete_if do |shape|
+        shape && !@child_shapes.include?(shape)
       end
 
-      # check whether all child shapes' IDs are present in the cells array...
+      # check whether all child shapes are present in the cells array...
       @child_shapes.each do |child|
-        unless @cells.include?(child.id)
+        unless @cells.include?(child)
           # see if we can match the position of the new child with the position of another
           # (previously assigned) managed shape
-          find_child_cell(child)
+          position_child_cell(child)
         end
       end
 
@@ -310,25 +324,16 @@ module Wx::SF
     def do_children_layout
       return if @cols == 0 || @rows == 0
   
-      max_rect = Wx::Rect.new(0,0,0,0)
-  
-      # get maximum size of all managed (child) shapes
-      @child_shapes.each do |shape|
-        curr_rect = shape.get_bounding_box
+      max_size = get_max_child_size
 
-        max_rect.set_width(curr_rect.width) if shape.get_h_align != HALIGN::EXPAND && curr_rect.width > max_rect.width
-        max_rect.set_height(curr_rect.height) if shape.get_v_align != VALIGN::EXPAND && curr_rect.height > max_rect.height
-      end
-
-      @cells.each_with_index do |id, i|
-        if id
-          shape = @child_shapes[id]
+      @cells.each_with_index do |shape, i|
+        if shape
           col = (i % @cols)
           row = (i / @cols)
 
-          fit_shape_to_rect(shape, Wx::Rect.new(col*max_rect.width + (col+1)*@cell_space,
-                                                row*max_rect.height + (row+1)*@cell_space,
-                                                max_rect.width, max_rect.height))
+          fit_shape_to_rect(shape, Wx::Rect.new(col*max_size.width + (col+1)*@cell_space,
+                                                row*max_size.height + (row+1)*@cell_space,
+                                                max_size.width, max_size.height))
         end
       end
     end
@@ -340,18 +345,11 @@ module Wx::SF
     # @param [Wx::RealPoint] _pos Relative position of dropped shape
     # @param [Shape] child dropped shape
     def on_child_dropped(_pos, child)
-      append_to_grid(child) if child && !child.is_a?(LineShape)
       # see if we can match the position of the new child with the position of another
       # (previously assigned) managed shape
       if child && !child.is_a?(LineShape)
-        # if the child already had a slot
-        if @cells.index(child.id)
-          # remove it from there; this provides support for reordering child shapes by dragging
-          remove_from_grid(child.id)
-        end
-
         # insert child based on it's current (possibly dropped) position
-        find_child_cell(child)
+        position_child_cell(child)
       end
     end
 
@@ -361,74 +359,88 @@ module Wx::SF
     # checks the cells for stale links
     def on_import
       # check for existence of non-included shapes
-      @cells.delete_if do |id|
-        @child_shapes.find { |child| child.id == id }.nil?
+      @cells.delete_if do |shape|
+        shape && !@child_shapes.include?(shape)
       end
     end
 
-    def find_child_cell(child)
+    # update row count
+    def update_rows
+      @rows = @cells.size / @cols
+      @rows += 1 if (@cells.size % @cols) > 0
+    end
+
+    # returns maximum size of all managed (child) shapes
+    # @return [Wx::Size]
+    def get_max_child_size
+      @child_shapes.inject(Wx::Size.new(0, 0)) do |max_size, shape|
+        child_rect = shape.get_bounding_box
+
+        max_size.set_width(child_rect.width) if shape.get_h_align != HALIGN::EXPAND && child_rect.width > max_size.width
+        max_size.set_height(child_rect.height) if shape.get_v_align != VALIGN::EXPAND && child_rect.height > max_size.height
+        max_size
+      end
+    end
+
+    def find_cell(child_rect)
+      max_size = get_max_child_size
+
+      # find the cell index where the new or dragged child is positioned above and in front of
+      offset = get_bounding_box.top_left
+      cell_count.times.find do |cell|
+        col = (cell % @cols)
+        row = (cell / @cols)
+        cell_rct = Wx::Rect.new(col*max_size.width + (col+1)*@cell_space,
+                                row*max_size.height + (row+1)*@cell_space,
+                                max_size.width, max_size.height).offset!(offset)
+        child_rect.right <= cell_rct.right && child_rect.bottom <= cell_rct.bottom
+      end
+    end
+
+    def position_child_cell(child)
       crct = child.get_bounding_box
       # if the child intersects this box shape we look
       # for the cell it should go into (if any)
       if @cells.size>0 && intersects?(crct)
-
-        max_rect = Wx::Rect.new(0,0,0,0)
-        # get maximum size of all managed (child) shapes
-        @cells.each do |id|
-          shape = id ? @child_shapes[id] : nil
-          if shape
-            curr_rect = shape.get_bounding_box
-
-            max_rect.set_width(curr_rect.width) if shape.get_h_align != HALIGN::EXPAND && curr_rect.width > max_rect.width
-            max_rect.set_height(curr_rect.height) if shape.get_v_align != VALIGN::EXPAND && curr_rect.height > max_rect.height
+        # find the cell index where the new child is positioned above and in front of
+        index = find_cell(crct)
+        # now see where to put the new/moved child
+        if index    # found a matching cell?
+          target_cell = @cells[index]
+          # if the child being inserted already had a slot (moving a child)
+          if (child_index = @cells.index(child))
+            # if the newly found index equals the existing index there is nothing to do
+            return if child_index == index
+            # else remove the child from it's current position; this provides support for reordering child shapes by dragging
+            remove_from_grid(child)
           end
-        end
-
-        # find the cell where the new child is positioned above and in front of
-        inserted = false
-        offset = get_bounding_box.top_left
-        @cells.each_index do |cell|
-          col = (cell % @cols)
-          row = (cell / @cols)
-
-          cell_rct = Wx::Rect.new(col*max_rect.width + (col+1)*@cell_space,
-                                  row*max_rect.height + (row+1)*@cell_space,
-                                  max_rect.width, max_rect.height).offset!(offset)
-          if crct.right <= cell_rct.right && crct.bottom <= cell_rct.bottom
-            if @cells[cell] # is cell occupied?
-              # insert and shift other cells
-              @cells.insert(cell, child.id)
-              # adjust row count if necessary
-              if @cells.size > (@rows * @cols)
-                @rows = @cells.size / @cols
-              end
-            else
-              # use empty cell
-              @cells[cell] = child.id
-            end
-            inserted = true
-            break
+          # insert/move the child
+          if target_cell # is cell occupied?
+            # if the child being moved was positioned before the new position we need to adjust the new position
+            index -= 1 if child_index && child_index < index
+          # else
+          #   # move to empty cell
+          #   @cells[index] = child
           end
+          # insert
+          insert_to_grid(index, child)
+          return # done
         end
-        return if inserted
       end
       # otherwise append
-      @cells << child.id
-      # adjust row count if necessary
-      if @cells.size > (@rows * @cols)
-        @rows = @cells.size / @cols
-      end
+      # remove child from current position if already part of grid
+      remove_from_grid(child) if @cells.index(child)
+      # append
+      append_to_grid(child)
     end
 
     private
 
-    # Deserialization only.
+    # (de-)serialization only.
 
-    def get_rows
-      @rows
-    end
-    def set_rows(num)
-      @rows = num
+    # default deserialization finalizer
+    def create
+      update_rows
     end
 
     def get_cols
