@@ -1078,7 +1078,7 @@ module Wx::SF
 
       Wx::Clipboard.open do |clipboard|
         return clipboard.supported?(Wx::DataFormat.new(Wx::SF::ShapeDataObject::DataFormatID))
-      end
+      end rescue false
     end
     alias :can_paste? :can_paste
 
