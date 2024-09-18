@@ -57,7 +57,7 @@ module Wx::SF
       when Shape::HALIGN::EXPAND
         if shape.has_style?(Shape::STYLE::SIZE_CHANGE)
           shape.set_relative_position(rct.left + shape.get_h_border, prev_pos.y)
-          shape.scale((rct.width - 2*shape.get_h_border).to_f/shape_bb.width, 1.9)
+          shape.scale((rct.width - 2*shape.get_h_border).to_f/shape_bb.width, 1.0)
         end
       else
         shape.set_relative_position(rct.left, prev_pos.y)
