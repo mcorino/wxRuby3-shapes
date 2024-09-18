@@ -1766,14 +1766,14 @@ module Wx::SF
       processed << self
 
       # first, get bounding box of the current shape
-      if (mask & BBMODE::SELF) != 0
+      if mask.allbits?(BBMODE::SELF)
         if rct.is_empty
           rct.assign(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
         else
           rct.union!(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
 
           # add also shadow offset if necessary
-          if (mask & BBMODE::SHADOW) != 0 && has_style?(STYLE::SHOW_SHADOW) && get_parent_canvas
+          if mask.allbits?(BBMODE::SHADOW) && has_style?(STYLE::SHOW_SHADOW) && get_parent_canvas
             n_offset = get_parent_canvas.get_shadow_offset
 
             if n_offset.x < 0
@@ -1797,7 +1797,7 @@ module Wx::SF
 
       # get list of all connection lines assigned to the shape and find their child shapes
       lst_children = []
-      if (mask & BBMODE::CONNECTIONS) != 0
+      if mask.allbits?(BBMODE::CONNECTIONS)
         lst_lines = get_assigned_connections(Wx::SF::LineShape, CONNECTMODE::BOTH)
 
         lst_lines.each do |line|
@@ -1810,7 +1810,7 @@ module Wx::SF
       end
 
       # get children of this shape
-      if (mask & BBMODE::CHILDREN) != 0
+      if mask.allbits?(BBMODE::CHILDREN)
         get_child_shapes(ANY, NORECURSIVE, SEARCHMODE::BFS, lst_children)
 
         # now, call this function for all children recursively...
