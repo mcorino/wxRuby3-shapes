@@ -24,4 +24,14 @@ module Wx
 
   end
 
+  class Size
+
+    # Returns this size as a Wx::RealPoint.
+    # @return [Wx::RealPoint]
+    def to_real_point
+      Wx::RealPoint.new(self.width.to_f, self.height.to_f)
+    end
+
+  end
+
 end
