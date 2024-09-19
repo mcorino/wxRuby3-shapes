@@ -19,23 +19,14 @@ module Wx::SF
 
     property :connect_to_vertex, :vertices
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Array<Wx::RealPoint>] pts Array of the polygon vertices
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Array<Wx::RealPoint>] vertices Array of the polygon vertices
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, vertices: [], diagram: nil)
+      super(pos, Wx::RealPoint.new(1,1), diagram: diagram)
       @connect_to_vertex = DEFAULT::VERTEXCONNECTIONS
-      @vertices = []
-      if args.empty?
-        super
-      else
-        pts, pos, diagram = args
-        super(pos,Wx::RealPoint.new(1,1), diagram)
-        set_vertices(pts)
-      end
+      set_vertices(vertices)
     end
 
     # Set connecting mode.

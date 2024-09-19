@@ -44,47 +44,37 @@ module Wx::SF
     property :stand_alone, :src_arrow, :trg_arrow, :src_offset, :trg_offset,
              :dock_point, :line_pen, :control_points
 
-    # @overload initialize()
-    #   default constructor
-    # @overload initialize(src, trg, path, manager)
-    #   @param [FIRM::Serializable::ID] src ID of the source shape
-    #   @param [FIRM::Serializable::ID] trg ID of the target shape
-    #   @param [Array<Wx::RealPoint>] path List of the line control points (can be empty)
-    #   @param [Diagram] diagram containing diagram
-    # @overload initialize(src, trg, path, manager)
-    #   @param [Wx::RealPoint] src starting line point
-    #   @param [Wx::RealPoint] trg end line point
+    # @overload initialize(src = DEFAULT::POINT, trg = DEFAULT::POINT, path: nil, manager: nil)
+    #   Constructor.
+    #   @param [Wx::RealPoint,Wx::Point] src starting line point
+    #   @param [Wx::RealPoint,Wx::Point] trg end line point
     #   @param [Array<Wx::RealPoint>,nil] path List of the line control points (can be empty or nil)
     #   @param [Diagram] diagram containing diagram
-    def initialize(*args)
-      if args.empty?
-        super()
+    # @overload initialize(src, trg, path: nil, manager: nil)
+    #   Constructor for connecting two shapes.
+    #   @param [FIRM::Serializable::ID] src ID of the source shape
+    #   @param [FIRM::Serializable::ID] trg ID of the target shape
+    #   @param [Array<Wx::RealPoint>,nil] path List of the line control points (can be empty or nil)
+    #   @param [Diagram] diagram containing diagram
+    def initialize(src = DEFAULT::POINT, trg = DEFAULT::POINT, path: nil, diagram: nil)
+      super(diagram: diagram)
+      if src.respond_to?(:to_real_point) && trg.respond_to?(:to_real_point)
+        @src_point = Wx::Point === src ? src.to_real_point : src.dup
+        @trg_point = Wx::Point === trg ? trg.to_real_point : trg.dup
         @src_shape_id = @trg_shape_id = DEFAULT::UNKNOWNID
+        @stand_alone = true
+      elsif (src.nil? || src.is_a?(FIRM::Serializable::ID)) && (trg.nil? || trg.is_a?(FIRM::Serializable::ID))
         @src_point = DEFAULT::POINT.dup
         @trg_point = DEFAULT::POINT.dup
-        @stand_alone = DEFAULT::STANDALONE
-        @lst_points = []
+        @src_shape_id = src
+        @trg_shape_id = trg
+        @stand_alone = false
       else
-        src, trg, path, diagram = args
-        super(Shape::DEFAULT::POSITION.dup, diagram)
-        if src.respond_to?(:to_real_point) && trg.respond_to?(:to_real_point)
-          @src_point = src.to_real_point
-          @trg_point = trg.to_real_point
-          @src_shape_id = @trg_shape_id = DEFAULT::UNKNOWNID
-          @stand_alone = true
-        elsif src.is_a?(FIRM::Serializable::ID) && trg.is_a?(FIRM::Serializable::ID)
-          @src_point = DEFAULT::POINT.dup
-          @trg_point = DEFAULT::POINT.dup
-          @src_shape_id = src
-          @trg_shape_id = trg
-          @stand_alone = false
-        else
-          ::Kernel.raise ArgumentError, "Invalid arguments #{args}"
-        end
-        path ||= []
-        @lst_points = path.select { |pt| pt.respond_to?(:to_real_point) }.collect { |pt| pt.to_real_point }
-        ::Kernel.raise ArgumentError, "Invalid arguments #{args}" unless path.size == @lst_points.size
+        ::Kernel.raise ArgumentError, "Invalid arguments #{args}"
       end
+      path ||= []
+      @lst_points = path.select { |pt| pt.respond_to?(:to_real_point) }.collect { |pt| pt.to_real_point }
+      ::Kernel.raise ArgumentError, "Invalid arguments #{args}" unless path.size == @lst_points.size
 
       @src_arrow = nil
       @trg_arrow = nil
@@ -101,7 +91,7 @@ module Wx::SF
     end
 
     # Get source shape id.
-    # @return [FIRM::Serializable::ID]
+    # @return [FIRM::Serializable::ID, nil]
     def get_src_shape_id
       @src_shape_id
     end
@@ -115,7 +105,7 @@ module Wx::SF
     alias :src_shape_id= :set_src_shape_id
 
     # Get target shape id.
-    # @return [FIRM::Serializable::ID]
+    # @return [FIRM::Serializable::ID, nil]
     def get_trg_shape_id
       @trg_shape_id
     end

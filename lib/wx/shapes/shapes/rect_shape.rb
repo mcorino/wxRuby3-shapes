@@ -19,25 +19,15 @@ module Wx::SF
 
     property :rect_size, :fill, :border
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::RealPoint] size Initial size
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      size = nil
-      if args.empty?
-        super
-      else
-        pos, size, diagram = args
-        super(pos, diagram)
-      end
-      @rect_size = size ? size.to_real_point : DEFAULT::SIZE.dup
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Wx::RealPoint,Wx::Size,Wx::Point] size Initial size
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = DEFAULT::SIZE, diagram: nil)
+      super(pos, diagram: diagram)
+      @rect_size = Wx::RealPoint === size ? size.dup : size.to_real_point
       @fill = DEFAULT.fill
       @border = DEFAULT.border
-      @prev_size = @prev_position = Wx::RealPoint
     end
 
     # Set rectangle's fill style.
@@ -218,8 +208,7 @@ module Wx::SF
 
     # Handle action at handle drag beginning
     def do_begin_handle
-      @prev_position = @relative_position.dup
-      @prev_size = @rect_size.dup
+      # noop
     end
 
     # Scale the rectangle size for this shape.

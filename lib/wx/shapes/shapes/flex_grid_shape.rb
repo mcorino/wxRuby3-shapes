@@ -11,17 +11,15 @@ module Wx::SF
   class FlexGridShape < GridShape
 
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, cols, max_rows, cell_space, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::RealPoint] size Initial size
-    #   @param [Integer] cols Number of grid columns
-    #   @param [Integer] max_rows Maximum number of grid rows
-    #   @param [Integer] cell_space Additional space between managed shapes
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Wx::RealPoint,Wx::Size,Wx::Point] size Initial size
+    # @param [Integer] cols Number of grid columns
+    # @param [Integer] max_rows Maximum number of grid rows
+    # @param [Integer] cell_space Additional space between managed shapes
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = RectShape::DEFAULT::SIZE,
+                   cols: DEFAULT::COLUMNS, max_rows: 0, cell_space: DEFAULT::CELLSPACE, diagram: nil)
       super
     end
 

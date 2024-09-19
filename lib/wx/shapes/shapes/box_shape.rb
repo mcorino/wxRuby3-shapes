@@ -36,26 +36,16 @@ module Wx::SF
 
     property :spacing, :orientation, :slots
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, orientation, spacing, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::RealPoint] size Initial size
-    #   @param [Wx::SF::BoxShape::ORIENTATION] orientation box orientation
-    #   @param [Integer] spacing Additional space between managed shapes
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      if args.empty?
-        super()
-        @orientation = DEFAULT::ORIENTATION
-        @spacing = DEFAULT::SPACING
-      else
-        pos, size, orientation, spacing, diagram = args
-        super(pos, size, diagram)
-        @orientation = orientation || DEFAULT::ORIENTATION
-        @spacing = spacing || 0
-      end
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Wx::RealPoint,Wx::Point,Wx::Size] size Initial size
+    # @param [Wx::SF::BoxShape::ORIENTATION] orientation box orientation
+    # @param [Integer] spacing Additional space between managed shapes
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = RectShape::DEFAULT::SIZE, orientation: DEFAULT::ORIENTATION, spacing: DEFAULT::SPACING, diagram: nil)
+      super(pos, size, diagram: diagram)
+      @orientation = orientation || DEFAULT::ORIENTATION
+      @spacing = spacing || 0
       @slots = []
     end
 
@@ -336,22 +326,13 @@ module Wx::SF
   # Convenience class encapsulating a BoxShape with vertical orientation.
   class VBoxShape < BoxShape
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, spacing, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::RealPoint] size Initial size
-    #   @param [Integer] spacing Additional space between managed shapes
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      if args.empty?
-        super()
-        @orientation = ORIENTATION::VERTICAL
-      else
-        pos, size, spacing, diagram = args
-        super(pos, size, ORIENTATION::VERTICAL, spacing, diagram)
-      end
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Wx::RealPoint,Wx::Point,Wx::Size] size Initial size
+    # @param [Integer] spacing Additional space between managed shapes
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = RectShape::DEFAULT::SIZE, spacing: DEFAULT::SPACING, diagram: nil)
+      super(pos, size, orientation: ORIENTATION::VERTICAL, spacing: spacing, diagram: diagram)
     end
 
   end
@@ -359,22 +340,13 @@ module Wx::SF
   # Convenience class encapsulating a BoxShape with horizontal orientation.
   class HBoxShape < BoxShape
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, spacing, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::RealPoint] size Initial size
-    #   @param [Integer] spacing Additional space between managed shapes
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      if args.empty?
-        super()
-        @orientation = ORIENTATION::HORIZONTAL
-      else
-        pos, size, spacing, diagram = args
-        super(pos, size, ORIENTATION::HORIZONTAL, spacing, diagram)
-      end
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Wx::RealPoint,Wx::Point,Wx::Size] size Initial size
+    # @param [Integer] spacing Additional space between managed shapes
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = RectShape::DEFAULT::SIZE, spacing: DEFAULT::SPACING, diagram: nil)
+      super(pos, size, orientation: ORIENTATION::HORIZONTAL, spacing: spacing, diagram: diagram)
     end
 
   end

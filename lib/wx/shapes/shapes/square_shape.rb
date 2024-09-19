@@ -7,22 +7,19 @@ module Wx::SF
 
   class SquareShape < RectShape
 
+    # Default values
+    module DEFAULT
+      # Default square size
+      SIZE = 100.0
+    end
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Float] size Initial size
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      if args.empty?
-        super
-        set_rect_size(100,100)
-      else
-        pos, sz, diagram = args
-        super(pos, Wx::RealPoint.new(sz, sz), diagram)
-      end
+
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Float] size Initial size
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = DEFAULT::SIZE, diagram: nil)
+      super(pos, Wx::RealPoint.new(size, size), diagram: diagram)
     end
 
     # Get shape's center. Default implementation does nothing. The function can be overridden if necessary.

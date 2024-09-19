@@ -15,32 +15,24 @@ module Wx::SF
         # Default value of TextShape @text_color data member.
         def text_color; Wx::BLACK; end
       end
+      TEXT = 'Text'
     end
 
     property :font, :text_colour, :text
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [String] txt Text content
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      txt = nil
-      if args.empty?
-        super
-      else
-        pos, txt, diagram = args
-        super(pos, Wx::RealPoint.new, diagram)
-      end
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [String] txt Text content
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, txt = DEFAULT::TEXT, diagram: nil)
+      super(pos, Wx::RealPoint.new, diagram: diagram)
       @font = DEFAULT.font
       @font.set_point_size(12)
 
       @line_height = 12
 
       @text_color = DEFAULT.text_color
-      @text = txt || 'Text'
+      @text = txt
 
       @fill = Wx::TRANSPARENT_BRUSH
       @border = Wx::TRANSPARENT_PEN

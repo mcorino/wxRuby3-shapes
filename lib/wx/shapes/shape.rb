@@ -233,15 +233,12 @@ module Wx::SF
       end
     end
 
-    # @overload initialize()
-    #   default constructor
-    # @overload initialize(pos, manager)
-    #   @param [Wx::RealPoint] pos Initial relative position
-    #   @param [Diagram] diagram containing diagram
-    def initialize(*args)
-      pos, diagram = args
+    # Constructor
+    # @param [Wx::RealPoint, Wx::Point] pos Initial relative position
+    # @param [Diagram] diagram containing diagram
+    def initialize(pos = DEFAULT::POSITION, diagram: nil)
       ::Kernel.raise ArgumentError, "Invalid arguments pos: #{pos}, diagram: #{diagram}" unless
-        args.empty? || (Wx::RealPoint === pos && (diagram.nil? || Wx::SF::Diagram === diagram))
+        Wx::RealPoint === pos && (diagram.nil? || Wx::SF::Diagram === diagram)
 
       @id = FIRM::Serializable::ID.new
       @diagram = diagram
@@ -275,11 +272,7 @@ module Wx::SF
       @h_border = DEFAULT::HBORDER
       @custom_dock_point = DEFAULT::DOCK_POINT
 
-      if pos && @parent_shape
-        @relative_position = pos.to_real_point - get_parent_absolute_position
-      else
-        @relative_position = DEFAULT::POSITION.dup
-      end
+      @relative_position = Wx::RealPoint === pos ? pos.dup : pos.to_real_point
 
       @handles = []
       @connection_pts = []

@@ -8,21 +8,18 @@ module Wx::SF
   # Class encapsulating the circle shape.
   class CircleShape < SquareShape
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Float] radius Initial circle radius
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      if args.empty?
-        super
-        set_rect_size(50,50)
-      else
-        pos, rad, diagram = args
-        super(pos, rad*2, diagram)
-      end
+    # Default values
+    module DEFAULT
+      # Default circle radius
+      RADIUS = 50.0
+    end
+
+    # Constructor.
+    # @param [Wx::RealPoint] pos Initial position
+    # @param [Float] radius Initial circle radius
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, radius = DEFAULT::RADIUS, diagram: nil)
+      super(pos, radius*2, diagram: diagram)
     end
 
     def get_radius

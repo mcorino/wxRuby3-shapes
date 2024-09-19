@@ -131,23 +131,14 @@ module Wx::SF
 
     property :event_processing, :control_offset, :mod_fill, :mod_border
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Wx::Window] ctrl managed GUI control
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::RealPoint] size Initial size
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      if args.empty?
-        super
-        @control = nil
-      else
-        ctrl = args.shift
-        super(*args)
-        set_control(ctrl)
-      end
+    # Constructor.
+    # @param [Wx::RealPoint] pos Initial position
+    # @param [Wx::RealPoint] size Initial size
+    # @param [Wx::Window] control managed GUI control
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = RectShape::DEFAULT::SIZE, control: nil, diagram: nil)
+      super(pos, size, diagram: diagram)
+      set_control(control)
       add_style(Shape::STYLE::PROCESS_DEL)
       @process_events = DEFAULT::PROCESSEVENTS
       @mod_fill = DEFAULT.mod_fill

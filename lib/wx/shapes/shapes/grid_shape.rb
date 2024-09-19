@@ -16,36 +16,26 @@ module Wx::SF
     # default values
     module DEFAULT
       # Default value of GridShape @cols data member.
-      COLS  = 3
+      COLUMNS  = 3
       # Default value of GridShape @cell_space data member.
       CELLSPACE  = 5
     end
 
     property :cols, :max_rows, :cell_space, :cells
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, cols, max_rows, cell_space, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::RealPoint] size Initial size
-    #   @param [Integer] cols Number of grid rows
-    #   @param [Integer] max_rows Maximum number of grid columns
-    #   @param [Integer] cell_space Additional space between managed shapes
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      if args.empty?
-        super()
-        @cols = DEFAULT::COLS
-        @max_rows = 0
-        @cell_space = DEFAULT::CELLSPACE
-      else
-        pos, size, cols, max_rows, cell_space, diagram = args
-        super(pos, size, diagram)
-        @cols = [1, (cols || DEFAULT::COLS).to_i].max   # at least one column
-        @max_rows = [0, max_rows.to_i].max              # no or >=1 max rows
-        @cell_space = [0, (cell_space || DEFAULT::CELLSPACE).to_i].max
-      end
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Wx::RealPoint,Wx::Size,Wx::Point] size Initial size
+    # @param [Integer] cols Number of grid columns
+    # @param [Integer] max_rows Maximum number of grid rows
+    # @param [Integer] cell_space Additional space between managed shapes
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = RectShape::DEFAULT::SIZE,
+                   cols: DEFAULT::COLUMNS, max_rows: 0, cell_space: DEFAULT::CELLSPACE, diagram: nil)
+      super(pos, size, diagram: diagram)
+      @cols = [1, cols.to_i].max   # at least one column
+      @max_rows = [0, max_rows.to_i].max              # no or >=1 max rows
+      @cell_space = [0, cell_space.to_i].max
       @rows = 1
       @cells = []
       remove_style(Shape::STYLE::SIZE_CHANGE)

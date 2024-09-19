@@ -9,19 +9,19 @@ module Wx::SF
   # user to create curved connection line.
   class CurveShape < LineShape
 
-    # @overload initialize()
-    #   default constructor
-    # @overload initialize(src, trg, path, manager)
-    #   @param [FIRM::Serializable::ID] src ID of the source shape
-    #   @param [FIRM::Serializable::ID] trg ID of the target shape
-    #   @param [Array<Wx::RealPoint>] path List of the line control points (can be empty)
-    #   @param [Diagram] diagram containing diagram
-    # @overload initialize(src, trg, path, manager)
-    #   @param [Wx::RealPoint] src starting line point
-    #   @param [Wx::RealPoint] trg end line point
+    # @overload initialize(src = DEFAULT::POINT, trg = DEFAULT::POINT, path: nil, manager: nil)
+    #   Constructor.
+    #   @param [Wx::RealPoint,Wx::Point] src starting line point
+    #   @param [Wx::RealPoint,Wx::Point] trg end line point
     #   @param [Array<Wx::RealPoint>,nil] path List of the line control points (can be empty or nil)
     #   @param [Diagram] diagram containing diagram
-    def initialize(*args)
+    # @overload initialize(src, trg, path: nil, manager: nil)
+    #   Constructor for connecting two shapes.
+    #   @param [FIRM::Serializable::ID] src ID of the source shape
+    #   @param [FIRM::Serializable::ID] trg ID of the target shape
+    #   @param [Array<Wx::RealPoint>,nil] path List of the line control points (can be empty or nil)
+    #   @param [Diagram] diagram containing diagram
+    def initialize(*args, **kwargs)
       super
     end
 

@@ -7,28 +7,18 @@ module Wx::SF
 
   class DiamondShape < PolygonShape
 
-    class << self
-      def diamond
-        @diamond ||= [Wx::RealPoint.new(0,25), Wx::RealPoint.new(50,0), Wx::RealPoint.new(100, 25), Wx::RealPoint.new(50, 50)]
-      end
+    module DEFAULT
+      DIAMOND = [Wx::RealPoint.new(0,25), Wx::RealPoint.new(50,0), Wx::RealPoint.new(100, 25), Wx::RealPoint.new(50, 50)]
     end
 
     # do not serialize because the vertices are assigned fixed in ctor
     excludes :vertices
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      if args.empty?
-        super
-        set_vertices(DiamondShape.diamond)
-      else
-        super(DiamondShape.diamond, *args)
-      end
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, diagram: nil)
+      super(pos, vertices: DEFAULT::DIAMOND, diagram: diagram)
     end
 
     # Test whether the given point is inside the shape. The function

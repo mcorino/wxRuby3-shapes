@@ -13,32 +13,22 @@ module Wx::SF
 
     property :can_scale, :bitmap
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, bmp_path, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [String] bmp_path Bitmap path
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [String] bmp_path Bitmap path
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, bmp_path = nil, diagram: nil)
+      super(pos, diagram: diagram)
       @bitmap = Wx::NULL_BITMAP
       @art_path = @art_section = nil
-      if args.empty?
-        super
-        @bitmap_path = nil
-        @original_bitmap = @bitmap = nil
-        @bitmap_type = nil
-      else
-        pos, bmp_path, diagram = args
-        super(pos, RectShape::DEFAULT::SIZE.dup, diagram)
-        create_from_file(bmp_path)
-      end
+      @bitmap_path = bmp_path
+      create_from_file(bmp_path) if bmp_path
       @rescale_in_progress = false
       @can_scale = true
     end
 
-	  # Get full name of a source BMP file.
-	  # @return [String] String containing full file name
+	  # Get full name of a source BMP file (if set).
+	  # @return [String,nil] String containing full file name
     def get_bitmap_path
       @bitmap_path
     end
