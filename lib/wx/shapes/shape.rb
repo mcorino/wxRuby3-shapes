@@ -1681,16 +1681,16 @@ module Wx::SF
         lst_connections.each do |line|
           case condir
           when CONNECTMODE::STARTING
-            opposite = @diagram.find_shape(line.get_trg_shape_id)
+            opposite = line.get_trg_shape
 
           when CONNECTMODE::ENDING
-            opposite = @diagram.find_shape(line.get_src_shape_id)
+            opposite = line.get_src_shape
 
           when CONNECTMODE::BOTH
-            if @id == line.get_src_shape_id
-              opposite = @diagram.find_shape(line.get_trg_shape_id)
+            if self == line.get_src_shape
+              opposite = line.get_trg_shape
             else
-              opposite = @diagram.find_shape(line.get_src_shape_id)
+              opposite = line.get_src_shape
             end
           end
 
@@ -1706,7 +1706,7 @@ module Wx::SF
             if opposite.is_a?(Wx::SF::LineShape)
               case condir
               when CONNECTMODE::STARTING
-                opposite = @diagram.find_shape(opposite.get_src_shape_id)
+                opposite = opposite.get_src_shape
 
                 if  opposite.is_a?(Wx::SF::LineShape)
                   opposite.__send__(:_get_neighbours, shape_info, condir, direct, neighbours, processed)
@@ -1715,7 +1715,7 @@ module Wx::SF
                 end
 
               when CONNECTMODE::ENDING
-                opposite = @diagram.find_shape(opposite.get_trg_shape_id)
+                opposite = opposite.get_trg_shape
 
                 if opposite.is_a?(Wx::SF::LineShape)
                   opposite.__send__(:_get_neighbours, shape_info, condir, direct, neighbours, processed)
@@ -1724,14 +1724,14 @@ module Wx::SF
                 end
 
               when CONNECTMODE::BOTH
-                opposite = @diagram.find_shape(opposite.get_src_shape_id)
+                opposite = opposite.get_src_shape
                 if opposite.is_a?(Wx::SF::LineShape)
                   opposite.__send__(:_get_neighbours, shape_info, condir, direct, neighbours, processed)
                 elsif !neighbours.include?(opposite)
                   neighbours << opposite
                 end
 
-                opposite = @diagram.find_shape(opposite.get_trg_shape_id)
+                opposite = opposite.get_trg_shape
                 if opposite.is_a?(Wx::SF::LineShape)
                   opposite.__send__(:_get_neighbours, shape_info, condir, direct, neighbours, processed)
                 elsif !neighbours.include?(opposite)

@@ -676,12 +676,12 @@ module Wx::SF
       nil
     end
 
-    def _start_interactive_connection(lpos, src_shape_id, cpt)
+    def _start_interactive_connection(lpos, src_shape, cpt)
       if @new_line_shape
         @working_mode = MODE::CREATECONNECTION
         @new_line_shape.send(:set_line_mode, LineShape::LINEMODE::UNDERCONSTRUCTION)
 
-        @new_line_shape.set_src_shape_id(src_shape_id)
+        @new_line_shape.set_src_shape(src_shape)
 
         # switch on the "under-construction" mode
         @new_line_shape.send(:set_unfinished_point, lpos)
@@ -751,7 +751,7 @@ module Wx::SF
           else
             @new_line_shape = @diagram.add_shape(shape, nil, Wx::DEFAULT_POSITION, INITIALIZE, DONT_SAVE_STATE)
           end
-          return _start_interactive_connection(lpos, connection_point.get_parent_shape.id, connection_point)
+          return _start_interactive_connection(lpos, connection_point.get_parent_shape, connection_point)
 
         else
 
@@ -763,7 +763,7 @@ module Wx::SF
           end
 
           # start the connection's creation process if possible
-          if shape_under&.id && shape_under.is_connection_accepted(shape_klass)
+          if shape_under && shape_under.is_connection_accepted(shape_klass)
             if shape && @diagram.contains?(shape)
               @new_line_shape = shape
             else
@@ -774,7 +774,7 @@ module Wx::SF
               end
               @new_line_shape =  (err == ERRCODE::OK ? shape : nil)
             end
-            return _start_interactive_connection(lpos, shape_under.id, shape_under.get_nearest_connection_point(lpos.to_real))
+            return _start_interactive_connection(lpos, shape_under, shape_under.get_nearest_connection_point(lpos.to_real))
           else
             return ERRCODE::NOT_ACCEPTED
           end
@@ -2224,28 +2224,28 @@ module Wx::SF
           end
           # finish connection's creation process if possible
           if shape_under && !event.control_down
-            if @new_line_shape.get_trg_shape_id.nil? && (shape_under != @new_line_shape) &&
-                shape_under.get_id && (shape_under.is_connection_accepted(@new_line_shape.class))
+            if @new_line_shape.get_trg_shape.nil? && (shape_under != @new_line_shape) &&
+              (shape_under.is_connection_accepted(@new_line_shape.class))
               # find out whether the target shape can be connected to the source shape
-              source_shape = @diagram.find_shape(@new_line_shape.get_src_shape_id)
+              source_shape = @new_line_shape.get_src_shape
 
               if source_shape &&
                   shape_under.is_src_neighbour_accepted(source_shape.class) &&
                   source_shape.is_trg_neighbour_accepted(shape_under.class)
-                @new_line_shape.set_trg_shape_id(shape_under.get_id)
+                @new_line_shape.set_trg_shape(shape_under)
                 @new_line_shape.set_ending_connection_point(shape_under.get_nearest_connection_point(lpos.to_real))
 
                 # inform user that the line is completed
                 case on_pre_connection_finished(@new_line_shape)
                 when PRECON_FINISH_STATE::OK
                 when PRECON_FINISH_STATE::FAILED_AND_CANCEL_LINE
-                  @new_line_shape.set_trg_shape_id(nil)
+                  @new_line_shape.set_trg_shape(nil)
                   @diagram.remove_shape(@new_line_shape)
                   @working_mode = MODE::READY
                   @new_line_shape = nil
                   return
                 when PRECON_FINISH_STATE::FAILED_AND_CONTINUE_EDIT
-                  @new_line_shape.set_trg_shape_id(nil)
+                  @new_line_shape.set_trg_shape(nil)
                   return
                 end
                 @new_line_shape.create_handles
@@ -2265,7 +2265,7 @@ module Wx::SF
               end
             end
           else
-            if @new_line_shape.get_src_shape_id
+            if @new_line_shape.get_src_shape
               fit_pos = fit_position_to_grid(lpos)
               @new_line_shape.get_control_points << Wx::RealPoint.new(fit_pos.x, fit_pos.y)
             end
@@ -2341,14 +2341,14 @@ module Wx::SF
 
           if parent_shape && (parent_shape != line) && (parent_shape.is_connection_accepted(line.class))
             if @selected_handle.get_type == Shape::Handle::TYPE::LINESTART
-              trg_shape = @diagram.find_shape(line.get_trg_shape_id)
+              trg_shape = line.get_trg_shape
               if trg_shape && parent_shape.is_trg_neighbour_accepted(trg_shape.class)
-                line.set_src_shape_id(parent_shape.get_id)
+                line.set_src_shape(parent_shape)
               end
             else
-              src_shape = @diagram.find_shape(line.get_src_shape_id)
+              src_shape = line.get_src_shape
               if src_shape && parent_shape.is_src_neighbour_accepted(src_shape.class)
-                line.set_trg_shape_id(parent_shape.get_id)
+                line.set_trg_shape(parent_shape)
               end
             end
           end

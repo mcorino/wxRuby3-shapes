@@ -14,11 +14,11 @@ module Wx::SF
     property :max_radius
 
     # Constructor
-    # @param [FIRM::Serializable::ID] src ID of the source shape
-    # @param [FIRM::Serializable::ID] trg ID of the target shape
+    # @param [Shape] src source shape
+    # @param [Shape] trg target shape
     # @param [Array<Wx::RealPoint>] path List of the line control points (can be empty)
     # @param [Diagram] diagram containing diagram
-    def initialize(src = LineShape::DEFAULT::UNKNOWNID, trg = LineShape::DEFAULT::UNKNOWNID, path: nil, diagram: nil)
+    def initialize(src = nil, trg = nil, path: nil, diagram: nil)
       super
       @max_radius = MAX_RADIUS
     end

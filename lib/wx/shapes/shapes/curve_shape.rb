@@ -17,8 +17,8 @@ module Wx::SF
     #   @param [Diagram] diagram containing diagram
     # @overload initialize(src, trg, path: nil, manager: nil)
     #   Constructor for connecting two shapes.
-    #   @param [FIRM::Serializable::ID] src ID of the source shape
-    #   @param [FIRM::Serializable::ID] trg ID of the target shape
+    #   @param [Shape] src source shape
+    #   @param [Shape] trg target shape
     #   @param [Array<Wx::RealPoint>,nil] path List of the line control points (can be empty or nil)
     #   @param [Diagram] diagram containing diagram
     def initialize(*args, **kwargs)
@@ -83,17 +83,14 @@ module Wx::SF
         dc.with_pen(Wx::Pen.new(Wx::BLACK, 1, Wx::PenStyle::PENSTYLE_DOT)) do
           if @lst_points.size > 1
             dc.draw_line(c.to_point, @unfinished_point)
-          elsif @src_shape_id
+          elsif @src_shape
             # draw unfinished line segment if any (for interactive line creation)
             dc.with_pen(Wx::Pen.new(Wx::BLACK, 1, Wx::PenStyle::PENSTYLE_DOT)) do
-              src_shape = @diagram.find_shape(@src_shape_id)
-              if src_shape
-                if src_shape.get_connection_points.empty?
-                  dc.draw_line((src_shape.get_border_point(src_shape.get_center, @unfinished_point.to_real)).to_point,
-                               @unfinished_point)
-                else
-                  dc.draw_line(get_mod_src_point.to_point, @unfinished_point)
-                end
+              if @src_shape.get_connection_points.empty?
+                dc.draw_line((@src_shape.get_border_point(@src_shape.get_center, @unfinished_point.to_real)).to_point,
+                             @unfinished_point)
+              else
+                dc.draw_line(get_mod_src_point.to_point, @unfinished_point)
               end
             end
           end
@@ -165,7 +162,7 @@ module Wx::SF
           elsif index == 3
             if @mode == LINEMODE::UNDERCONSTRUCTION
               quart[3] = @unfinished_point.to_real
-            elsif @trg_shape_id
+            elsif @trg_shape
               quart[3] = get_mod_trg_point
             end
           end

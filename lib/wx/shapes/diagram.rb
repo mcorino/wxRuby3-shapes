@@ -63,24 +63,24 @@ module Wx::SF
     # This function creates new simple connection line (without arrows) between given
     # shapes.
     # @overload create_connection(src_id, trg_id, save_state = true)
-    #   @param [FIRM::Serializable::ID] src_id id of a source shape
-    #   @param [FIRM::Serializable::ID] trg_id id of target shape
+    #   @param [Shape] src source shape
+    #   @param [Shape] trg target shape
     #   @param [Boolean] save_state set the parameter true if you wish to save canvas state after the operation
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new connection object. the object is added to the shape canvas automatically.
     # @overload create_connection(src_id, trg_id, line_info, save_state = true)
-    #   @param [FIRM::Serializable::ID] src_id id of a source shape
-    #   @param [FIRM::Serializable::ID] trg_id id of target shape
+    #   @param [Shape] src source shape
+    #   @param [Shape] trg target shape
     #   @param [Class] line_info Connection type (any class inherited from Wx::SF::LineShape)
     #   @param [Boolean] save_state set the parameter true if you wish to save canvas state after the operation
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new connection object. the object is added to the shape canvas automatically.
     # @overload create_connection(src_id, trg_id, line, save_state = true)
-    #   @param [FIRM::Serializable::ID] src_id id of a source shape
-    #   @param [FIRM::Serializable::ID] trg_id id of target shape
+    #   @param [Shape] src source shape
+    #   @param [Shape] trg target shape
     #   @param [Wx::SF::LineShape] line the line shape
     #   @param [Boolean] save_state set the parameter true if you wish to save canvas state after the operation
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new connection object. the object is added to the shape canvas automatically.
     # @see start_interactive_connection
-    def create_connection(src_id, trg_id, *rest)
+    def create_connection(src, trg, *rest)
       shape = nil
       if rest.first.is_a?(LineShape)
         line = rest.shift
@@ -93,8 +93,8 @@ module Wx::SF
         err, shape = create_shape(line_type, DONT_SAVE_STATE)
       end
       if shape
-        shape.set_src_shape_id(src_id)
-        shape.set_trg_shape_id(trg_id)
+        shape.set_src_shape(src)
+        shape.set_trg_shape(trg)
 
         if @shape_canvas
           @shape_canvas.save_canvas_state if save_state
@@ -438,7 +438,7 @@ module Wx::SF
     # @return [Array<Wx::SF::Shape>] shape list
 	  # @see Wx::SF::Shape::CONNECTMODE
     def get_assigned_connections(parent, shape_info, mode, lines = [])
-      return lines unless parent&.get_id
+      return lines unless parent
 
       # lines are all toplevel so we do not have to search recursively...
       lst_lines = @shapes.select { |shape| shape.is_a?(shape_info) }
@@ -446,11 +446,11 @@ module Wx::SF
       lst_lines.each do |line|
         case mode
         when Shape::CONNECTMODE::STARTING
-          lines << line if line.get_src_shape_id == parent.get_id
+          lines << line if line.get_src_shape == parent
         when Shape::CONNECTMODE::ENDING
-          lines << line if line.get_trg_shape_id == parent.get_id
+          lines << line if line.get_trg_shape == parent
         when Shape::CONNECTMODE::BOTH
-          lines << line if line.get_src_shape_id == parent.get_id || line.get_trg_shape_id == parent.get_id
+          lines << line if line.get_src_shape == parent || line.get_trg_shape == parent
         end
       end
       lines
@@ -598,7 +598,7 @@ module Wx::SF
         if shape.is_a?(LineShape)
           # so that lines with both connected shapes will have matching ids
           # we will remove any lines for which one or both connected shapes are missing (not copied)
-          if @shapes.include?(shape.get_src_shape_id) && @shapes.include?(shape.get_trg_shape_id)
+          if @shapes.include?(shape.get_src_shape) && @shapes.include?(shape.get_trg_shape)
             shape.create_handles
             true # keep
           else

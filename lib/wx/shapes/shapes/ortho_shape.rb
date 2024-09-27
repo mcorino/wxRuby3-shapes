@@ -12,11 +12,11 @@ module Wx::SF
     SEGMENTCPS = ::Struct.new(:src, :trg)
 
     # Constructor
-    # @param [FIRM::Serializable::ID] src ID of the source shape
-    # @param [FIRM::Serializable::ID] trg ID of the target shape
+    # @param [Shape] src source shape
+    # @param [Shape] trg target shape
     # @param [Array<Wx::RealPoint>] path List of the line control points (can be empty)
     # @param [Diagram] diagram containing diagram
-    def initialize(src = LineShape::DEFAULT::UNKNOWNID, trg = LineShape::DEFAULT::UNKNOWNID, path: nil, diagram: nil)
+    def initialize(src = nil, trg = nil, path: nil, diagram: nil)
       super
     end
 
@@ -29,13 +29,11 @@ module Wx::SF
   
       src = trg = cp_src = cp_trg = nil
     
-      shape = @diagram.find_shape(@src_shape_id)
-      if shape
-        cp_src = shape.get_nearest_connection_point(get_mod_src_point)
+      if @src_shape
+        cp_src = @src_shape.get_nearest_connection_point(get_mod_src_point)
       end
-      shape = @diagram.find_shape(@trg_shape_id)
-      if shape
-        cp_trg = shape.get_nearest_connection_point(get_mod_trg_point)
+      if @trg_shape
+        cp_trg = @trg_shape.get_nearest_connection_point(get_mod_trg_point)
       end
   
       case @mode
@@ -69,11 +67,10 @@ module Wx::SF
           if @lst_points.size>1
             draw_line_segment(dc, trg, @unfinished_point.to_real, get_used_connection_points(cp_src, cp_trg, @lst_points.size))
           else
-            src_shape = @diagram.find_shape(@src_shape_id)
-            if src_shape
-              if src_shape.get_connection_points.empty?
+            if @src_shape
+              if @src_shape.get_connection_points.empty?
                 draw_line_segment(dc,
-                                  src_shape.get_border_point(src_shape.get_center, @unfinished_point.to_real),
+                                  @src_shape.get_border_point(@src_shape.get_center, @unfinished_point.to_real),
                                   @unfinished_point.to_real,
                                   get_used_connection_points(cp_src, cp_trg, 0))
               else
@@ -131,13 +128,11 @@ module Wx::SF
       cp_src = nil
       cp_trg = nil
 
-      shape = @diagram.find_shape(@src_shape_id)
-      if shape
-        cp_src = shape.get_nearest_connection_point(get_mod_src_point)
+      if @src_shape
+        cp_src = @src_shape.get_nearest_connection_point(get_mod_src_point)
       end
-      shape = @diagram.find_shape(@trg_shape_id)
-      if shape
-        cp_trg = shape.get_nearest_connection_point(get_mod_trg_point)
+      if @trg_shape
+        cp_trg = @trg_shape.get_nearest_connection_point(get_mod_trg_point)
       end
 
       # Get all polyline segments
