@@ -11,7 +11,7 @@ module Wx::SF
     # Default values
     module DEFAULT
       # Default circle radius
-      RADIUS = 50.0
+      RADIUS = 25.0
     end
 
     # Constructor.
