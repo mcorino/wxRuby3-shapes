@@ -399,13 +399,13 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     # print out information about the shape (if found)
     if shape
       # show basic info
-      msg = "Class name: #{shape.class}, ID: #{shape.get_id}\n"
+      msg = "Class name: #{shape.class}, ID: #{shape.object_id}\n"
 
       msg << "\nBounding box: #{shape.get_bounding_box.inspect}\n"
 
       # show parent (if any)
       if shape.parent_shape
-        msg << "\nParent: #{shape.parent_shape.class}, ID: #{shape.parent_shape.id}\n"
+        msg << "\nParent: #{shape.parent_shape.class}, ID: #{shape.parent_shape.object_id}\n"
       end
 
       # show info about shape's children
@@ -413,7 +413,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       unless lst_shapes.empty?
         msg << "\nChildren:\n"
         lst_shapes.each_with_index do |child, i|
-            msg << "#{i+1}. Class name: #{child.class}, ID: #{child.get_id}\n"
+            msg << "#{i+1}. Class name: #{child.class}, ID: #{child.object_id}\n"
         end
       end
 
@@ -422,7 +422,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       unless lst_shapes.empty?
         msg << "\nNeighbours:\n"
         lst_shapes.each_with_index do |nbr, i|
-          msg << "#{i+1}. Class name: #{nbr.class}, ID: #{nbr.get_id}\n"
+          msg << "#{i+1}. Class name: #{nbr.class}, ID: #{nbr.object_id}\n"
         end
       end
 

@@ -244,7 +244,7 @@ class SFSample3Frame < Wx::Frame
 		  # update the text shape and its parent(s)
       text.update
 		  # display some info...
-      Wx.log_message("New text of the star with ID #{text.get_parent_shape.id.to_i} is : '#{event.text}'")
+      Wx.log_message("New text of the star with ID #{text.get_parent_shape.object_id} is : '#{event.text}'")
     end
   end
 

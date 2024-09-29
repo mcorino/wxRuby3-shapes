@@ -347,7 +347,7 @@ class MainFrame < Wx::Frame
   def on_save(_event)
     Wx::FileDialog(self, 'Save canvas to file...', Dir.getwd, '', 'JSON Files (*.json)|*.json', Wx::FD_SAVE | Wx::FD_OVERWRITE_PROMPT) do |dlg|
       if dlg.show_modal == Wx::ID_OK
-        @shape_canvas.save_canvas(dlg.get_path)
+        @shape_canvas.save_canvas(dlg.get_path, compact: false)
 
         Wx.message_box("The chart has been saved to '#{dlg.get_path}'.", 'wxRuby ShapeFramework')
       end
