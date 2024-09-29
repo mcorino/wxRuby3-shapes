@@ -166,7 +166,7 @@ class SFSample4Frame < Wx::Frame
       # or/and the widget as well. Note that GUI controls differ in a way how they process events
       # so the behaviour can be different for various widgets.
       shape.set_event_processing(Wx::SF::ControlShape::EVTPROCESSING::MOUSE2CANVAS | Wx::SF::ControlShape::EVTPROCESSING::KEY2CANVAS)
-      #shape.set_event_processing(Wx::SF::ControlShape::EVTPROCESSING::MOUSE2GUI | Wx::SF::ControlShape::EVTPROCESSING::KEY2GUI)
+      shape.set_event_processing(Wx::SF::ControlShape::EVTPROCESSING::MOUSE2GUI | Wx::SF::ControlShape::EVTPROCESSING::KEY2GUI)
     end
 
     # ... and process standard canvas operations
