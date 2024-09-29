@@ -68,7 +68,7 @@ jobs:
       CXX: ${{ matrix.CXX }}
     steps:
     - name: Checkout wxRuby3/Shapes
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install Ruby
       uses: ruby/setup-ruby@v1
@@ -76,7 +76,7 @@ jobs:
         ruby-version: ${{ matrix.ruby }}
 
     - name: checkout wxWidgets
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: wxWidgets/wxWidgets
         path: ${{ env.WXWIDGETS_ROOT }}

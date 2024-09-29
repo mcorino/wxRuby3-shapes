@@ -57,11 +57,11 @@ jobs:
 
     steps:
       - name: Checkout wxRuby3/Shapes
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: checkout wxRuby3
         if: matrix.wxr_type == 'local'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: mcorino/wxRuby3
           path: ${{ env.WXRUBY_ROOT }}
