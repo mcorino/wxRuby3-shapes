@@ -296,7 +296,7 @@ module Wx::SF
     # @param [Wx::SF::Shape] shape
     # @return [Boolean]
     def contains_shape(shape)
-      @shapes.include?(shape.id,true)
+      @shapes.include?(shape,true)
     end
     alias :contains_shape? :contains_shape
     alias :contains? :contains_shape
@@ -422,13 +422,6 @@ module Wx::SF
       @accepted_top_shapes
     end
     alias :accepted_top_shapes :get_accepted_top_shapes
-
-    # Find shape with given ID.
-    # @param [FIRM::Serializable::ID] id Shape's ID
-    # @return [Wx::SF::Shape, nil] shape if exists, otherwise nil
-    def find_shape(id)
-      @shapes.get(id, true)
-    end
 
 	  # Get list of connections assigned to given parent shape.
 	  # @param [Wx::SF::Shape] parent parent shape

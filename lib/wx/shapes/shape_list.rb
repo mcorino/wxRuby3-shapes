@@ -2,6 +2,7 @@
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/serializable'
+require 'set'
 
 module Wx::SF
 
@@ -19,19 +20,15 @@ module Wx::SF
       if enum
         if enum.is_a?(ShapeList)
           @list = enum.instance_variable_get('@list').dup
-          @index = enum.instance_variable_get('@index').dup
         elsif enum.is_a?(::Enumerable)
-          @list = []
-          @index = {}
+          @list = ::Set.new
           enum.each { |elem| self << elem }
         else
-          @list = []
-          @index = {}
+          @list = ::Set.new
           self << enum
         end
       else
-        @list = []
-        @index = {}
+        @list = ::Set.new
       end
     end
 
@@ -42,8 +39,12 @@ module Wx::SF
     # @yieldparam [Shape] shape
     # @return [self]
     def each(&block)
-      @list.each(&block)
-      self
+      if block_given?
+        @list.each(&block)
+        self
+      else
+        @list.each
+      end
     end
 
     # Recursively collects shapes and returns collection.
@@ -52,7 +53,7 @@ module Wx::SF
       @list.inject(collection) { |list, shape| shape.instance_variable_get('@child_shapes').all(list << shape) }
     end
 
-    # Returns true if the no shapes are contained, false otherwise.
+    # Returns true if no shapes are contained, false otherwise.
     # @return [Boolean]
     def empty?
       @list.empty?
@@ -62,99 +63,56 @@ module Wx::SF
     # @return [self]
     def clear
       @list.clear
-      @index.clear
       self
     end
 
     # Appends a new shape to the list if not yet in list.
+    # Does *not* perform a recursive check.
     # @param [Shape] shape shape to add
     # @return [self]
     def append(shape)
-      unless @index.has_key?(check_elem(shape).id)
+      unless @list.include?(check_elem(shape))
         @list << shape
-        @index[shape.id] = shape
       end
       self
     end
     alias :push :append
     alias :<< :append
 
-    # Removes the first shape from the list (if any) and returns that.
-    # @return [Shape,nil] removed shape or nil if list empty
-    def shift
-      return nil if @list.empty?
-      @index.delete(@list.shift.id)
-    end
-
-    # Removes the last shape from the list (if any) and returns that.
-    # @return [Shape,nil] removed shape or nil if list empty
-    def pop
-      return nil if @list.empty?
-      @index.delete(@list.pop.id)
-    end
-
-    # Removes a shape matching the key given from the list and returns that.
-    # @param [Shape,FIRM::Serializable::ID] key shape or shape ID to match
+    # Removes the given shape from the list and returns that.
+    # @param [Shape] shape shape to match
     # @return [Shape,nil] removed shape or nil if none matched
-    def delete(key)
-      if key.is_a?(Shape)
-        return @list.delete(key) if @index.delete(key.id)
-      elsif key.is_a?(FIRM::Serializable::ID)
-        return @list.delete(@index.delete(key)) if @index.has_key?(key)
+    def delete(shape)
+      if @list.include?(check_elem(shape))
+        @list.delete(shape)
+        shape
+      else
+        nil
       end
-      nil
     end
 
-    # Returns true if a shape matches the given key or false if no shape matches.
-    # @param [Shape,FIRM::Serializable::ID] key shape or shape ID to match
+    # Returns true if the given shape is included in the list.
+    # Performs a recursive search in case :recursive is true.
+    # @param [Shape] shape shape to match
     # @param [Boolean] recursive pass true to search recursively, false for non-recursive
     # @return [Boolean]
-    def include?(key, recursive = false)
-      found = if key.is_a?(FIRM::Serializable::ID)
-                @index.has_key?(key)
-              else
-                @list.include?(key)
-              end
-      found || (recursive && @list.any? { |child| child.instance_variable_get('@child_shapes').include?(key, recursive) })
+    def include?(shape, recursive = false)
+      found = @list.include?(check_elem(shape))
+      found || (recursive && @list.any? { |child| child.include_child_shape?(shape, recursive) })
     end
-
-    # Returns the shape matching the given key or nil if no shape matches.
-    # Does not modify the list.
-    # @param [Integer,FIRM::Serializable::ID] key shape list index or shape ID to match
-    # @param [Boolean] recursive pass true to search recursively, false for non-recursive
-    # @return [Shape,nil] matched shape or nil if none matched
-    def get(key, recursive = false)
-      shape = if key.is_a?(FIRM::Serializable::ID)
-                @index[key]
-              else
-                @list.at(key.to_i)
-              end
-      shape || (recursive && key.is_a?(FIRM::Serializable::ID) && find_child_shape(key, recursive))
-    end
-    alias :[] :get
 
     private
 
-    # Find (first) child shape with given ID.
-    # @param [FIRM::Serializable::ID] id Shape's ID
-    # @param [Boolean] recursive pass true to search recursively, false for non-recursive
-    # @return [Wx::SF::Shape, nil] shape if exists, otherwise nil
-    def find_child_shape(id, recursive = false)
-      child = nil
-      @list.find { |shape| child = shape.find_child_shape(id, recursive) } && child
-    end
-
-    # Get shape array. Serialization only.
-    # @return [Array<Shape>]
+    # Get shape set. Serialization only.
+    # @return [Set<Shape>]
     def get_list
       @list
     end
 
-    # Set shape array from deserialization.
-    # @param [Array<Shape>] list
+    # Set shape set from deserialization.
+    # @param [Set<Shape>] list
     def set_list(list)
       @list = list
-      @list.each { |shape| @index[shape.id] = shape }
     end
 
     # Check intended list item

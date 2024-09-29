@@ -587,7 +587,7 @@ module Wx::SF
         if handle && handle.get_parent_shape == self
           if handle.type == Shape::Handle::TYPE::LINECTRL
             if has_style?(STYLE::EMIT_EVENTS)
-              evt = Wx::SF::ShapeHandleEvent.new(EVT_SF_LINE_HANDLE_REMOVE, id)
+              evt = Wx::SF::ShapeHandleEvent.new(EVT_SF_LINE_HANDLE_REMOVE, self.object_id)
               evt.set_shape(self)
               evt.set_handle(handle)
               get_parent_canvas.get_event_handler.process_event(evt)
@@ -609,7 +609,7 @@ module Wx::SF
             if has_style?(STYLE::EMIT_EVENTS)
               handle = get_parent_canvas.get_topmost_handle_at_position(pos)
               if handle
-                evt = ShapeHandleEvent.new(EVT_SF_LINE_HANDLE_ADD, id)
+                evt = ShapeHandleEvent.new(EVT_SF_LINE_HANDLE_ADD, self.object_id)
                 evt.set_shape(this)
                 evt.set_handle(handle)
                 get_parent_canvas.get_event_handler.process_event(evt)

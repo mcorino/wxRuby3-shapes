@@ -173,7 +173,7 @@ module Wx::SF
           move_to(shp_bb.get_position.x, shp_bb.get_position.y)
           @rect_size = Wx::RealPoint.new(shp_bb.get_size.x.to_f, shp_bb.get_size.y.to_f)
           if has_style?(STYLE::EMIT_EVENTS)
-            evt = ShapeEvent.new(EVT_SF_SHAPE_SIZE_CHANGED, id)
+            evt = ShapeEvent.new(EVT_SF_SHAPE_SIZE_CHANGED, self.object_id)
             evt.set_shape(self)
             get_parent_canvas.get_event_handler.process_event(evt)
           end

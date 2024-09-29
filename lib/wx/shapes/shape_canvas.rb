@@ -475,7 +475,6 @@ module Wx::SF
 
       # initialize selection rectangle
       @shp_selection = MultiSelRect.new
-      @shp_selection.send(:set_id, nil)
       @shp_selection.create_handles
       @shp_selection.select(true)
       @shp_selection.show(false)
@@ -483,7 +482,6 @@ module Wx::SF
 
       # initialize multi-edit rectangle
       @shp_multi_edit = MultiSelRect.new
-      @shp_multi_edit.send(:set_id, nil)
       @shp_multi_edit.create_handles
       @shp_multi_edit.select(true)
       @shp_multi_edit.show(false)
@@ -2724,7 +2722,7 @@ module Wx::SF
       # HINT: override it for custom actions...
     
       # ... standard implementation generates the Wx::SF::EVT_SF_TEXT_CHANGE event.
-      id = shape ? shape.get_id : nil
+      id = shape ? shape.object_id : nil
 
       event = ShapeTextEvent.new(Wx::SF::EVT_SF_TEXT_CHANGE, id)
       event.set_shape(shape)
@@ -2742,7 +2740,7 @@ module Wx::SF
       # HINT: override to perform user-defined actions...
     
       # ... standard implementation generates the Wx::SF::EVT_SF_LINE_DONE event.
-      id = connection ? connection.get_id : -1
+      id = connection ? connection.object_id : -1
 
       event = ShapeEvent.new(Wx::SF::EVT_SF_LINE_DONE, id)
       event.set_shape(connection)
@@ -2763,7 +2761,7 @@ module Wx::SF
       # HINT: override to perform user-defined actions...
     
       # ... standard implementation generates the Wx::SF::EVT_SF_LINE_DONE event.
-      id = connection ? connection.get_id : -1
+      id = connection ? connection.object_id : -1
     
       event = ShapeEvent.new(Wx::SF::EVT_SF_LINE_BEFORE_DONE, id)
       event.set_shape(connection)
