@@ -33,8 +33,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     # set_background_colour(DEFAULT::SHAPECANVAS_BACKGROUNDCOLOR)
     # ... or by a gradient fill
     add_style(STYLE::GRADIENT_BACKGROUND)
-    set_gradient_from(DEFAULT::GRADIENT_FROM)
-    set_gradient_to(DEFAULT::GRADIENT_TO)
+    set_gradient_from(DEFAULT.gradient_from)
+    set_gradient_to(DEFAULT.gradient_to)
 
     # also shadows style can be set here:
     # set_shadow_fill(Wx::Brush.new(Wx::Colour.new(100, 100, 100), Wx::CROSSDIAG_HATCH)) # standard values can be DEFAULT::SHAPECANVAS_SHADOWBRUSH or DEFAULT::SHAPECANVAS_SHADOWCOLOR
@@ -252,6 +252,53 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         shape.update
       end
 
+    when MainFrame::MODE::VBOX, MainFrame::MODE::HBOX
+      if @parent_frame.tool_mode == MainFrame::MODE::VBOX
+        _, shape = get_diagram.create_shape(Wx::SF::VBoxShape, event.get_position, Wx::SF::DONT_SAVE_STATE)
+      else
+        _, shape = get_diagram.create_shape(Wx::SF::HBoxShape, event.get_position, Wx::SF::DONT_SAVE_STATE)
+      end
+
+      if shape
+        # set visual style
+        shape.set_fill(Wx::TRANSPARENT_BRUSH)
+
+        # spacing can be set here (default spacing is 3).
+        # shape.set_spacing(0)
+
+        # set shape policy
+        shape.accept_child(Wx::SF::ACCEPT_ALL)
+
+        shape.accept_connection(Wx::SF::ACCEPT_ALL)
+        shape.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
+        shape.accept_trg_neighbour(Wx::SF::ACCEPT_ALL)
+
+        if @parent_frame.tool_mode == MainFrame::MODE::VBOX
+
+        else
+          # insert some shapes into the grid from code here (it can also be done interactively by drag&drop operations).
+          # shapes inserted to the grid can be aligned relatively to its grid cell region
+          _, inner_shape = get_diagram.create_shape(Wx::SF::EllipseShape, Wx::SF::DONT_SAVE_STATE)
+          inner_shape.set_v_align(Wx::SF::Shape::VALIGN::EXPAND )
+          shape.append_to_box(inner_shape)
+          # add another shape...
+          _, inner_shape = get_diagram.create_shape(Wx::SF::DiamondShape, Wx::SF::DONT_SAVE_STATE)
+          shape.append_to_box(inner_shape)
+        end
+
+        # also control shapes can be managed by the grid shape.
+        # _, ctrl = get_diagram.create_shape(Wx::SF::ControlShape, event.get_position, Wx::SF::DONT_SAVE_STATE)
+        # if ctrl )
+        #	  ctrl.set_v_align(Wx::SF::Shape::VALIGN::EXPAND)
+        #	  ctrl.set_h_align(Wx::SF::Shape::HALIGN::EXPAND)
+        #	  ctrl.set_control(Wx::Button.new( self, Wx::ID_ANY, "Test"))
+        #	  shape.append_to_box(ctrl)
+        # end
+
+        # update the box
+        shape.update
+      end
+
     when MainFrame::MODE::ELLIPSE
       _, shape = get_diagram.create_shape(Wx::SF::EllipseShape, event.get_position, Wx::SF::DONT_SAVE_STATE)
       if shape
@@ -352,14 +399,21 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     # print out information about the shape (if found)
     if shape
       # show basic info
-      msg = "Class name: #{shape.class}, ID: #{shape.get_id}\n"
+      msg = "Class name: #{shape.class}, ID: #{shape.object_id}\n"
+
+      msg << "\nBounding box: #{shape.get_bounding_box.inspect}\n"
+
+      # show parent (if any)
+      if shape.parent_shape
+        msg << "\nParent: #{shape.parent_shape.class}, ID: #{shape.parent_shape.object_id}\n"
+      end
 
       # show info about shape's children
       lst_shapes = shape.get_child_shapes(nil, Wx::SF::RECURSIVE)
       unless lst_shapes.empty?
         msg << "\nChildren:\n"
         lst_shapes.each_with_index do |child, i|
-            msg << "#{i+1}. Class name: #{child.class}, ID: #{child.get_id}\n"
+            msg << "#{i+1}. Class name: #{child.class}, ID: #{child.object_id}\n"
         end
       end
 
@@ -368,7 +422,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       unless lst_shapes.empty?
         msg << "\nNeighbours:\n"
         lst_shapes.each_with_index do |nbr, i|
-          msg << "#{i+1}. Class name: #{nbr.class}, ID: #{nbr.get_id}\n"
+          msg << "#{i+1}. Class name: #{nbr.class}, ID: #{nbr.object_id}\n"
         end
       end
 

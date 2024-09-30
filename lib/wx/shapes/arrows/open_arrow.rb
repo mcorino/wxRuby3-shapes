@@ -22,7 +22,7 @@ module Wx::SF
     # @param [Wx::SF::Shape] parent parent shape
     def initialize(parent=nil)
       super
-      @pen = DEFAULT::BORDER
+      @pen = DEFAULT.border
     end
 
     # Get arrow border pen

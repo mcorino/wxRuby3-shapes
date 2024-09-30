@@ -7,7 +7,7 @@ module Wx::SF
 
   class ConnectionPoint
 
-    include Wx::SF::Serializable
+    include FIRM::Serializable
 
     property :type
     property :ortho_direction

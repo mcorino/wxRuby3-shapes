@@ -9,38 +9,30 @@ module Wx::SF
 
     # default values
     module DEFAULT
-      # Default value of TextShape @font data member.
-      FONT = Wx::SWISS_FONT if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :FONT) { Wx::SWISS_FONT }
-      # Default value of TextShape @text_color data member.
-      TEXTCOLOR = Wx::BLACK if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :TEXTCOLOR) { Wx::BLACK }
+      class << self
+        # Default value of TextShape @font data member.
+        def font; Wx::SWISS_FONT; end
+        # Default value of TextShape @text_color data member.
+        def text_color; Wx::BLACK; end
+      end
+      TEXT = 'Text'
     end
 
     property :font, :text_colour, :text
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [String] txt Text content
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      txt = nil
-      if args.empty?
-        super
-      else
-        pos, txt, diagram = args
-        super(pos, Wx::RealPoint.new, diagram)
-      end
-      @font = DEFAULT::FONT
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [String] txt Text content
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, txt = DEFAULT::TEXT, diagram: nil)
+      super(pos, Wx::RealPoint.new, diagram: diagram)
+      @font = DEFAULT.font
       @font.set_point_size(12)
 
       @line_height = 12
 
-      @text_color = DEFAULT::TEXTCOLOR
-      @text = txt || 'Text'
+      @text_color = DEFAULT.text_color
+      @text = txt
 
       @fill = Wx::TRANSPARENT_BRUSH
       @border = Wx::TRANSPARENT_PEN
@@ -160,8 +152,6 @@ module Wx::SF
     # @param [Float] x Horizontal scale factor
     # @param [Float] y Vertical scale factor
     def scale_rectangle(x, y)
-	    s = 1.0
-
       if x == 1.0
         s = y
       elsif y == 1.0
@@ -175,7 +165,7 @@ module Wx::SF
       size = @font.get_point_size * s
       size = 5 if size < 5
 
-      @font.set_point_size(size)
+      @font.set_point_size(size.to_i)
       update_rect_size
     end
 
@@ -235,7 +225,7 @@ module Wx::SF
 
 	  # Draw the shape in the highlighted mode (another shape is dragged over this
     # shape and this shape will accept the dragged one if it will be dropped on it).
-    # The function can be overridden if neccessary.
+    # The function can be overridden if necessary.
 	  # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_highlighted(dc)
       super
@@ -277,7 +267,7 @@ module Wx::SF
     end
 
     # Event handler called during dragging of the right shape handle.
-    # The function can be overridden if neccessary.
+    # The function can be overridden if necessary.
 	  # @param [Shape::Handle] handle Reference to dragged shape handle
     def on_right_handle(handle)
       # HINT: overload it for custom actions...
@@ -286,7 +276,7 @@ module Wx::SF
     end
 
     # Event handler called during dragging of the bottom shape handle.
-    # The function can be overridden if neccessary.
+    # The function can be overridden if necessary.
 	  # @param [Shape::Handle] handle Reference to dragged shape handle
     def on_bottom_handle(handle)
       # HINT: overload it for custom actions...
@@ -298,7 +288,7 @@ module Wx::SF
 	  # @param [Wx::DC] dc Device context where the text shape will be drawn to
     def draw_text_content(dc)
       dc.with_brush(@fill) do
-        dc.set_background_mode(Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT)
+        dc.set_background_mode(Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT.to_i)
         dc.set_text_foreground(@text_color)
         dc.with_font(@font) do
           pos = get_absolute_position
@@ -311,13 +301,13 @@ module Wx::SF
     end
 
     # Deserialize attributes and recalculate rectangle size afterwards.
-    # @param [Hash] data
     # @return [self]
-    def from_serialized(data)
-      super
+    def deserialize_finalize
       update_rect_size
       self
     end
+
+    define_deserialize_finalizer :deserialize_finalize
 
   end
 

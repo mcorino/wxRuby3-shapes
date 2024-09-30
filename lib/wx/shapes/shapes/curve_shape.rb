@@ -9,26 +9,26 @@ module Wx::SF
   # user to create curved connection line.
   class CurveShape < LineShape
 
-    # @overload initialize()
-    #   default constructor
-    # @overload initialize(src, trg, path, manager)
-    #   @param [Wx::SF::Serializable::ID] src ID of the source shape
-    #   @param [Wx::SF::Serializable::ID] trg ID of the target shape
-    #   @param [Array<Wx::RealPoint>] path List of the line control points (can be empty)
-    #   @param [Diagram] diagram containing diagram
-    # @overload initialize(src, trg, path, manager)
-    #   @param [Wx::RealPoint] src starting line point
-    #   @param [Wx::RealPoint] trg end line point
+    # @overload initialize(src = DEFAULT::POINT, trg = DEFAULT::POINT, path: nil, manager: nil)
+    #   Constructor.
+    #   @param [Wx::RealPoint,Wx::Point] src starting line point
+    #   @param [Wx::RealPoint,Wx::Point] trg end line point
     #   @param [Array<Wx::RealPoint>,nil] path List of the line control points (can be empty or nil)
     #   @param [Diagram] diagram containing diagram
-    def initialize(*args)
+    # @overload initialize(src, trg, path: nil, manager: nil)
+    #   Constructor for connecting two shapes.
+    #   @param [Shape] src source shape
+    #   @param [Shape] trg target shape
+    #   @param [Array<Wx::RealPoint>,nil] path List of the line control points (can be empty or nil)
+    #   @param [Diagram] diagram containing diagram
+    def initialize(*args, **kwargs)
       super
     end
 
     # Get line's bounding box. The function can be overridden if necessary.
     # @return [Wx::Rect] Bounding rectangle
     def get_bounding_box
-      super.inflate(20, 20)
+      super.inflate(35, 35)
     end
 
     # Get a line point laying on the given line segment and shifted
@@ -83,17 +83,14 @@ module Wx::SF
         dc.with_pen(Wx::Pen.new(Wx::BLACK, 1, Wx::PenStyle::PENSTYLE_DOT)) do
           if @lst_points.size > 1
             dc.draw_line(c.to_point, @unfinished_point)
-          elsif @src_shape_id
+          elsif @src_shape
             # draw unfinished line segment if any (for interactive line creation)
             dc.with_pen(Wx::Pen.new(Wx::BLACK, 1, Wx::PenStyle::PENSTYLE_DOT)) do
-              src_shape = @diagram.find_shape(@src_shape_id)
-              if src_shape
-                if src_shape.get_connection_points.empty?
-                  dc.draw_line((src_shape.get_border_point(src_shape.get_center, @unfinished_point.to_real)).to_point,
-                               @unfinished_point)
-                else
-                  dc.draw_line(get_mod_src_point.to_point, @unfinished_point)
-                end
+              if @src_shape.get_connection_points.empty?
+                dc.draw_line((@src_shape.get_border_point(@src_shape.get_center, @unfinished_point.to_real)).to_point,
+                             @unfinished_point)
+              else
+                dc.draw_line(get_mod_src_point.to_point, @unfinished_point)
               end
             end
           end
@@ -165,7 +162,7 @@ module Wx::SF
           elsif index == 3
             if @mode == LINEMODE::UNDERCONSTRUCTION
               quart[3] = @unfinished_point.to_real
-            elsif @trg_shape_id
+            elsif @trg_shape
               quart[3] = get_mod_trg_point
             end
           end

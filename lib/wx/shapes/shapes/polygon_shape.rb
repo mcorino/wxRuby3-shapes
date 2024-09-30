@@ -19,23 +19,14 @@ module Wx::SF
 
     property :connect_to_vertex, :vertices
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Array<Wx::RealPoint>] pts Array of the polygon vertices
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Array<Wx::RealPoint>] vertices Array of the polygon vertices
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, vertices: [], diagram: nil)
+      super(pos, Wx::RealPoint.new(1,1), diagram: diagram)
       @connect_to_vertex = DEFAULT::VERTEXCONNECTIONS
-      @vertices = []
-      if args.empty?
-        super
-      else
-        pts, pos, diagram = args
-        super(pos,Wx::RealPoint.new(1,1), diagram)
-        set_vertices(pts)
-      end
+      set_vertices(vertices)
     end
 
     # Set connecting mode.
@@ -104,8 +95,9 @@ module Wx::SF
         intersection
       else
         success = false
+        min_dist = 0.0
         pts.each_with_index do |pt, i|
-          if tmp_intersection = Wx::SF::Shape.lines_intersection(pt, pts[(i+1) % pts.size], start, end_pt)
+          if (tmp_intersection = Wx::SF::Shape.lines_intersection(pt, pts[(i+1) % pts.size], start, end_pt))
             if !success
               min_dist = intersection.distance_to(end_pt)
               intersection = tmp_intersection
@@ -166,12 +158,14 @@ module Wx::SF
     def fit_vertices_to_bounding_box
       minx, miny, maxx, maxy = get_extents
 
-      sx = rect_size.x/(maxx - minx)
-      sy = rect_size.y/(maxy - miny)
+      width = (maxx - minx)
+      height = (maxy - miny)
+      sx = rect_size.x/width
+      sy = rect_size.y/height
 
       @vertices.each do |pt|
-        pt.x *= sx
-        pt.y *= sy
+        pt.x = (width != 0.0) ? pt.x*sx : minx
+        pt.y = (height != 0.0) ? pt.y*sy : miny
       end
     end
 
@@ -280,14 +274,14 @@ module Wx::SF
     end
 
     # Deserialize attributes and recalculate rectangle size afterwards.
-    # @param [Hash] data
     # @return [self]
-    def from_serialized(data)
-      super
+    def deserialize_finalize
       normalize_vertices
       fit_vertices_to_bounding_box
       self
     end
+
+    define_deserialize_finalizer :deserialize_finalize
 
   end
 

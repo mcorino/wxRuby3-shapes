@@ -129,5 +129,5 @@ class SFSample2Frame < Wx::Frame
 end
 
 Wx::App.run do
-  SFSample2Frame.new('wxShapeFramework Sample 1').show
+  SFSample2Frame.new('wxShapeFramework Sample 2').show
 end

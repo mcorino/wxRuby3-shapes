@@ -202,23 +202,23 @@ class SFSample1Frame < Wx::Frame
   def on_shape_handle_event(event)
     if @log_menu.is_checked(ID::MenuLogHandleEvent)
       hnd_type =case event.handle.type
-                when Wx::SF::Shape::Handle::LEFTTOP
+                when Wx::SF::Shape::Handle::TYPE::LEFTTOP
                   "left-top"
-                when Wx::SF::Shape::Handle::TOP
+                when Wx::SF::Shape::Handle::TYPE::TOP
                   "top"
-                when Wx::SF::Shape::Handle::RIGHTTOP
+                when Wx::SF::Shape::Handle::TYPE::RIGHTTOP
                   "right-top"
-                when Wx::SF::Shape::Handle::LEFT
+                when Wx::SF::Shape::Handle::TYPE::LEFT
                   "left"
-                when Wx::SF::Shape::Handle::RIGHT
+                when Wx::SF::Shape::Handle::TYPE::RIGHT
                   "right"
-                when Wx::SF::Shape::Handle::LEFTBOTTOM
+                when Wx::SF::Shape::Handle::TYPE::LEFTBOTTOM
                   "left-bottom"
-                when Wx::SF::Shape::Handle::BOTTOM
+                when Wx::SF::Shape::Handle::TYPE::BOTTOM
                   "bottom"
-                when Wx::SF::Shape::Handle::RIGHTBOTTOM
+                when Wx::SF::Shape::Handle::TYPE::RIGHTBOTTOM
                   "right-bottom"
-                when Wx::SF::Shape::Handle::LINECTRL
+                when Wx::SF::Shape::Handle::TYPE::LINECTRL
                   "line-control"
                 else
                   ''
@@ -248,7 +248,7 @@ class SFSample1Frame < Wx::Frame
       @text_log.append_text("%s, Shape ID: %d, Child ID: %d\n" % [
                                     @event_type_info[event.get_event_type],
                                     event.get_id,
-                                    event.get_child_shape.get_id])
+                                    event.get_child_shape.object_id])
     end
   end
 

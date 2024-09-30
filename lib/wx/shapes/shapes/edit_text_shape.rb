@@ -168,14 +168,11 @@ module Wx::SF
 
     property :force_multiline, :edit_type
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, txt, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [String] txt Initial content
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [String] txt Text content
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, txt = TextShape::DEFAULT::TEXT, diagram: nil)
       super
       @text_ctrl = nil
       @force_multiline = DEFAULT::FORCE_MULTILINE

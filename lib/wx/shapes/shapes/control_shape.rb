@@ -123,35 +123,26 @@ module Wx::SF
     module DEFAULT
       CONTROLOFFSET = 0
       PROCESSEVENTS = EVTPROCESSING::KEY2CANVAS | EVTPROCESSING::MOUSE2CANVAS
-      MODFILL = Wx::Brush.new(Wx::BLUE, Wx::BrushStyle::BRUSHSTYLE_BDIAGONAL_HATCH) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :MODFILL) { Wx::Brush.new(Wx::BLUE, Wx::BrushStyle::BRUSHSTYLE_BDIAGONAL_HATCH) }
-      MODBORDER = Wx::Pen.new(Wx::BLUE, 1, Wx::PenStyle::PENSTYLE_SOLID) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :MODBORDER) { Wx::Pen.new(Wx::BLUE, 1, Wx::PenStyle::PENSTYLE_SOLID) }
+      class << self
+        def mod_fill; Wx::Brush.new(Wx::BLUE, Wx::BrushStyle::BRUSHSTYLE_BDIAGONAL_HATCH); end
+        def mod_border; Wx::Pen.new(Wx::BLUE, 1, Wx::PenStyle::PENSTYLE_SOLID); end
+      end
     end
 
     property :event_processing, :control_offset, :mod_fill, :mod_border
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Wx::Window] ctrl managed GUI control
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::RealPoint] size Initial size
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      if args.empty?
-        super
-        @control = nil
-      else
-        ctrl = args.shift
-        super(*args)
-        set_control(ctrl)
-      end
+    # Constructor.
+    # @param [Wx::RealPoint] pos Initial position
+    # @param [Wx::RealPoint] size Initial size
+    # @param [Wx::Window] control managed GUI control
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = RectShape::DEFAULT::SIZE, control: nil, diagram: nil)
+      super(pos, size, diagram: diagram)
+      set_control(control)
       add_style(Shape::STYLE::PROCESS_DEL)
       @process_events = DEFAULT::PROCESSEVENTS
-      @mod_fill = DEFAULT::MODFILL
-      @mod_border = DEFAULT::MODBORDER
+      @mod_fill = DEFAULT.mod_fill
+      @mod_border = DEFAULT.mod_border
       @control_offset = DEFAULT::CONTROLOFFSET
 
       @event_sink = EventSink.new(self)
@@ -315,7 +306,7 @@ module Wx::SF
     # @param [Float] x Horizontal scale factor
     # @param [Float] y Vertical scale factor
     # @param children true if the shape's children should be scaled as well, otherwise the shape will be updated after scaling via update() function.
-    def scale(x, y, children = WITHCHILDREN)
+    def scale(x, y, children: WITHCHILDREN)
       super
       update_control
     end

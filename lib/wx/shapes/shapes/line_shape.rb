@@ -9,11 +9,10 @@ module Wx::SF
 
     # Default values
     module DEFAULT
-      # Default value of undefined ID. 
-      UNKNOWNID = nil
-      # Default value of LineShape @pen data member.
-      PEN = Wx::Pen.new(Wx::BLACK) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :PEN) { Wx::Pen.new(Wx::BLACK) }
+      class << self
+        # Default value of LineShape @pen data member.
+        def pen; Wx::Pen.new(Wx::BLACK); end
+     end
       # Default value of LineShape @dock_point data member.
       DOCKPOINT = 0
       # Default value of LineShape @dock_point data member (start line point).
@@ -21,7 +20,7 @@ module Wx::SF
       # Default value of LineShape @dock_point data member (end line point).
       DOCKPOINT_END = -2
       # Default value of LineShape @dock_point data member (middle dock point).
-      DOCKPOINT_CENTER = 2**64
+      DOCKPOINT_CENTER = (2**64).to_i
       # Default value of LineShape @src_offset and LineShape @trg_offset data members.
       OFFSET = Wx::RealPoint.new(-1, -1)
       # Default value of LineShape @src_point and LineShape @trg_point data members.
@@ -38,58 +37,48 @@ module Wx::SF
       TRGCHANGE = self.new(3)
     end
 
-    property :src_shape_id, :trg_shape_id
+    property :src_shape, :trg_shape
     property src_point: :serialize_src_point, trg_point: :serialize_trg_point
     property :stand_alone, :src_arrow, :trg_arrow, :src_offset, :trg_offset,
              :dock_point, :line_pen, :control_points
 
-    # @overload initialize()
-    #   default constructor
-    # @overload initialize(src, trg, path, manager)
-    #   @param [Wx::SF::Serializable::ID] src ID of the source shape
-    #   @param [Wx::SF::Serializable::ID] trg ID of the target shape
-    #   @param [Array<Wx::RealPoint>] path List of the line control points (can be empty)
-    #   @param [Diagram] diagram containing diagram
-    # @overload initialize(src, trg, path, manager)
-    #   @param [Wx::RealPoint] src starting line point
-    #   @param [Wx::RealPoint] trg end line point
+    # @overload initialize(src = nil, trg = nil, path: nil, manager: nil)
+    #   Constructor for connecting two shapes.
+    #   @param [Shape] src source shape
+    #   @param [Shape] trg target shape
     #   @param [Array<Wx::RealPoint>,nil] path List of the line control points (can be empty or nil)
     #   @param [Diagram] diagram containing diagram
-    def initialize(*args)
-      if args.empty?
-        super()
-        @src_shape_id = @trg_shape_id = DEFAULT::UNKNOWNID
+    # @overload initialize(src, trg, path: nil, manager: nil)
+    #   Constructor for standalone line.
+    #   @param [Wx::RealPoint,Wx::Point] src starting line point
+    #   @param [Wx::RealPoint,Wx::Point] trg end line point
+    #   @param [Array<Wx::RealPoint>,nil] path List of the line control points (can be empty or nil)
+    #   @param [Diagram] diagram containing diagram
+    def initialize(src = nil, trg = nil, path: nil, diagram: nil)
+      super(diagram: diagram)
+      if src.respond_to?(:to_real_point) && trg.respond_to?(:to_real_point)
+        @src_point = Wx::Point === src ? src.to_real_point : src.dup
+        @trg_point = Wx::Point === trg ? trg.to_real_point : trg.dup
+        @src_shape = @trg_shape = nil
+        @stand_alone = true
+      elsif (src.nil? && trg.nil?) || (src.is_a?(Shape) && trg.is_a?(Shape))
         @src_point = DEFAULT::POINT.dup
         @trg_point = DEFAULT::POINT.dup
-        @stand_alone = DEFAULT::STANDALONE
-        @lst_points = []
+        @src_shape = src
+        @trg_shape = trg
+        @stand_alone = false
       else
-        src, trg, path, diagram = args
-        super(Shape::DEFAULT::POSITION.dup, diagram)
-        if src.respond_to?(:to_real_point) && trg.respond_to?(:to_real_point)
-          @src_point = src.to_real_point
-          @trg_point = trg.to_real_point
-          @src_shape_id = @trg_shape_id = DEFAULT::UNKNOWNID
-          @stand_alone = true
-        elsif src.is_a?(Wx::SF::Serializable::ID) && trg.is_a?(Wx::SF::Serializable::ID)
-          @src_point = DEFAULT::POINT.dup
-          @trg_point = DEFAULT::POINT.dup
-          @src_shape_id = src
-          @trg_shape_id = trg
-          @stand_alone = false
-        else
-          ::Kernel.raise ArgumentError, "Invalid arguments #{args}"
-        end
-        path ||= []
-        @lst_points = path.select { |pt| pt.respond_to?(:to_real_point) }.collect { |pt| pt.to_real_point }
-        ::Kernel.raise ArgumentError, "Invalid arguments #{args}" unless path.size == @lst_points.size
+        ::Kernel.raise ArgumentError, "Invalid arguments #{args}"
       end
+      path ||= []
+      @lst_points = path.select { |pt| pt.respond_to?(:to_real_point) }.collect { |pt| pt.to_real_point }
+      ::Kernel.raise ArgumentError, "Invalid arguments #{args}" unless path.size == @lst_points.size
 
       @src_arrow = nil
       @trg_arrow = nil
 
       @dock_point = DEFAULT::DOCKPOINT
-      @pen = DEFAULT::PEN
+      @pen = DEFAULT.pen
 
       @src_offset = DEFAULT::OFFSET.dup
       @trg_offset = DEFAULT::OFFSET.dup
@@ -99,43 +88,41 @@ module Wx::SF
       @unfinished_point = Wx::Point.new
     end
 
-    # Get source shape id.
-    # @return [Wx::SF::Serializable::ID]
-    def get_src_shape_id
-      @src_shape_id
+    # Get source shape
+    # @return [Shape, nil]
+    def get_src_shape
+      @src_shape
     end
-    alias :src_shape_id :get_src_shape_id
+    alias :src_shape :get_src_shape
 
-    # Set source shape id.
-    # @param [Wx::SF::Serializable::ID] id
-    def set_src_shape_id(id)
-      @src_shape_id = id
+    # Set source shape.
+    # @param [Shape] shape
+    def set_src_shape(shape)
+      @src_shape = shape
     end
-    alias :src_shape_id= :set_src_shape_id
+    alias :src_shape= :set_src_shape
 
-    # Get target shape id.
-    # @return [Wx::SF::Serializable::ID]
-    def get_trg_shape_id
-      @trg_shape_id
+    # Get target shape.
+    # @return [Shape, nil]
+    def get_trg_shape
+      @trg_shape
     end
-    alias :trg_shape_id :get_trg_shape_id
+    alias :trg_shape :get_trg_shape
 
-    # Set target shape id.
-    # @param [Wx::SF::Serializable::ID] id
-    def set_trg_shape_id(id)
-      @trg_shape_id = id
+    # Set target shape.
+    # @param [Shape] shape
+    def set_trg_shape(shape)
+      @trg_shape = shape
     end
-    alias :trg_shape_id= :set_trg_shape_id
+    alias :trg_shape= :set_trg_shape
 
     # Get source point.
     # @return [Wx::RealPoint]
     def get_src_point
       unless @stand_alone
-        src_shape = @diagram.find_shape(@src_shape_id)
-
-        if src_shape && !@lst_points.empty?
-          if src_shape.get_connection_points.empty?
-            return src_shape.get_border_point(get_mod_src_point, @lst_points.first)
+        if @src_shape && !@lst_points.empty?
+          if @src_shape.get_connection_points.empty?
+            return @src_shape.get_border_point(get_mod_src_point, @lst_points.first)
           else
             return get_mod_src_point
           end
@@ -147,8 +134,6 @@ module Wx::SF
           end
           return pt1
         end
-
-        return Wx::RealPoint.new
       end
       @src_point
     end
@@ -164,11 +149,9 @@ module Wx::SF
     # @return [Wx::RealPoint]
     def get_trg_point
       unless @stand_alone
-        trg_shape = @diagram.find_shape(@trg_shape_id)
-
-        if trg_shape && !@lst_points.empty?
-          if trg_shape.get_connection_points.empty?
-            return trg_shape.get_border_point(get_mod_trg_point, @lst_points.last)
+        if @trg_shape && !@lst_points.empty?
+          if @trg_shape.get_connection_points.empty?
+            return @trg_shape.get_border_point(get_mod_trg_point, @lst_points.last)
           else
             return get_mod_trg_point
           end
@@ -180,8 +163,6 @@ module Wx::SF
           end
           return pt2
         end
-
-        return Wx::RealPoint.new
       end
       @trg_point
     end
@@ -288,16 +269,13 @@ module Wx::SF
       if @stand_alone
         return [@src_point, @trg_point]
       else
-        src_shape = get_diagram.find_shape(@src_shape_id)
-        trg_shape = get_diagram.find_shape(@trg_shape_id)
-    
-        if src_shape && trg_shape
+        if @src_shape && @trg_shape
           trg_center = get_mod_trg_point
           src_center = get_mod_src_point
 
-          if src_shape.get_parent_shape == trg_shape || trg_shape.get_parent_shape == src_shape
-            trg_bb = trg_shape.get_bounding_box
-            src_bb = src_shape.get_bounding_box
+          if @src_shape.get_parent_shape == @trg_shape || @trg_shape.get_parent_shape == @src_shape
+            trg_bb = @trg_shape.get_bounding_box
+            src_bb = @src_shape.get_bounding_box
 
             if trg_bb.contains?(src_center.x.to_i, src_center.y.to_i)
               if src_center.y > trg_center.y
@@ -320,14 +298,14 @@ module Wx::SF
             end
           end
 
-          if src_shape.get_connection_points.empty?
-            src = src_shape.get_border_point(src_center, trg_center)
+          if @src_shape.get_connection_points.empty?
+            src = @src_shape.get_border_point(src_center, trg_center)
           else
             src = src_center
           end
 
-          if trg_shape.get_connection_points.empty?
-            trg = trg_shape.get_border_point(trg_center, src_center)
+          if @trg_shape.get_connection_points.empty?
+            trg = @trg_shape.get_border_point(trg_center, src_center)
           else
             trg = trg_center
           end
@@ -404,11 +382,11 @@ module Wx::SF
         return get_direct_line if index == 0
       else
         if index == 0
-          return [get_src_point, @lst_points.first.dup]
+          return [get_src_point, @lst_points.first]
         elsif index == @lst_points.size
-          return [@lst_points.last.dup, get_trg_point]
+          return [@lst_points.last, get_trg_point]
         elsif index > 0 && index < @lst_points.size
-          return @lst_points[index-1, 2].collect {|p| p.dup}
+          return @lst_points[index-1, 2].collect {|p| p}
         end
       end
       [Wx::RealPoint.new, Wx::RealPoint.new]
@@ -421,18 +399,19 @@ module Wx::SF
     
       # calculate control points area if they exist
       if !@lst_points.empty?
-        prev_pt = get_src_point
+        prev_pt = get_src_point.to_point
     
         @lst_points.each do |pt|
+          pt = pt.to_point
           if line_rct.nil?
-            line_rct = Wx::Rect.new(prev_pt.to_point, pt.to_point)
+            line_rct = Wx::Rect.new(prev_pt, pt)
           else
-            line_rct.union!(Wx::Rect.new(prev_pt.to_point, pt.to_point))
+            line_rct.union!(Wx::Rect.new(prev_pt, pt))
           end
           prev_pt = pt
         end
     
-        line_rct.union!(Wx::Rect.new(prev_pt.to_point, get_trg_point.to_point))
+        line_rct.union!(Wx::Rect.new(prev_pt, get_trg_point.to_point))
       else
         # include starting point
         pt = get_src_point
@@ -564,13 +543,13 @@ module Wx::SF
     
         case handle.type
         when Shape::Handle::TYPE::LINESTART
-          if parent.id == @src_shape_id
+          if parent == @src_shape
             @src_offset.x = (handle.get_position.x - bb_rect.left).to_f / bb_rect.width
             @src_offset.y = (handle.get_position.y - bb_rect.top).to_f / bb_rect.height
           end
 
         when Shape::Handle::TYPE::LINEEND
-          if parent.id == @trg_shape_id
+          if parent == @trg_shape
             @trg_offset.x = (handle.get_position.x - bb_rect.left).to_f / bb_rect.width
             @trg_offset.y = (handle.get_position.y - bb_rect.top).to_f / bb_rect.height
           end
@@ -587,7 +566,7 @@ module Wx::SF
     # @param [Wx::Point] pos Current mouse position
 	  # @see Wx::SF::ShapeCanvas
     def on_begin_drag(pos)
-      @prev_position = get_absolute_position
+      @prev_position = get_absolute_position.dup
 
       super
     end
@@ -608,7 +587,7 @@ module Wx::SF
         if handle && handle.get_parent_shape == self
           if handle.type == Shape::Handle::TYPE::LINECTRL
             if has_style?(STYLE::EMIT_EVENTS)
-              evt = Wx::SF::ShapeHandleEvent.new(EVT_SF_LINE_HANDLE_REMOVE, id)
+              evt = Wx::SF::ShapeHandleEvent.new(EVT_SF_LINE_HANDLE_REMOVE, self.object_id)
               evt.set_shape(self)
               evt.set_handle(handle)
               get_parent_canvas.get_event_handler.process_event(evt)
@@ -630,7 +609,7 @@ module Wx::SF
             if has_style?(STYLE::EMIT_EVENTS)
               handle = get_parent_canvas.get_topmost_handle_at_position(pos)
               if handle
-                evt = ShapeHandleEvent.new(EVT_SF_LINE_HANDLE_ADD, id)
+                evt = ShapeHandleEvent.new(EVT_SF_LINE_HANDLE_ADD, self.object_id)
                 evt.set_shape(this)
                 evt.set_handle(handle)
                 get_parent_canvas.get_event_handler.process_event(evt)
@@ -646,7 +625,7 @@ module Wx::SF
     # @param [Float] x Horizontal scale factor
     # @param [Float] y Vertical scale factor
     # @param [Boolean] children true if the shape's children should be scaled as well, otherwise the shape will be updated after scaling via update() function.
-    def scale(x, y, children = WITHCHILDREN)
+    def scale(x, y, children: WITHCHILDREN)
       @lst_points.each do |pt|
         pt.x *= x
         pt.y *= y
@@ -723,12 +702,11 @@ module Wx::SF
         # draw unfinished line segment if any (for interactive line creation)
         dc.with_pen(Wx::Pen.new(Wx::BLACK, 1, Wx::PENSTYLE_DOT)) do
           if @lst_points.size > 0
-            dc.draw_line(trg, @unfinished_point)
+            dc.draw_line(trg.to_point, @unfinished_point)
           else
-            src_shape = diagram.find_shape(@src_shape_id)
-            if src_shape
-              if src_shape.get_connection_points.empty?
-                dc.draw_line((src_shape.get_border_point(src_shape.get_center, @unfinished_point.to_real)).to_point,
+            if @src_shape
+              if @src_shape.get_connection_points.empty?
+                dc.draw_line((@src_shape.get_border_point(@src_shape.get_center, @unfinished_point.to_real)).to_point,
                              @unfinished_point)
               else
                 dc.draw_line(get_mod_src_point.to_point, @unfinished_point)
@@ -817,20 +795,19 @@ module Wx::SF
     # Get modified starting line point .
 	  # @return [Wx::RealPoint] Modified starting line point
     def get_mod_src_point
-      src_shape = diagram.find_shape(@src_shape_id)
-      return Wx::RealPoint.new unless src_shape
+      return Wx::RealPoint.new unless @src_shape
     
       if @src_offset != DEFAULT::OFFSET
-        bb_rct = src_shape.get_bounding_box
-        mod_point = src_shape.get_absolute_position
+        bb_rct = @src_shape.get_bounding_box
+        mod_point = @src_shape.get_absolute_position.dup
     
         mod_point.x += bb_rct.width.to_f * @src_offset.x
         mod_point.y += bb_rct.height.to_f * @src_offset.y
       else
-        mod_point = src_shape.get_center
+        mod_point = @src_shape.get_center
       end
     
-      conn_pt = src_shape.get_nearest_connection_point(mod_point)
+      conn_pt = @src_shape.get_nearest_connection_point(mod_point)
       mod_point = conn_pt.get_connection_point if conn_pt
     
       mod_point
@@ -839,20 +816,19 @@ module Wx::SF
     # Get modified ending line point .
 	  # @return [Wx::RealPoint] Modified ending line point
     def get_mod_trg_point
-      trg_shape = diagram.find_shape(@trg_shape_id)
-      return Wx::RealPoint.new unless trg_shape
+      return Wx::RealPoint.new unless @trg_shape
 
       if @trg_offset != DEFAULT::OFFSET
-        bb_rct = trg_shape.get_bounding_box
-        mod_point = trg_shape.get_absolute_position
+        bb_rct = @trg_shape.get_bounding_box
+        mod_point = @trg_shape.get_absolute_position.dup
 
         mod_point.x += bb_rct.width.to_f * @trg_offset.x
         mod_point.y += bb_rct.height.to_f * @trg_offset.y
       else
-        mod_point = trg_shape.get_center
+        mod_point = @trg_shape.get_center
       end
 
-      conn_pt = trg_shape.get_nearest_connection_point(mod_point)
+      conn_pt = @trg_shape.get_nearest_connection_point(mod_point)
       mod_point = conn_pt.get_connection_point if conn_pt
 
       mod_point

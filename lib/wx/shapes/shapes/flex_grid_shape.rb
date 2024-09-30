@@ -11,17 +11,15 @@ module Wx::SF
   class FlexGridShape < GridShape
 
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, rows, cols, cell_space, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::RealPoint] size Initial size
-    #   @param [Integer] cols Number of grid rows
-    #   @param [Integer] rows Number of grid columns
-    #   @param [Integer] cell_space Additional space between managed shapes
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Wx::RealPoint,Wx::Size,Wx::Point] size Initial size
+    # @param [Integer] cols Number of grid columns
+    # @param [Integer] max_rows Maximum number of grid rows
+    # @param [Integer] cell_space Additional space between managed shapes
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = RectShape::DEFAULT::SIZE,
+                   cols: DEFAULT::COLUMNS, max_rows: 0, cell_space: DEFAULT::CELLSPACE, diagram: nil)
       super
     end
 
@@ -29,20 +27,43 @@ module Wx::SF
     def do_children_layout
       return if @cols == 0 || @rows == 0
 
+      # get maximum size of all managed (child) shapes per row and column
+      row_sizes, col_sizes = get_max_child_sizes
+      total_x = total_y = 0
+
+      # put managed shapes to appropriate positions
+      @cells.each_with_index do |shape, i|
+        col = (i % @cols)
+        row = (i / @cols)
+        if col == 0
+          total_x = 0
+          total_y += row_sizes[row-1] if row > 0
+        else
+          total_x += col_sizes[col-1]
+        end
+
+        if shape
+          fit_shape_to_rect(shape,
+                            Wx::Rect.new(total_x + (col+1)*@cell_space,
+                                         total_y + (row+1)*@cell_space,
+                                         col_sizes[col], row_sizes[row]))
+        end
+      end
+    end
+
+    protected
+
+    def get_max_child_sizes
       # initialize size arrays
       row_sizes = ::Array.new(@rows, 0)
       col_sizes = ::Array.new(@cols, 0)
 
-      # prepare a storage for processed shapes pointers
-      grid_shapes = ::Array.new(@cells.size)
-
       # get maximum size of all managed (child) shapes per row and column
-      @cells.each_with_index do |id, i|
-        if id
+      @cells.each_with_index do |shape, i|
+        if shape
           col = (i % @cols)
           row = (i / @cols)
 
-          grid_shapes[i] = shape = @child_shapes[id]
           curr_rect = shape.get_bounding_box
 
           # update maximum rows and columns sizes
@@ -50,26 +71,30 @@ module Wx::SF
           row_sizes[row] = curr_rect.height if (shape.get_v_align != VALIGN::EXPAND) && (curr_rect.height > row_sizes[row])
         end
       end
+      [row_sizes, col_sizes]
+    end
+
+    def find_cell(child_rect)
+      # get maximum size of all managed (child) shapes per row and column
+      row_sizes, col_sizes = get_max_child_sizes
 
       total_x = total_y = 0
 
-      # put managed shapes to appropriate positions
-      grid_shapes.each_with_index do |shape, i|
-        if shape
-          col = (i % @cols)
-          row = (i / @cols)
-          if col == 0
-            total_x = 0
-            total_y += row_sizes[row-1] if row > 0
-          else
-            total_x += col_sizes[col-1]
-          end
-
-          fit_shape_to_rect(shape,
-                            Wx::Rect.new(total_x + (col+1)*@cell_space,
-                                         total_y + (row+1)*@cell_space,
-                                         col_sizes[col], row_sizes[row]))
+      # find the cell index where the new or dragged child is positioned above and in front of
+      offset = get_bounding_box.top_left
+      cell_count.times.find do |cell|
+        col = (cell % @cols)
+        row = (cell / @cols)
+        if col == 0
+          total_x = 0
+          total_y += row_sizes[row-1] if row > 0
+        else
+          total_x += col_sizes[col-1]
         end
+        cell_rct = Wx::Rect.new(total_x + (col+1)*@cell_space,
+                                total_y + (row+1)*@cell_space,
+                                col_sizes[col], row_sizes[row]).offset!(offset)
+        child_rect.right <= cell_rct.right && child_rect.bottom <= cell_rct.bottom
       end
     end
 

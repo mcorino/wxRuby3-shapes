@@ -7,22 +7,19 @@ module Wx::SF
 
   class SquareShape < RectShape
 
+    # Default values
+    module DEFAULT
+      # Default square size
+      SIZE = 100.0
+    end
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Float] size Initial size
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      if args.empty?
-        super
-        set_rect_size(100,100)
-      else
-        pos, sz, diagram = args
-        super(pos, Wx::RealPoint.new(sz, sz), diagram)
-      end
+
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Float] size Initial size
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = DEFAULT::SIZE, diagram: nil)
+      super(pos, Wx::RealPoint.new(size, size), diagram: diagram)
     end
 
     # Get shape's center. Default implementation does nothing. The function can be overridden if necessary.
@@ -56,7 +53,7 @@ module Wx::SF
     # @param [Shape::Handle] handle Reference to dragged handle
     # @see #on_handle
     def do_on_handle(handle)
-      prev_size = @rect_size.dup
+      prev_x, prev_y = @rect_size
   
       # perform standard operations
       case handle.type
@@ -75,7 +72,7 @@ module Wx::SF
       end
     
       # calculate common size and some auxiliary values
-      if (prev_size.x < @rect_size.x) || (prev_size.y < @rect_size.y)
+      if (prev_x < @rect_size.x) || (prev_y < @rect_size.y)
         if @rect_size.x >= @rect_size.y
           maxsize = @rect_size.x
         else

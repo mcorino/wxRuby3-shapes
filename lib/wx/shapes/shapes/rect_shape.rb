@@ -7,37 +7,27 @@ module Wx::SF
 
     # default values
     module DEFAULT
+      class << self
+        # Default value of RectShape @fill data member.
+        def fill; Wx::Brush.new(Wx::WHITE); end
+        # Default value of RectShape @border data member.
+        def border; Wx::Pen.new(Wx::BLACK); end
+      end
       # Default value of RectShape @rect_size data member.
       SIZE = Wx::RealPoint.new(100, 50)
-      # Default value of RectShape @fill data member.
-      FILL = Wx::Brush.new(Wx::WHITE) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :FILL) { Wx::Brush.new(Wx::WHITE) }
-      # Default value of RectShape @border data member.
-      BORDER = Wx::Pen.new(Wx::BLACK) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :BORDER) { Wx::Pen.new(Wx::BLACK) }
     end
 
     property :rect_size, :fill, :border
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::RealPoint] size Initial size
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      size = nil
-      if args.empty?
-        super
-      else
-        pos, size, diagram = args
-        super(pos, diagram)
-      end
-      @rect_size = size ? size.to_real_point : DEFAULT::SIZE.dup
-      @fill = DEFAULT::FILL
-      @border = DEFAULT::BORDER
-      @prev_size = @prev_position = Wx::RealPoint
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Wx::RealPoint,Wx::Size,Wx::Point] size Initial size
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = DEFAULT::SIZE, diagram: nil)
+      super(pos, diagram: diagram)
+      @rect_size = Wx::RealPoint === size ? size.dup : size.to_real_point
+      @fill = DEFAULT.fill
+      @border = DEFAULT.border
     end
 
     # Set rectangle's fill style.
@@ -183,7 +173,7 @@ module Wx::SF
           move_to(shp_bb.get_position.x, shp_bb.get_position.y)
           @rect_size = Wx::RealPoint.new(shp_bb.get_size.x.to_f, shp_bb.get_size.y.to_f)
           if has_style?(STYLE::EMIT_EVENTS)
-            evt = ShapeEvent.new(EVT_SF_SHAPE_SIZE_CHANGED, id)
+            evt = ShapeEvent.new(EVT_SF_SHAPE_SIZE_CHANGED, self.object_id)
             evt.set_shape(self)
             get_parent_canvas.get_event_handler.process_event(evt)
           end
@@ -200,11 +190,11 @@ module Wx::SF
     end
 
     # Scale the shape size by in both directions. The function can be overridden if necessary
-    # (new implementation should call default one ore scale shape's children manualy if neccesary).
+    # (new implementation should call default one ore scale shape's children manually if necessary).
     # @param [Float] x Horizontal scale factor
     # @param [Float] y Vertical scale factor
     # @param [Boolean] children true if the shape's children should be scaled as well, otherwise the shape will be updated after scaling via update() function.
-    def scale(x, y, children = WITHCHILDREN)
+    def scale(x, y, children: WITHCHILDREN)
       # HINT: overload it for custom actions...
       if x > 0 && y > 0
         scale_rectangle(x, y)
@@ -218,8 +208,7 @@ module Wx::SF
 
     # Handle action at handle drag beginning
     def do_begin_handle
-      @prev_position = @relative_position.dup
-      @prev_size = @rect_size.dup
+      # noop
     end
 
     # Scale the rectangle size for this shape.

@@ -2,6 +2,7 @@
 # Copyright (c) M.J.N. Corino, The Netherlands
 
 require 'wx/shapes/serializable'
+require 'wx/shapes/shapes/manager_shape'
 
 require 'set'
 
@@ -29,9 +30,9 @@ module Wx::SF
   # mostly triggered by a parent shape canvas.
   class Shape
 
-    include Serializable
+    include FIRM::Serializable
 
-    property :id, :active, :visibility, :style,
+    property :active, :visibility, :style,
              :accepted_children, :accepted_connections,
              :accepted_src_neighbours, :accepted_trg_neighbours,
              :hover_colour, :relative_position,
@@ -102,8 +103,8 @@ module Wx::SF
       HIGHLIGHTING = self.new(16)
       # Shape is always inside its parent
       ALWAYS_INSIDE = self.new(32)
-      # User data is destroyed at the shape deletion
-      DELETE_USER_DATA = self.new(64)
+      # available
+      # XXX = self.new(64)
       # The DEL key is processed by the shape (not by the shape canvas)
       PROCESS_DEL = self.new(128)
       # Show handles if the shape is selected
@@ -127,18 +128,19 @@ module Wx::SF
       # Propagate hovering to parent.
       PROPAGATE_HIGHLIGHTING = self.new(131072)
       # Default shape style
-      DEFAULT_SHAPE_STYLE = PARENT_CHANGE | POSITION_CHANGE | SIZE_CHANGE | HOVERING | HIGHLIGHTING | SHOW_HANDLES | ALWAYS_INSIDE | DELETE_USER_DATA
+      DEFAULT_SHAPE_STYLE = PARENT_CHANGE | POSITION_CHANGE | SIZE_CHANGE | HOVERING | HIGHLIGHTING | SHOW_HANDLES | ALWAYS_INSIDE
     end
 
     # Default values
     module DEFAULT
+      class << self
+        # Default value of Wx::SF::Shape @hoverColor data member
+        def hover_colour; Wx::Colour.new(120, 120, 255); end
+      end
       # Default value of Wx::SF::Shape @visible data member
       VISIBILITY = true
       # Default value of Wx::SF::Shape @active data member
       ACTIVITY = true
-      # Default value of Wx::SF::Shape @hoverColor data member
-      HOVERCOLOUR = Wx::Colour.new(120, 120, 255) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :HOVERCOLOUR) { Wx::Colour.new(120, 120, 255) }
       # Default value of Wx::SF::Shape @relativePosition data member
       POSITION = Wx::RealPoint.new(0, 0)
       # Default value of Wx::SF::Shape @vAlign data member
@@ -231,17 +233,13 @@ module Wx::SF
       end
     end
 
-    # @overload initialize()
-    #   default constructor
-    # @overload initialize(pos, manager)
-    #   @param [Wx::RealPoint] pos Initial relative position
-    #   @param [Diagram] diagram containing diagram
-    def initialize(*args)
-      pos, diagram = args
+    # Constructor
+    # @param [Wx::RealPoint, Wx::Point] pos Initial relative position
+    # @param [Diagram] diagram containing diagram
+    def initialize(pos = DEFAULT::POSITION, diagram: nil)
       ::Kernel.raise ArgumentError, "Invalid arguments pos: #{pos}, diagram: #{diagram}" unless
-        args.empty? || (Wx::RealPoint === pos && (diagram.nil? || Wx::SF::Diagram === diagram))
+        Wx::RealPoint === pos && (diagram.nil? || Wx::SF::Diagram === diagram)
 
-      @id = Serializable::ID.new
       @diagram = diagram
       @parent_shape = nil
       @child_shapes = ShapeList.new
@@ -251,10 +249,10 @@ module Wx::SF
         if @diagram.shape_canvas
           @hover_color = @diagram.shape_canvas.hover_colour
         else
-          @hover_color = DEFAULT::HOVERCOLOUR;
+          @hover_color = DEFAULT.hover_colour;
         end
       else
-        @hover_color = DEFAULT::HOVERCOLOUR;
+        @hover_color = DEFAULT.hover_colour;
       end
 
       @selected = false
@@ -273,11 +271,7 @@ module Wx::SF
       @h_border = DEFAULT::HBORDER
       @custom_dock_point = DEFAULT::DOCK_POINT
 
-      if pos && get_parent_shape
-        @relative_position = pos.to_real_point - get_parent_absolute_position
-      else
-        @relative_position = DEFAULT::POSITION.dup
-      end
+      @relative_position = Wx::RealPoint === pos ? pos.dup : pos.to_real_point
 
       @handles = []
       @connection_pts = []
@@ -287,20 +281,6 @@ module Wx::SF
       @accepted_src_neighbours = ::Set.new
       @accepted_trg_neighbours = ::Set.new
     end
-
-    # Get the shape's id
-    # @return [Wx::SF::Serializable::ID]
-    def get_id
-      @id
-    end
-    alias :id :get_id
-
-    # Set the shape's id. Deserialization only.
-    # @param [Wx::SF::Serializable::ID] id
-    def set_id(id)
-      @id = id
-    end
-    private :set_id
 
     # Set managing diagram
     # @param [Wx::SF::Diagram] diagram
@@ -355,6 +335,16 @@ module Wx::SF
       nil
     end
 
+
+    # Returns true if the given shape is included in the child shapes list.
+    # Performs a recursive search in case :recursive is true.
+    # @param [shape] shape shape to match
+    # @param [Boolean] recursive pass true to search recursively, false for non-recursive
+    # @return [Boolean] true if included, otherwise false
+    def include_child_shape?(shape, recursive = false)
+      @child_shapes.include?(shape, recursive)
+    end
+
     # Set parent shape object.
     # @param [Wx::SF::Shape] parent
     # @note Note that this does not check this shape against the acceptance list of the parent. Use #add_child_shape if that is required.
@@ -383,7 +373,7 @@ module Wx::SF
     alias :grand_parent_shape :get_grand_parent_shape
 
     # Refresh (redraw) the shape
-    # @param [Boolean] delayed If true then the shape canvas will be rather invalidated than refreshed.
+    # @param [Boolean] delayed If true then the shape canvas will be invalidated rather than refreshed.
     # @see ShapeCanvas#invalidate_rect
     # @see ShapeCanvas#refresh_invalidated_rect
     def refresh(delayed = false)
@@ -460,11 +450,10 @@ module Wx::SF
     # @return [Wx::RealPoint] Shape's position
     def get_absolute_position
       # HINT: overload it for custom actions...
-      parent_shape = get_parent_shape
-      if parent_shape
+      if @parent_shape
         @relative_position + get_parent_absolute_position
       else
-        @relative_position.dup
+        @relative_position
       end
     end
 
@@ -501,7 +490,7 @@ module Wx::SF
 
     # Set shape's style.
     #
-    # Default value is STYLE::PARENT_CHANGE | STYLE::POSITION_CHANGE | STYLE::SIZE_CHANGE | STYLE::HOVERING | STYLE::HIGHLIGHTING | STYLE::SHOW_HANDLES | STYLE::ALWAYS_INSIDE | STYLE::DELETE_USER_DATA
+    # Default value is STYLE::PARENT_CHANGE | STYLE::POSITION_CHANGE | STYLE::SIZE_CHANGE | STYLE::HOVERING | STYLE::HIGHLIGHTING | STYLE::SHOW_HANDLES | STYLE::ALWAYS_INSIDE
     # @param [Integer] style Combination of the shape's styles
     # @see STYLE
     def set_style(style)
@@ -689,17 +678,31 @@ module Wx::SF
       @diagram.set_modified(true) if @diagram
     end
 
+    # Returns true if this shape manages (size/position/alignment) of it's child shapes.
+    # Returns false by default.
+    # @return [Boolean]
+    def is_manager
+      false
+    end
+    alias :manager? :is_manager
+
+    # Returns true if this shape is managed (size/position/alignment) by it's parent shape.
+    # @return [Boolean]
+    def is_managed
+      !!@parent_shape&.is_manager
+    end
+    alias :managed? :is_managed
+
+
     # Update the shape's position in order to its alignment
     def do_alignment
-      parent = get_parent_shape
-
-      if parent && !parent.is_a?(Wx::SF::GridShape)
-
-        if parent.is_a?(Wx::SF::LineShape)
+      # align to parent unless parent is manager
+      unless @parent_shape.nil? || managed?
+        if @parent_shape.is_a?(Wx::SF::LineShape)
           line_pos = get_parent_absolute_position
           parent_bb = Wx::Rect.new(line_pos.x.to_i, line_pos.y.to_i, 1, 1)
         else
-          parent_bb = parent.get_bounding_box
+          parent_bb = @parent_shape.get_bounding_box
         end
 
         shape_bb = get_bounding_box
@@ -722,8 +725,8 @@ module Wx::SF
           end
 
         when VALIGN::LINE_START
-          if parent.is_a?(Wx::SF::LineShape)
-            line_start, line_end = parent.get_line_segment(0)
+          if @parent_shape.is_a?(Wx::SF::LineShape)
+            line_start, line_end = @parent_shape.get_line_segment(0)
 
             if line_end.y >= line_start.y
               @relative_position.y = line_start.y - line_pos.y + @v_border
@@ -733,8 +736,8 @@ module Wx::SF
           end
 
         when VALIGN::LINE_END
-          if parent.is_a?(Wx::SF::LineShape)
-            line_start, line_end = parent.get_line_segment(parent.get_control_points.get_count)
+          if @parent_shape.is_a?(Wx::SF::LineShape)
+            line_start, line_end = @parent_shape.get_line_segment(parent.get_control_points.get_count)
 
             if line_end.y >= line_start.y
               @relative_position.y = line_end.y - line_pos.y - shape_bb.height - @v_border
@@ -762,8 +765,8 @@ module Wx::SF
           end
 
         when HALIGN::LINE_START
-          if parent.is_a?(Wx::SF::LineShape)
-            line_start, line_end = parent.get_line_segment(0)
+          if @parent_shape.is_a?(Wx::SF::LineShape)
+            line_start, line_end = @parent_shape.get_line_segment(0)
 
             if line_end.x >= line_start.x
 
@@ -774,8 +777,8 @@ module Wx::SF
           end
 
         when HALIGN::LINE_END
-          if parent.is_a?(Wx::SF::LineShape)
-            line_start, line_end = parent.get_line_segment(parent.get_control_points.get_count)
+          if @parent_shape.is_a?(Wx::SF::LineShape)
+            line_start, line_end = @parent_shape.get_line_segment(@parent_shape.get_control_points.get_count)
 
             if line_end.x >= line_start.x
               @relative_position.x = line_end.x - line_pos.x - shape_bb.width - @h_border
@@ -840,7 +843,7 @@ module Wx::SF
     # @return [Wx::RealPoint] Current relative position
     # @see #get_absolute_position
     def get_relative_position
-      @relative_position.dup
+      @relative_position
     end
 
 	  # Set vertical alignment of this shape inside its parent
@@ -942,7 +945,7 @@ module Wx::SF
     # Associate user data with the shape.
     # If the data object is properly set then its marked properties will be serialized
     # together with the parent shape. This means the user data must either be a serializable
-    # core type or a Wx::SF::Serializable.
+    # core type or a FIRM::Serializable.
     # @param [Object] data user data
     def set_user_data(data)
       @user_data = data
@@ -1044,7 +1047,7 @@ module Wx::SF
     # @param [Class] type Class of accepted shape object
     # @see #is_child_accepted
     def accept_child(type)
-      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class) || type == ACCEPT_ALL
+      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class)
       @accepted_children << type
     end
 
@@ -1055,6 +1058,14 @@ module Wx::SF
       @accepted_children
     end
     alias :accepted_children :get_accepted_children
+
+    # Tells whether the shape does not accept ANY children
+    # @return [Boolean] true if no children accepted, false otherwise
+    def does_not_accept_children?
+      @accepted_children.empty?
+    end
+    alias :no_children_accepted? :does_not_accept_children?
+    alias :accepts_no_children? :does_not_accept_children?
 
     # Tells whether the given connection type is accepted by this shape (it means
     # whether this shape can be connected to another one by a connection of given type).
@@ -1073,7 +1084,7 @@ module Wx::SF
     # @param [Class] type Class of accepted connection object
     # @see #is_connection_accepted
     def accept_connection(type)
-      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class) || type == ACCEPT_ALL
+      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class)
       @accepted_connections << type
     end
 
@@ -1102,7 +1113,7 @@ module Wx::SF
     # @param [Class] type Class of accepted connection object
     # @see #is_src_neighbour_accepted
     def accept_src_neighbour(type)
-      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class) || type == ACCEPT_ALL
+      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class)
       @accepted_src_neighbours << type
     end
 
@@ -1131,7 +1142,7 @@ module Wx::SF
     # @param [Class] type Class of accepted connection object
     # @see #is_trg_neighbour_accepted
     def accept_trg_neighbour(type)
-      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class) || type == ACCEPT_ALL
+      ::Kernel.raise ArgumentError, 'Class or ACCEPT_ALL expected' unless type.is_a?(::Class)
       @accepted_trg_neighbours << type
     end
 
@@ -1242,16 +1253,16 @@ module Wx::SF
     # @overload add_connection_point(type, persistent: true)
     #   @param [Wx::SF::ConnectionPoint::CPTYPE] type Connection point type
 	  #   @param [Boolean] persistent true if the connection point should be serialized
-	  #   @return [Wx::SF::ConnectionPoint] new connection point
+	  #   @return [Wx::SF::ConnectionPoint, nil] new connection point if succeeded, otherwise nil
     # @overload add_connection_point(relpos, id=-1, persistent: true)
     #   @param [Wx::RealPoint] relpos Relative position in percentages
     #   @param [Integer] id connection point ID
     #   @param [Boolean] persistent true if the connection point should be serialized
-    #   @return [Wx::SF::ConnectionPoint] new connection point
+    #   @return [Wx::SF::ConnectionPoint, nil] new connection point if succeeded, otherwise nil
     # @overload add_connection_point(cp, persistent: true)
     #   @param [Wx::SF::ConnectionPoint] cp connection point (shape will take the ownership)
     #   @param [Boolean] persistent true if the connection point should be serialized
-    #   @return [Wx::SF::ConnectionPoint] added connection point
+    #   @return [Wx::SF::ConnectionPoint, nil] added connection point if succeeded, otherwise nil
 	  # @see Wx::SF::ConnectionPoint::CPTYPE
     def add_connection_point(arg, *rest, persistent: true)
       cp = nil
@@ -1292,7 +1303,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_LEFT_DOWN, self.id)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_LEFT_DOWN, self.object_id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1310,7 +1321,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_RIGHT_DOWN, self.id)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_RIGHT_DOWN, self.object_id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1328,7 +1339,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_LEFT_DCLICK, self.id)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_LEFT_DCLICK, self.object_id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1346,7 +1357,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_RIGHT_DCLICK, self.id)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_RIGHT_DCLICK, self.object_id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1364,7 +1375,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_DRAG_BEGIN, self.id)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_DRAG_BEGIN, self.object_id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1382,7 +1393,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_DRAG, self.id)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_DRAG, self.object_id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1400,7 +1411,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_DRAG_END, self.id)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_DRAG_END, self.object_id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1417,7 +1428,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeHandleEvent.new(Wx::SF::EVT_SF_SHAPE_HANDLE_BEGIN, self.id)
+        evt = Wx::SF::ShapeHandleEvent.new(Wx::SF::EVT_SF_SHAPE_HANDLE_BEGIN, self.object_id)
         evt.set_shape(self)
         evt.set_handle(handle)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1434,7 +1445,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeHandleEvent.new(Wx::SF::EVT_SF_SHAPE_HANDLE, self.id)
+        evt = Wx::SF::ShapeHandleEvent.new(Wx::SF::EVT_SF_SHAPE_HANDLE, self.object_id)
         evt.set_shape(self)
         evt.set_handle(handle)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1451,7 +1462,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeHandleEvent.new(Wx::SF::EVT_SF_SHAPE_HANDLE_END, self.id)
+        evt = Wx::SF::ShapeHandleEvent.new(Wx::SF::EVT_SF_SHAPE_HANDLE_END, self.object_id)
         evt.set_shape(self)
         evt.set_handle(handle)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1468,7 +1479,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_ENTER, self.id)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_ENTER, self.object_id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1485,7 +1496,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_OVER, self.id)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_OVER, self.object_id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1502,7 +1513,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_LEAVE, self.id)
+        evt = Wx::SF::ShapeMouseEvent.new(Wx::SF::EVT_SF_SHAPE_MOUSE_LEAVE, self.object_id)
         evt.set_shape(self)
         evt.set_mouse_position(pos)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1522,7 +1533,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeKeyEvent.new(Wx::SF::EVT_SF_SHAPE_KEYDOWN, self.id)
+        evt = Wx::SF::ShapeKeyEvent.new(Wx::SF::EVT_SF_SHAPE_KEYDOWN, self.object_id)
         evt.set_shape(self)
         evt.set_key_code(key)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1542,7 +1553,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       if has_style?(STYLE::EMIT_EVENTS) && get_shape_canvas
-        evt = Wx::SF::ShapeChildDropEvent.new(Wx::SF::EVT_SF_SHAPE_CHILD_DROP, self.id)
+        evt = Wx::SF::ShapeChildDropEvent.new(Wx::SF::EVT_SF_SHAPE_CHILD_DROP, self.object_id)
         evt.set_shape(self)
         evt.set_child_shape(child)
         get_shape_canvas.get_event_handler.process_event(evt)
@@ -1550,7 +1561,7 @@ module Wx::SF
     end
 
     def to_s
-      "#<#{self.class}:#{id.to_i}#{parent_shape ? " parent=#{parent_shape.id.to_i}" : ''}>"
+      "#<#{self.class}:#{self.object_id}#{@parent_shape ? " parent=#{@parent_shape.object_id}" : ''}>"
     end
 
     def inspect
@@ -1558,6 +1569,13 @@ module Wx::SF
     end
 
     protected
+
+    # called after the shape has been newly imported/pasted/dropped
+    # allows for checking stale links
+    # by default does nothing
+    def on_import
+      # nothing
+    end
 
 	  # Draw the shape in the normal way. The function can be overridden if necessary.
 	  # @param [Wx::DC] _dc Reference to device context where the shape will be drawn to
@@ -1614,11 +1632,11 @@ module Wx::SF
 	  # Get absolute position of the shape parent.
 	  # @return [Wx::RealPoint] Absolute position of the shape parent if exists, otherwise 0,0
     def get_parent_absolute_position
-      if parent = get_parent_shape
-        if parent.is_a?(Wx::SF::LineShape) && @custom_dock_point != DEFAULT::DOCK_POINT
-          return parent.get_dock_point_position(@custom_dock_point)
+      if @parent_shape
+        if @parent_shape.is_a?(Wx::SF::LineShape) && @custom_dock_point != DEFAULT::DOCK_POINT
+          return @parent_shape.get_dock_point_position(@custom_dock_point)
         else
-          return parent.get_absolute_position
+          return @parent_shape.get_absolute_position
         end
       end
 
@@ -1628,7 +1646,7 @@ module Wx::SF
     private
 
     # Auxiliary function called by GetNeighbours function.
-	  # @param [Class,nil] shapeInfo Line object type
+	  # @param [Class,nil] shape_info Line object type
 	  # @param [CONNECTMODE] condir Connection direction
 	  # @param [Boolean] direct Set this flag to TRUE if only closest shapes should be found,
 	  #     otherwise also shapes connected by forked lines will be found (also
@@ -1649,16 +1667,16 @@ module Wx::SF
         lst_connections.each do |line|
           case condir
           when CONNECTMODE::STARTING
-            opposite = @diagram.find_shape(line.get_trg_shape_id)
+            opposite = line.get_trg_shape
 
           when CONNECTMODE::ENDING
-            opposite = @diagram.find_shape(line.get_src_shape_id)
+            opposite = line.get_src_shape
 
           when CONNECTMODE::BOTH
-            if @id == line.get_src_shape_id
-              opposite = @diagram.find_shape(line.get_trg_shape_id)
+            if self == line.get_src_shape
+              opposite = line.get_trg_shape
             else
-              opposite = @diagram.find_shape(line.get_src_shape_id)
+              opposite = line.get_src_shape
             end
           end
 
@@ -1674,7 +1692,7 @@ module Wx::SF
             if opposite.is_a?(Wx::SF::LineShape)
               case condir
               when CONNECTMODE::STARTING
-                opposite = @diagram.find_shape(opposite.get_src_shape_id)
+                opposite = opposite.get_src_shape
 
                 if  opposite.is_a?(Wx::SF::LineShape)
                   opposite.__send__(:_get_neighbours, shape_info, condir, direct, neighbours, processed)
@@ -1683,7 +1701,7 @@ module Wx::SF
                 end
 
               when CONNECTMODE::ENDING
-                opposite = @diagram.find_shape(opposite.get_trg_shape_id)
+                opposite = opposite.get_trg_shape
 
                 if opposite.is_a?(Wx::SF::LineShape)
                   opposite.__send__(:_get_neighbours, shape_info, condir, direct, neighbours, processed)
@@ -1692,14 +1710,14 @@ module Wx::SF
                 end
 
               when CONNECTMODE::BOTH
-                opposite = @diagram.find_shape(opposite.get_src_shape_id)
+                opposite = opposite.get_src_shape
                 if opposite.is_a?(Wx::SF::LineShape)
                   opposite.__send__(:_get_neighbours, shape_info, condir, direct, neighbours, processed)
                 elsif !neighbours.include?(opposite)
                   neighbours << opposite
                 end
 
-                opposite = @diagram.find_shape(opposite.get_trg_shape_id)
+                opposite = opposite.get_trg_shape
                 if opposite.is_a?(Wx::SF::LineShape)
                   opposite.__send__(:_get_neighbours, shape_info, condir, direct, neighbours, processed)
                 elsif !neighbours.include?(opposite)
@@ -1727,14 +1745,14 @@ module Wx::SF
       processed << self
 
       # first, get bounding box of the current shape
-      if (mask & BBMODE::SELF) != 0
+      if mask.allbits?(BBMODE::SELF)
         if rct.is_empty
           rct.assign(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
         else
           rct.union!(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
 
           # add also shadow offset if necessary
-          if (mask & BBMODE::SHADOW) != 0 && has_style?(STYLE::SHOW_SHADOW) && get_parent_canvas
+          if mask.allbits?(BBMODE::SHADOW) && has_style?(STYLE::SHOW_SHADOW) && get_parent_canvas
             n_offset = get_parent_canvas.get_shadow_offset
 
             if n_offset.x < 0
@@ -1758,7 +1776,7 @@ module Wx::SF
 
       # get list of all connection lines assigned to the shape and find their child shapes
       lst_children = []
-      if (mask & BBMODE::CONNECTIONS) != 0
+      if mask.allbits?(BBMODE::CONNECTIONS)
         lst_lines = get_assigned_connections(Wx::SF::LineShape, CONNECTMODE::BOTH)
 
         lst_lines.each do |line|
@@ -1771,7 +1789,7 @@ module Wx::SF
       end
 
       # get children of this shape
-      if (mask & BBMODE::CHILDREN) != 0
+      if mask.allbits?(BBMODE::CHILDREN)
         get_child_shapes(ANY, NORECURSIVE, SEARCHMODE::BFS, lst_children)
 
         # now, call this function for all children recursively...
@@ -1872,8 +1890,8 @@ module Wx::SF
       @first_move = true
       on_begin_drag(pos)
 
-      if get_parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
-          get_parent_shape.__send__(:_on_begin_drag, pos)
+      if @parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
+        @parent_shape.__send__(:_on_begin_drag, pos)
       end
     end
 
@@ -1909,8 +1927,8 @@ module Wx::SF
         @first_move = false
       end
 
-      if get_parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
-        get_parent_shape.__send__(:_on_dragging, pos)
+      if @parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
+        @parent_shape.__send__(:_on_dragging, pos)
       end
     end
 
@@ -1924,8 +1942,8 @@ module Wx::SF
 
       on_end_drag(pos)
 
-      if get_parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
-        get_parent_shape.__send__(:_on_end_drag, pos)
+      if @parent_shape && has_style?(STYLE::PROPAGATE_DRAGGING)
+        @parent_shape.__send__(:_on_end_drag, pos)
       end
     end
 
@@ -1956,7 +1974,7 @@ module Wx::SF
         end
 
         prev_bb = Wx::Rect.new
-        if !f_refresh_all
+        unless f_refresh_all
           prev_bb = get_complete_bounding_box(prev_bb, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
         end
 
@@ -2062,7 +2080,6 @@ module Wx::SF
     def update_child_parents
       @child_shapes.each do |shape|
         shape.instance_variable_set(:@parent_shape, self)
-        shape.send(:update_child_parents)
       end
     end
 
@@ -2070,6 +2087,10 @@ module Wx::SF
     def serialize_child_shapes(*val)
       unless val.empty?
         @child_shapes = val.first
+        # @parent_shape is not serialized, instead we rely on child shapes being (de-)serialized
+        # by their parent (child shapes restored before restoring parent child list) and let
+        # the parent reset the @parent_shape attributes of their children.
+        # That way the links never get out of sync.
         update_child_parents
       end
       @child_shapes
@@ -2103,10 +2124,10 @@ module Wx::SF
       xi = (b1*c2 - c1*b2) / (a1*b2 - a2*b1)
       yi = -(a1*c2 - a2*c1) / (a1*b2 - a2*b1)
 
-      if( ((from1.x - xi)*(xi - to1.x) >= 0.0) &&
-        ((from2.x - xi)*(xi - to2.x) >= 0.0) &&
-        ((from1.y - yi)*(yi - to1.y) >= 0.0) &&
-        ((from2.y - yi)*(yi - to2.y) >= 0.0) )
+      if ((from1.x - xi) * (xi - to1.x) >= 0.0) &&
+        ((from2.x - xi) * (xi - to2.x) >= 0.0) &&
+        ((from1.y - yi) * (yi - to1.y) >= 0.0) &&
+        ((from2.y - yi) * (yi - to2.y) >= 0.0)
         return Wx::RealPoint.new(xi, yi)
       end
 

@@ -192,37 +192,32 @@ module Wx::SF
 
     # Default values
     module DEFAULT
-      # Default value of Wx::SF::CanvasSettings @background_color data member
-      BACKGROUNDCOLOR = Wx::Colour.new(240, 240, 240) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :BACKGROUNDCOLOR) { Wx::Colour.new(240, 240, 240) }
+      class << self
+        # Default value of Wx::SF::CanvasSettings @background_color data member
+        def background_color; Wx::Colour.new(240, 240, 240); end
+        # Default value of Wx::SF::CanvasSettings @common_hover_color data member
+        def hover_color; Wx::Colour.new(120, 120, 255); end
+        # Default value of Wx::SF::CanvasSettings @grid_color data member
+        def grid_color; Wx::Colour.new(200, 200, 200); end
+        # Default value of Wx::SF::CanvasSettings @gradient_from data member
+        def gradient_from; Wx::Colour.new(240, 240, 240); end
+        # Default value of Wx::SF::CanvasSettings @gradient_to data member
+        def gradient_to; Wx::Colour.new(200, 200, 255); end
+        # Default shadow colour
+        def shadow_color; Wx::Colour.new(150, 150, 150, 128); end
+        # Default value of Wx::SF::CanvasSettings @shadow_fill data member
+        def shadow_brush; Wx::Brush.new(shadow_color, Wx::BrushStyle::BRUSHSTYLE_SOLID); end
+      end
       # Default value of Wx::SF::CanvasSettings @grid_size data member
       GRIDSIZE = Wx::Size.new(10, 10)
       # Default value of Wx::SF::CanvasSettings @grid_line_mult data member
       GRIDLINEMULT = 1
-      # Default value of Wx::SF::CanvasSettings @grid_color data member
-      GRIDCOLOR = Wx::Colour.new(200, 200, 200) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :GRIDCOLOR) { Wx::Colour.new(200, 200, 200) }
       # Default value of Wx::SF::CanvasSettings @grid_style data member
       GRIDSTYLE = Wx::PenStyle::PENSTYLE_SOLID
-      # Default value of Wx::SF::CanvasSettings @common_hover_color data member
-      HOVERCOLOR = Wx::Colour.new(120, 120, 255) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :HOVERCOLOR) { Wx::Colour.new(120, 120, 255) }
-      # Default value of Wx::SF::CanvasSettings @gradient_from data member
-      GRADIENT_FROM = Wx::Colour.new(240, 240, 240) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :GRADIENT_FROM) { Wx::Colour.new(240, 240, 240) }
-      # Default value of Wx::SF::CanvasSettings @gradient_to data member
-      GRADIENT_TO = Wx::Colour.new(200, 200, 255) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :GRADIENT_TO) { Wx::Colour.new(200, 200, 255) }
       # Default value of Wx::SF::CanvasSettings @style data member
       CANVAS_STYLE = STYLE::DEFAULT_CANVAS_STYLE
       # Default value of Wx::SF::CanvasSettings @shadow_offset data member
       SHADOWOFFSET = Wx::RealPoint.new(4, 4)
-      # Default shadow colour 
-      SHADOWCOLOR = Wx::Colour.new(150, 150, 150, 128) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :SHADOWCOLOR) { Wx::Colour.new(150, 150, 150, 128) }
-      # Default value of Wx::SF::CanvasSettings @shadow_fill data member
-      SHADOWBRUSH = Wx::Brush.new(SHADOWCOLOR.call, Wx::BrushStyle::BRUSHSTYLE_SOLID) if Wx::App.is_main_loop_running
-      Wx.add_delayed_constant(self, :SHADOWBRUSH) { Wx::Brush.new(Wx::Colour.new(150, 150, 150, 128), Wx::BrushStyle::BRUSHSTYLE_SOLID) }
       # Default value of Wx::SF::CanvasSettings @print_h_align data member
       PRINT_HALIGN = HALIGN::CENTER
       # Default value of Wx::SF::CanvasSettings @print_v_align data member
@@ -318,7 +313,7 @@ module Wx::SF
         end
       end
 
-      include Serializable
+      include FIRM::Serializable
 
       property :version_info
 
@@ -350,7 +345,7 @@ module Wx::SF
     # Auxiliary serializable class encapsulating the canvas properties.
     class Settings
 
-      include Serializable
+      include FIRM::Serializable
 
       include DEFAULT
 
@@ -363,17 +358,17 @@ module Wx::SF
         @scale = 1.0
         @min_scale = SCALE_MIN
         @max_scale = SCALE_MAX
-        @background_color = BACKGROUNDCOLOR
-        @common_hover_color = HOVERCOLOR
+        @background_color = DEFAULT.background_color
+        @common_hover_color = DEFAULT.hover_color
         @grid_size = GRIDSIZE.dup
         @grid_line_mult = GRIDLINEMULT
-        @grid_color = GRIDCOLOR
+        @grid_color = DEFAULT.grid_color
         @grid_style = GRIDSTYLE
-        @gradient_from = GRADIENT_FROM
-        @gradient_to = GRADIENT_TO
+        @gradient_from = DEFAULT.gradient_from
+        @gradient_to = DEFAULT.gradient_to
         @style = CANVAS_STYLE
         @shadow_offset = SHADOWOFFSET.dup
-        @shadow_fill = SHADOWBRUSH
+        @shadow_fill = DEFAULT.shadow_brush
         @print_h_align = PRINT_HALIGN
         @print_v_align = PRINT_VALIGN
         @print_mode = PRINT_MODE
@@ -480,7 +475,6 @@ module Wx::SF
 
       # initialize selection rectangle
       @shp_selection = MultiSelRect.new
-      @shp_selection.send(:set_id, nil)
       @shp_selection.create_handles
       @shp_selection.select(true)
       @shp_selection.show(false)
@@ -488,7 +482,6 @@ module Wx::SF
 
       # initialize multi-edit rectangle
       @shp_multi_edit = MultiSelRect.new
-      @shp_multi_edit.send(:set_id, nil)
       @shp_multi_edit.create_handles
       @shp_multi_edit.select(true)
       @shp_multi_edit.show(false)
@@ -531,7 +524,7 @@ module Wx::SF
       # get IO stream to read from
       ios = io.is_a?(::String) ? File.open(io, 'r') : io
       begin
-        _, @settings, diagram = Serializable.deserialize(ios)
+        _, @settings, diagram = FIRM.deserialize(ios)
       rescue SFException
         ::Kernel.raise
       rescue ::Exception
@@ -681,12 +674,12 @@ module Wx::SF
       nil
     end
 
-    def _start_interactive_connection(lpos, src_shape_id, cpt)
+    def _start_interactive_connection(lpos, src_shape, cpt)
       if @new_line_shape
         @working_mode = MODE::CREATECONNECTION
         @new_line_shape.send(:set_line_mode, LineShape::LINEMODE::UNDERCONSTRUCTION)
 
-        @new_line_shape.set_src_shape_id(src_shape_id)
+        @new_line_shape.set_src_shape(src_shape)
 
         # switch on the "under-construction" mode
         @new_line_shape.send(:set_unfinished_point, lpos)
@@ -756,7 +749,7 @@ module Wx::SF
           else
             @new_line_shape = @diagram.add_shape(shape, nil, Wx::DEFAULT_POSITION, INITIALIZE, DONT_SAVE_STATE)
           end
-          return _start_interactive_connection(lpos, connection_point.get_parent_shape.id, connection_point)
+          return _start_interactive_connection(lpos, connection_point.get_parent_shape, connection_point)
 
         else
 
@@ -768,7 +761,7 @@ module Wx::SF
           end
 
           # start the connection's creation process if possible
-          if shape_under&.id && shape_under.is_connection_accepted(shape_klass)
+          if shape_under && shape_under.is_connection_accepted(shape_klass)
             if shape && @diagram.contains?(shape)
               @new_line_shape = shape
             else
@@ -779,7 +772,7 @@ module Wx::SF
               end
               @new_line_shape =  (err == ERRCODE::OK ? shape : nil)
             end
-            return _start_interactive_connection(lpos, shape_under.id, shape_under.get_nearest_connection_point(lpos.to_real))
+            return _start_interactive_connection(lpos, shape_under, shape_under.get_nearest_connection_point(lpos.to_real))
           else
             return ERRCODE::NOT_ACCEPTED
           end
@@ -1019,14 +1012,14 @@ module Wx::SF
         if clipboard.fetch(data_obj)
 
           # deserialize shapes
-          new_shapes = Wx::SF::Serializable.deserialize(data_obj.get_data_here)
+          new_shapes = FIRM.deserialize(data_obj.get_data_here)
           # add new shapes to diagram and remove those that are not accepted
           new_shapes.select! do |shape|
             ERRCODE::OK == @diagram.add_shape(shape, nil, shape.get_relative_position, INITIALIZE, DONT_SAVE_STATE)
           end
 
           # verify newly added shapes (may remove shapes from list)
-          @diagram.send(:check_new_shapes, new_shapes)
+          @diagram.send(:on_import, new_shapes)
 
           update_virtual_size # update for new shapes
 
@@ -1083,7 +1076,7 @@ module Wx::SF
 
       Wx::Clipboard.open do |clipboard|
         return clipboard.supported?(Wx::DataFormat.new(Wx::SF::ShapeDataObject::DataFormatID))
-      end
+      end rescue false
     end
     alias :can_paste? :can_paste
 
@@ -1128,7 +1121,7 @@ module Wx::SF
     # @param [String,nil] state to restore
     def restore_canvas_state(state)
       return unless state
-      set_diagram(Wx::SF::Serializable.deserialize(state))
+      set_diagram(FIRM.deserialize(state))
       update_virtual_size
       @diagram.set_modified
       refresh(false)
@@ -1247,12 +1240,12 @@ module Wx::SF
     #   @return [Wx::Rect] Device position
     def lp2dp(arg)
       if arg.is_a?(Wx::Rect)
-        x, y = calc_unscrolled_position(arg.x, arg.y)
+        x, y = calc_scrolled_position(arg.x, arg.y)
         Wx::Rect.new((x*@settings.scale).to_i, (y*@settings.scale).to_i,
                      (arg.width*@settings.scale).to_i, (arg.height*@settings.scale).to_i)
       else
         arg = arg.to_point
-        x, y = calc_unscrolled_position(arg.x, arg.y)
+        x, y = calc_scrolled_position(arg.x, arg.y)
         Wx::Point.new((x*@settings.scale).to_i, (y*@settings.scale).to_i)
       end
     end
@@ -1438,7 +1431,7 @@ module Wx::SF
           shape_bb = shape.get_bounding_box
 
           if cnt == 0
-            min_pos = pos
+            min_pos = pos.dup
             max_pos = Wx::RealPoint.new(pos.x + shape_bb.width, pos.y + shape_bb.height)
           else
             min_pos.x = pos.x if pos.x < min_pos.x
@@ -2229,28 +2222,28 @@ module Wx::SF
           end
           # finish connection's creation process if possible
           if shape_under && !event.control_down
-            if @new_line_shape.get_trg_shape_id.nil? && (shape_under != @new_line_shape) &&
-                shape_under.get_id && (shape_under.is_connection_accepted(@new_line_shape.class))
+            if @new_line_shape.get_trg_shape.nil? && (shape_under != @new_line_shape) &&
+              (shape_under.is_connection_accepted(@new_line_shape.class))
               # find out whether the target shape can be connected to the source shape
-              source_shape = @diagram.find_shape(@new_line_shape.get_src_shape_id)
+              source_shape = @new_line_shape.get_src_shape
 
               if source_shape &&
                   shape_under.is_src_neighbour_accepted(source_shape.class) &&
                   source_shape.is_trg_neighbour_accepted(shape_under.class)
-                @new_line_shape.set_trg_shape_id(shape_under.get_id)
+                @new_line_shape.set_trg_shape(shape_under)
                 @new_line_shape.set_ending_connection_point(shape_under.get_nearest_connection_point(lpos.to_real))
 
                 # inform user that the line is completed
                 case on_pre_connection_finished(@new_line_shape)
                 when PRECON_FINISH_STATE::OK
                 when PRECON_FINISH_STATE::FAILED_AND_CANCEL_LINE
-                  @new_line_shape.set_trg_shape_id(nil)
+                  @new_line_shape.set_trg_shape(nil)
                   @diagram.remove_shape(@new_line_shape)
                   @working_mode = MODE::READY
                   @new_line_shape = nil
                   return
                 when PRECON_FINISH_STATE::FAILED_AND_CONTINUE_EDIT
-                  @new_line_shape.set_trg_shape_id(nil)
+                  @new_line_shape.set_trg_shape(nil)
                   return
                 end
                 @new_line_shape.create_handles
@@ -2270,7 +2263,7 @@ module Wx::SF
               end
             end
           else
-            if @new_line_shape.get_src_shape_id
+            if @new_line_shape.get_src_shape
               fit_pos = fit_position_to_grid(lpos)
               @new_line_shape.get_control_points << Wx::RealPoint.new(fit_pos.x, fit_pos.y)
             end
@@ -2346,14 +2339,14 @@ module Wx::SF
 
           if parent_shape && (parent_shape != line) && (parent_shape.is_connection_accepted(line.class))
             if @selected_handle.get_type == Shape::Handle::TYPE::LINESTART
-              trg_shape = @diagram.find_shape(line.get_trg_shape_id)
+              trg_shape = line.get_trg_shape
               if trg_shape && parent_shape.is_trg_neighbour_accepted(trg_shape.class)
-                line.set_src_shape_id(parent_shape.get_id)
+                line.set_src_shape(parent_shape)
               end
             else
-              src_shape = @diagram.find_shape(line.get_src_shape_id)
+              src_shape = line.get_src_shape
               if src_shape && parent_shape.is_src_neighbour_accepted(src_shape.class)
-                line.set_trg_shape_id(parent_shape.get_id)
+                line.set_trg_shape(parent_shape)
               end
             end
           end
@@ -2371,7 +2364,7 @@ module Wx::SF
           # notify shape
           shape.send(:_on_end_drag, lpos)
           # reparent based on new position
-          reparent_shape(shape, lpos)
+          reparent_dropped_shape(shape, lpos)
         end
   
         if lst_selection.size>1
@@ -2729,7 +2722,7 @@ module Wx::SF
       # HINT: override it for custom actions...
     
       # ... standard implementation generates the Wx::SF::EVT_SF_TEXT_CHANGE event.
-      id = shape ? shape.get_id : nil
+      id = shape ? shape.object_id : nil
 
       event = ShapeTextEvent.new(Wx::SF::EVT_SF_TEXT_CHANGE, id)
       event.set_shape(shape)
@@ -2747,7 +2740,7 @@ module Wx::SF
       # HINT: override to perform user-defined actions...
     
       # ... standard implementation generates the Wx::SF::EVT_SF_LINE_DONE event.
-      id = connection ? connection.get_id : -1
+      id = connection ? connection.object_id : -1
 
       event = ShapeEvent.new(Wx::SF::EVT_SF_LINE_DONE, id)
       event.set_shape(connection)
@@ -2768,7 +2761,7 @@ module Wx::SF
       # HINT: override to perform user-defined actions...
     
       # ... standard implementation generates the Wx::SF::EVT_SF_LINE_DONE event.
-      id = connection ? connection.get_id : -1
+      id = connection ? connection.object_id : -1
     
       event = ShapeEvent.new(Wx::SF::EVT_SF_LINE_BEFORE_DONE, id)
       event.set_shape(connection)
@@ -2909,15 +2902,23 @@ module Wx::SF
     #  Assign give shape to parent at given location (if exists)
     # @param [Wx::SF::Shape] shape
     # @param [Wx::Point] parentpos
-    def reparent_shape(shape, parentpos)
+    def reparent_dropped_shape(shape, parentpos)
       return unless @diagram
-      # is shape dropped into accepting shape?
-      parent_shape = get_shape_at_position(parentpos, 1, SEARCHMODE::UNSELECTED)
 
-      parent_shape = nil if parent_shape && !parent_shape.is_child_accepted(shape.class)
-
-      # set new parent
+      # set new parent if possible
       if shape.has_style?(Shape::STYLE::PARENT_CHANGE) && !shape.is_a?(LineShape)
+        # is shape dropped into accepting shape?
+        parent_shape = get_shape_at_position(parentpos, 1, SEARCHMODE::UNSELECTED)
+        # In case the matching shape does not accept ANY children see if this shape has a
+        # parent that does also match the position and DOES accept children.
+        # This allows dropping shapes onto child shapes inside a (container) shapes like
+        # grids and/or boxes.
+        while parent_shape&.does_not_accept_children? && parent_shape.parent_shape
+          parent_shape = parent_shape.parent_shape
+          parent_shape = nil unless parent_shape.get_bounding_box.contains?(parentpos)
+        end
+        parent_shape = nil if parent_shape && !parent_shape.is_child_accepted(shape.class)
+
         prev_parent = shape.get_parent_shape
     
         if parent_shape
@@ -3204,7 +3205,7 @@ module Wx::SF
 	  # @see Wx::SF::CanvasDropTarget
     def _on_drop(x, y, deflt, data)
       if data && Wx::SF::ShapeDataObject === data
-        lst_new_content = Wx::SF::Serializable.deserialize(data.get_data_here)
+        lst_new_content = FIRM.deserialize(data.get_data_here)
         if lst_new_content && !lst_new_content.empty?
           lst_parents_to_update = []
           lpos = dp2lp(Wx::Point.new(x, y))
@@ -3217,12 +3218,20 @@ module Wx::SF
           end
 
           parent = @diagram.get_shape_at_position(lpos, 1, SEARCHMODE::UNSELECTED)
+          # In case the located shape does not accept ANY children see if this shape has a
+          # parent that does also match the position and DOES accept children.
+          # This allows dropping shapes onto child shapes inside a (container) shapes like
+          # grids and/or boxes.
+          while parent&.does_not_accept_children? && parent.parent_shape && !parent.selected?
+            parent = parent.parent_shape
+            parent = nil unless parent.get_bounding_box.contains?(lpos)
+          end
 
           # add each shape to diagram keeping only those that are accepted
           lst_new_content.select! do |shape|
             shape.move_by(dx, dy)
             # do not reparent connection lines
-            rc = if shape.is_a?(LineShape) && !shape.stand_alone?
+            rc = if (shape.is_a?(LineShape) && !shape.stand_alone?) || parent.nil?
                    @diagram.add_shape(shape,
                                       nil,
                                       lp2dp(shape.get_absolute_position.to_point),
@@ -3239,7 +3248,7 @@ module Wx::SF
           end
 
           # verify newly added shapes (may remove shapes from list)
-          @diagram.send(:check_new_shapes, lst_new_content)
+          @diagram.send(:on_import, lst_new_content)
 
           update_virtual_size # update for new shapes
 

@@ -30,7 +30,6 @@ permissions:
 
 env:
   WXWIDGETS_ROOT: ${{ github.workspace }}/ext/wxWidgets
-  WXWIN_INSTALL: ${{ github.workspace }}/ext/wxWidgets/install
 
 jobs:
   build:
@@ -40,24 +39,22 @@ jobs:
         include:
           - os: ubuntu-22.04
             gtk_version: 3
-            CC: gcc-11
-            CXX: g++-11
+            CC: gcc
+            CXX: g++
             ruby: '3.0'
-            wxWidgets: '3.2.2.1'
             swig: '4'
             configure_flags:
             use_xvfb: true
           - os: ubuntu-22.04
             gtk_version: 3
-            CC: gcc-12
-            CXX: g++-12
-            ruby: '3.2'
-            wxWidgets: '3.2.2.1'
+            CC: gcc
+            CXX: g++
+            ruby: 'ruby'
             swig: '4'
             configure_flags:
             use_xvfb: true
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} GTK ${{ matrix.gtk_version }} ${{ matrix.CXX }} ruby-${{ matrix.ruby }} wxWidgets-${{ matrix.wxWidgets }}
+    name: ${{ matrix.os }} GTK${{ matrix.gtk_version }} ${{ matrix.CXX }} ruby-${{ matrix.ruby }}
     env:
       wxGTK_VERSION: ${{ matrix.gtk_version && matrix.gtk_version || 3 }}
       wxCONFIGURE_FLAGS: ${{ matrix.configure_flags }}
@@ -70,18 +67,15 @@ jobs:
     - name: Checkout wxRuby3/Shapes
       uses: actions/checkout@v4
 
-    - name: Install Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: ${{ matrix.ruby }}
-
     - name: checkout wxWidgets
       uses: actions/checkout@v4
       with:
         repository: wxWidgets/wxWidgets
         path: ${{ env.WXWIDGETS_ROOT }}
-        ref: v${{ matrix.wxWidgets }}
-        submodules: 'recursive'
+
+    - name: Prepare package repos
+      run: |
+        sudo apt-get update
 
     - name: Set up build environment
       run: |
@@ -99,40 +93,18 @@ jobs:
         gcc -v
         g++ -v
 
-    - name: Configuring wxWidgets
-      run: |
-        wxCONFIGURE_OPTIONS="$wxCONFIGURE_FLAGS"
-        if [ -n "${{ matrix.gtk_version }}" ]; then
-          wxCONFIGURE_OPTIONS="--with-gtk=${{ matrix.gtk_version }} $wxCONFIGURE_OPTIONS"
-        fi
-        pushd $WXWIDGETS_ROOT
-        if [ "${{ matrix.wxw_type }}" == "develop" ]; then
-          ./configure $wxCONFIGURE_OPTIONS --prefix=$WXWIN_INSTALL --disable-tests --without-subdirs --disable-debug_info || rc=$?
-        else
-          ./configure $wxCONFIGURE_OPTIONS --disable-tests --without-subdirs --disable-debug_info || rc=$?
-        fi
-        popd
-        if [ -n "$rc" ]; then
-          echo '*** Configuring failed, contents of config.log follows: ***'
-          echo '-----------------------------------------------------------'
-          cat $WXWIDGETS_ROOT/config.log
-          echo '-----------------------------------------------------------'
-          exit $rc
-        fi
-
-    - name: Build wxWidgets
-      run: |
-        pushd $WXWIDGETS_ROOT
-        make && sudo make install && sudo ldconfig
-        popd
-
     - name: Remove wxWidgets
       run: |
         rm -rf $WXWIDGETS_ROOT
 
+    - name: Install Ruby packages
+      run: |
+        sudo apt-get install -y ruby-bundler
+
     - name: Setup Ruby gems
       run: |
-        /bin/bash -o pipefail -c "xvfb-run -a -s '-screen 0 1600x1200x24' bundle install 2>&1 | tee -a gembuild.out" || rc=$?
+        BUILD_CMD="bundle install"
+        /bin/bash -o pipefail -c "xvfb-run -a -s '-screen 0 1600x1200x24' $BUILD_CMD 2>&1 | tee -a gembuild.out" || rc=$?
         if [ -n "$rc" ]; then
           if fgrep -q '(core dumped)' gembuild.out; then
             echo '*** Test crashed, trying to get more information ***'

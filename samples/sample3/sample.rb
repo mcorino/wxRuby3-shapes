@@ -244,7 +244,7 @@ class SFSample3Frame < Wx::Frame
 		  # update the text shape and its parent(s)
       text.update
 		  # display some info...
-      Wx.log_message("New text of the star with ID #{text.get_parent_shape.id.to_i} is : '#{event.text}'")
+      Wx.log_message("New text of the star with ID #{text.get_parent_shape.object_id} is : '#{event.text}'")
     end
   end
 
@@ -252,7 +252,7 @@ class SFSample3Frame < Wx::Frame
     Wx::FileDialog(self, 'Load diagram from file...', Dir.getwd, '', "JSON Files (*.json)|*.json", Wx::FD_OPEN) do |dlg|
       if dlg.show_modal == Wx::ID_OK
         File.open(dlg.get_path, 'r') do |f|
-          @canvas.set_diagram(Wx::SF::Serializable.deserialize(f))
+          @canvas.set_diagram(FIRM::Serializable.deserialize(f))
           @canvas.clear_canvas_history
           @canvas.save_canvas_state
         end

@@ -2,12 +2,12 @@
 require_relative './lib/wxapp_runner'
 require_relative './serializer_tests'
 
-class YamlSerializeTests < Test::Unit::TestCase
+class XMLSerializeTests < Test::Unit::TestCase
 
   include SerializerTestMixin
 
   def self.startup
-    FIRM::Serializable.default_format = :yaml
+    FIRM::Serializable.default_format = :xml
   end
 
   def self.shutdown

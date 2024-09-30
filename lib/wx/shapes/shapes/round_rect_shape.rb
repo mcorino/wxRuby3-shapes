@@ -6,26 +6,22 @@ module Wx::SF
   # Class encapsulating rounded rectangle. It extends the basic rectangular shape.
   class RoundRectShape < RectShape
 
-    RADIUS = 20
+    # Default values
+    module DEFAULT
+      # Default corner radius
+      RADIUS = 20
+    end
 
     property :radius
 
-    # @overload initialize()
-    #   Default constructor.
-    # @overload initialize(pos, size, diagram)
-    #   User constructor.
-    #   @param [Wx::RealPoint] pos Initial position
-    #   @param [Wx::RealPoint] size Initial size
-    #   @param [Float] radius Corner radius
-    #   @param [Wx::SF::Diagram] diagram parent diagram
-    def initialize(*args)
-      if args.empty?
-        super
-        @radius = RADIUS
-      else
-        pos, size, @radius, diagram = args
-        super(pos, size, diagram)
-      end
+    # Constructor.
+    # @param [Wx::RealPoint,Wx::Point] pos Initial position
+    # @param [Wx::RealPoint,Wx::Size,Wx::Point] size Initial size
+    # @param [Float] radius Corner radius
+    # @param [Wx::SF::Diagram] diagram parent diagram
+    def initialize(pos = Shape::DEFAULT::POSITION, size = RectShape::DEFAULT::SIZE, radius: DEFAULT::RADIUS, diagram: nil)
+      super(pos, size, diagram: diagram)
+      @radius = radius
     end
 
     # Access (get/set) radius.

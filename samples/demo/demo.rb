@@ -44,6 +44,8 @@ class MainFrame < Wx::Frame
 		GRID = self.new(14)
 		FLEXGRID = self.new(15)
 		STANDALONELINE = self.new(16)
+    VBOX = self.new(17)
+    HBOX = self.new(18)
   end
 
   module ID
@@ -71,6 +73,8 @@ class MainFrame < Wx::Frame
     T_BITMAPSHP = self.next_id
     T_GRIDSHP = self.next_id
     T_FLEXGRIDSHP = self.next_id
+    T_VBOXSHP = self.next_id
+    T_HBOXSHP = self.next_id
     T_LINESHP = self.next_id
     T_STANDALONELINESHP = self.next_id
     T_CURVESHP = self.next_id
@@ -181,6 +185,8 @@ class MainFrame < Wx::Frame
     @tool_bar.add_radio_tool(ID::T_BITMAPSHP, 'Bitmap', Wx::Bitmap(:Bitmap), Wx::NULL_BITMAP, 'Bitmap')
     @tool_bar.add_radio_tool(ID::T_GRIDSHP, 'Grid shape', Wx::Bitmap(:Grid), Wx::NULL_BITMAP, 'Grid shape')
     @tool_bar.add_radio_tool(ID::T_FLEXGRIDSHP, 'Flexible grid shape', Wx::Bitmap(:FlexGrid), Wx::NULL_BITMAP, 'Flexible grid shape')
+    @tool_bar.add_radio_tool(ID::T_VBOXSHP, 'Vertical Box shape', Wx::Bitmap(:VBox), Wx::NULL_BITMAP, 'Vertical Box shape')
+    @tool_bar.add_radio_tool(ID::T_HBOXSHP, 'Horizontal Box shape', Wx::Bitmap(:HBox), Wx::NULL_BITMAP, 'Horizontal Box shape')
     @tool_bar.add_radio_tool(ID::T_LINESHP, 'Line', Wx::Bitmap(:Line), Wx::NULL_BITMAP, 'Polyline connection')
     @tool_bar.add_radio_tool(ID::T_CURVESHP, 'Curve', Wx::Bitmap(:Curve), Wx::NULL_BITMAP, 'Curve connection')
     @tool_bar.add_radio_tool(ID::T_ORTHOSHP, 'Ortho line', Wx::Bitmap(:OrthoLine), Wx::NULL_BITMAP, 'Orthogonal connection')
@@ -341,7 +347,7 @@ class MainFrame < Wx::Frame
   def on_save(_event)
     Wx::FileDialog(self, 'Save canvas to file...', Dir.getwd, '', 'JSON Files (*.json)|*.json', Wx::FD_SAVE | Wx::FD_OVERWRITE_PROMPT) do |dlg|
       if dlg.show_modal == Wx::ID_OK
-        @shape_canvas.save_canvas(dlg.get_path)
+        @shape_canvas.save_canvas(dlg.get_path, compact: false)
 
         Wx.message_box("The chart has been saved to '#{dlg.get_path}'.", 'wxRuby ShapeFramework')
       end
@@ -508,6 +514,12 @@ class MainFrame < Wx::Frame
     when ID::T_FLEXGRIDSHP
       @tool_mode = MODE::FLEXGRID
 
+    when ID::T_VBOXSHP
+      @tool_mode = MODE::VBOX
+
+    when ID::T_HBOXSHP
+      @tool_mode = MODE::HBOX
+
     when ID::T_LINESHP
       @tool_mode = MODE::LINE
 
@@ -613,6 +625,12 @@ class MainFrame < Wx::Frame
 
     when ID::T_FLEXGRIDSHP
       event.check(@tool_mode == MODE::FLEXGRID)
+
+    when ID::T_VBOXSHP
+      event.check(@tool_mode == MODE::VBOX)
+
+    when ID::T_HBOXSHP
+      event.check(@tool_mode == MODE::HBOX)
 
     when ID::T_LINESHP
       event.check(@tool_mode == MODE::LINE)

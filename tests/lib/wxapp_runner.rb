@@ -1,6 +1,10 @@
 
 require 'test/unit'
 require 'test/unit/ui/console/testrunner'
+begin
+  require 'nokogiri'
+rescue LoadError
+end
 require 'wx/core'
 
 module Wx::SF
