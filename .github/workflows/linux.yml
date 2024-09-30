@@ -97,6 +97,10 @@ jobs:
       run: |
         rm -rf $WXWIDGETS_ROOT
 
+    - name: Install Ruby packages
+      run: |
+        sudo apt-get install -y ruby-bundler
+
     - name: Setup Ruby gems
       run: |
         BUILD_CMD="bundle install"
