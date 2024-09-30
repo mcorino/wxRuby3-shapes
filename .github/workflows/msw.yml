@@ -29,14 +29,10 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  DOXYGEN_ROOT: ${{ github.workspace }}\doxygen
-  WXRUBY_ROOT: ${{ github.workspace }}\wxRuby3
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} wxMSW ${{ matrix.CXX }} ruby-${{ matrix.ruby }}
+    name: ${{ matrix.os }} wxMSW ${{ matrix.CXX }} wxruby-${{ matrix.wxr_type }}
     strategy:
       fail-fast: false
       matrix:
@@ -46,7 +42,6 @@ jobs:
             CXX: g++-12
             ruby: 'ruby'
             swig: '4'
-            wxWidgets: '3.2.6'
             wxr_type: local
           - os: windows-2022
             platform: 'x64'
@@ -67,14 +62,10 @@ jobs:
       - name: Setup Ruby gems
         run: |
           If ("${{ matrix.wxr_type }}" -eq "local") {
-            bundle config set --local without 'wxruby'
-            bundle install 
             gem install wxruby3 -- prebuilt=none
             wxruby setup --autoinstall
           } 
-          Else {
-            bundle install 
-          }
+          bundle install 
 
       - name: Run wxRuby3/Shapes regression tests
         run: |
