@@ -96,7 +96,9 @@ class MainFrame < Wx::Frame
     #---------------------------------------------------------------#
     T_COLORPICKER = self.next_id(M_AUTOLAYOUT_LAST) + 1
   end
-  
+
+  FILE_MASK = 'JSON files (*.json)|*.json|YAML files (*.yaml,*.yml)|*.yaml;*.yml|XML files (*.xml)|*.xml|All files (*.*)|*.*'
+
   def initialize(parent, title: 'wxShapeFramework Demo Application', style: Wx::CLOSE_BOX|Wx::DEFAULT_FRAME_STYLE|Wx::RESIZE_BORDER|Wx::TAB_TRAVERSAL)
     super
 
@@ -345,24 +347,32 @@ class MainFrame < Wx::Frame
   end
 
   def on_save(_event)
-    Wx::FileDialog(self, 'Save canvas to file...', Dir.getwd, '', 'JSON Files (*.json)|*.json', Wx::FD_SAVE | Wx::FD_OVERWRITE_PROMPT) do |dlg|
+    Wx::FileDialog(self, 'Save canvas to file...', Dir.getwd, '', FILE_MASK, Wx::FD_SAVE | Wx::FD_OVERWRITE_PROMPT) do |dlg|
       if dlg.show_modal == Wx::ID_OK
-        @shape_canvas.save_canvas(dlg.get_path, compact: false)
+        begin
+          @shape_canvas.save_canvas(dlg.get_path, compact: false)
 
-        Wx.message_box("The chart has been saved to '#{dlg.get_path}'.", 'wxRuby ShapeFramework')
+          Wx.message_box("The chart has been saved to '#{dlg.get_path}'.", 'wxRuby ShapeFramework')
+        rescue Exception => ex
+          Wx.MessageDialog(self, "Failed to save the chart: #{ex.message}", 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_ERROR)
+        end
       end
     end
   end
 
   def on_load(_event)
-    Wx::FileDialog(self, 'Load canvas from file...', Dir.getwd, '', 'JSON Files (*.json)|*.json', Wx::FD_OPEN | Wx::FD_FILE_MUST_EXIST) do |dlg|
+    Wx::FileDialog(self, 'Load canvas from file...', Dir.getwd, '', FILE_MASK, Wx::FD_OPEN | Wx::FD_FILE_MUST_EXIST) do |dlg|
       if dlg.show_modal == Wx::ID_OK
-        @shape_canvas.load_canvas(dlg.get_path)
-        @diagram = @shape_canvas.get_diagram
+        begin
+          @shape_canvas.load_canvas(dlg.get_path)
+          @diagram = @shape_canvas.get_diagram
 
-        @zoom_slider.set_value((@shape_canvas.get_scale*50).to_i)
+          @zoom_slider.set_value((@shape_canvas.get_scale*50).to_i)
 
-        @cpicker.set_colour(@shape_canvas.get_hover_colour)
+          @cpicker.set_colour(@shape_canvas.get_hover_colour)
+        rescue Exception => ex
+          Wx.MessageDialog(self, "Failed to load the chart: #{ex.message}", 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_ERROR)
+        end
       end
     end
   end
