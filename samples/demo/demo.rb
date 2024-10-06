@@ -1,6 +1,7 @@
 # Wx::SF - Demo ThumbFrame, MainFrame and App
 # Copyright (c) M.J.N. Corino, The Netherlands
 
+require 'nokogiri'
 require 'wx/shapes'
 require_relative './frame_canvas'
 
@@ -97,7 +98,44 @@ class MainFrame < Wx::Frame
     T_COLORPICKER = self.next_id(M_AUTOLAYOUT_LAST) + 1
   end
 
-  FILE_MASK = 'JSON files (*.json)|*.json|YAML files (*.yaml,*.yml)|*.yaml;*.yml|XML files (*.xml)|*.xml|All files (*.*)|*.*'
+  FILE_MASK = 'JSON files (*.json)|*.json|YAML files (*.yaml,*.yml)|*.yaml;*.yml|XML files (*.xml)|*.xml|All files (*.*)|*.*;*'
+
+  class DiagramFileDialog < Wx::FileDialogCustomizeHook
+
+    FORMATS = %w[json yaml xml]
+
+    def initialize(dlg)
+      super()
+      @format = nil
+      @dialog = dlg
+      @choice = nil
+      @dialog.set_customize_hook(self)
+    end
+
+    attr_reader :format
+
+    def add_custom_controls(customizer)
+      customizer.add_static_text('Format:')
+      @choice = customizer.add_choice(FORMATS)
+    end
+
+    def update_custom_controls
+      case File.extname(@dialog.get_path)
+      when '.json' then @choice.set_selection(0)
+      when '.yaml', '.yml' then @choice.set_selection(1)
+      when '.xml' then @choice.set_selection(2)
+      end
+    end
+
+    def transfer_data_from_custom_controls
+      @format = case @choice.get_selection
+                when Wx::NOT_FOUND then nil
+                else
+                  FORMATS[@choice.get_selection].to_sym
+                end
+      @dialog = nil
+    end
+  end
 
   def initialize(parent, title: 'wxShapeFramework Demo Application', style: Wx::CLOSE_BOX|Wx::DEFAULT_FRAME_STYLE|Wx::RESIZE_BORDER|Wx::TAB_TRAVERSAL)
     super
@@ -347,12 +385,31 @@ class MainFrame < Wx::Frame
   end
 
   def on_save(_event)
-    Wx::FileDialog(self, 'Save canvas to file...', Dir.getwd, '', FILE_MASK, Wx::FD_SAVE | Wx::FD_OVERWRITE_PROMPT) do |dlg|
+    Wx.FileDialog(self, 'Save canvas to file...', Dir.getwd, '', FILE_MASK, Wx::FD_SAVE) do |dlg|
+      dlg_hook = DiagramFileDialog.new(dlg)
       if dlg.show_modal == Wx::ID_OK
         begin
-          @shape_canvas.save_canvas(dlg.get_path, compact: false)
+          path = dlg.get_path.dup
+          if File.extname(path).empty?
+            # determine extension to provide
+            case dlg_hook.format
+            when :json then path << '.json'
+            when :yaml then path << '.yaml'
+            when :xml then path << '.xml'
+            else
+              case dlg.get_filter_index
+              when 0 then path << '.json'
+              when 1 then path << '.yaml'
+              when 2 then path << '.xml'
+              end
+            end
+          end
+          if !File.exist?(path) ||
+            Wx.message_box("File #{path} already exists. Do you want to overwrite it?", 'Confirm', Wx::YES_NO) == Wx::YES
+            @shape_canvas.save_canvas(path, compact: false, format: dlg_hook.format)
 
-          Wx.message_box("The chart has been saved to '#{dlg.get_path}'.", 'wxRuby ShapeFramework')
+            Wx.MessageDialog(self, "The chart has been saved to '#{path}'.", 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_INFORMATION)
+          end
         rescue Exception => ex
           Wx.MessageDialog(self, "Failed to save the chart: #{ex.message}", 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_ERROR)
         end
@@ -361,10 +418,11 @@ class MainFrame < Wx::Frame
   end
 
   def on_load(_event)
-    Wx::FileDialog(self, 'Load canvas from file...', Dir.getwd, '', FILE_MASK, Wx::FD_OPEN | Wx::FD_FILE_MUST_EXIST) do |dlg|
+    Wx.FileDialog(self, 'Load canvas from file...', Dir.getwd, '', FILE_MASK, Wx::FD_OPEN | Wx::FD_FILE_MUST_EXIST) do |dlg|
+      dlg_hook = DiagramFileDialog.new(dlg)
       if dlg.show_modal == Wx::ID_OK
         begin
-          @shape_canvas.load_canvas(dlg.get_path)
+          @shape_canvas.load_canvas(dlg.get_path, format: dlg_hook.format)
           @diagram = @shape_canvas.get_diagram
 
           @zoom_slider.set_value((@shape_canvas.get_scale*50).to_i)
