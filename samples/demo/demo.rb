@@ -104,19 +104,25 @@ class MainFrame < Wx::Frame
 
     FORMATS = %w[json yaml xml]
 
-    def initialize(dlg)
+    def initialize(dlg, compact: nil)
       super()
       @format = nil
-      @dialog = dlg
+      @compact = compact.nil? ? nil : !!compact
       @choice = nil
+      @checkbox = nil
+      @dialog = dlg
       @dialog.set_customize_hook(self)
     end
 
-    attr_reader :format
+    attr_reader :format, :compact
 
     def add_custom_controls(customizer)
       customizer.add_static_text('Format:')
       @choice = customizer.add_choice(FORMATS)
+      unless @compact.nil?
+        @checkbox = customizer.add_check_box('Compact content')
+        @checkbox.set_value(true)
+      end
     end
 
     def update_custom_controls
@@ -133,6 +139,7 @@ class MainFrame < Wx::Frame
                 else
                   FORMATS[@choice.get_selection].to_sym
                 end
+      @compact = @checkbox.get_value if @checkbox
       @dialog = nil
     end
   end
@@ -386,7 +393,7 @@ class MainFrame < Wx::Frame
 
   def on_save(_event)
     Wx.FileDialog(self, 'Save canvas to file...', Dir.getwd, '', FILE_MASK, Wx::FD_SAVE) do |dlg|
-      dlg_hook = DiagramFileDialog.new(dlg)
+      dlg_hook = DiagramFileDialog.new(dlg, compact: true)
       if dlg.show_modal == Wx::ID_OK
         begin
           path = dlg.get_path.dup
@@ -406,7 +413,7 @@ class MainFrame < Wx::Frame
           end
           if !File.exist?(path) ||
             Wx.message_box("File #{path} already exists. Do you want to overwrite it?", 'Confirm', Wx::YES_NO) == Wx::YES
-            @shape_canvas.save_canvas(path, compact: false, format: dlg_hook.format)
+            @shape_canvas.save_canvas(path, compact: dlg_hook.compact, format: dlg_hook.format)
 
             Wx.MessageDialog(self, "The chart has been saved to '#{path}'.", 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_INFORMATION)
           end
