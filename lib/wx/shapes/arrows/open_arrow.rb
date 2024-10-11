@@ -1,50 +1,46 @@
 # Wx::SF::OpenArrow - open arrow class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
-require 'wx/shapes/arrow_base'
+require 'wx/shapes/arrows/line_arrow'
 
 module Wx::SF
 
-  # Class extends the wxSFArrowBase class and encapsulates
+  # Class extends the Wx::LineArrow class and encapsulates
   # arrow shape consisting of single two lines leading from the end of the
   # parent line shape.
-  class OpenArrow < ArrowBase
+  class OpenArrow < LineArrow
 
     class << self
-      def open_arrow
-        @open_arrow ||= [Wx::RealPoint.new(0,0), Wx::RealPoint.new(10,4), Wx::RealPoint.new(10,-4)]
+      def arrow(ratio)
+        x = ratio*10; y = ratio*4
+        [Wx::RealPoint.new(0,0), Wx::RealPoint.new(x, y), Wx::RealPoint.new(x,-y)]
       end
     end
-
-    property :arrow_pen
 
     # Constructor
     # @param [Wx::SF::Shape] parent parent shape
     def initialize(parent=nil)
-      super
-      @pen = DEFAULT.border
+      super(parent)
+      scale
     end
 
-    # Get arrow border pen
-    # @return [Wx::Pen]
-    def get_arrow_pen
-      @pen
+    def vertices
+      @vertices ||= OpenArrow.arrow(@ratio)
     end
-    alias :arrow_pen :get_arrow_pen
+    private :vertices
 
-    # Set arrow border pen
-    # @param [Wx::Pen] pen
-    def set_arrow_pen(pen)
-      @pen = pen
+    def scale
+      @vertices = nil
+      @ratio = 1 + (@pen.width / 2) * 0.5
     end
-    alias :arrow_pen= :set_arrow_pen
+    protected :scale
 
 	  # Draw arrow shape at the end of a virtual line.
 	  # @param [Wx::RealPoint] from Start of the virtual line
 	  # @param [Wx::RealPoint] to End of the virtual line
 	  # @param [Wx::DC] dc Device context for drawing
     def draw(from, to, dc)
-      rarrow = translate_arrow(OpenArrow.open_arrow, from, to)
+      rarrow = translate_arrow(vertices, from, to)
       dc.with_pen(@pen) do |dc|
         dc.draw_line(rarrow[0], rarrow[1])
         dc.draw_line(rarrow[0], rarrow[2])
