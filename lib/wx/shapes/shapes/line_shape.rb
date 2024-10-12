@@ -678,18 +678,17 @@ module Wx::SF
     
       case @mode
       when LINEMODE::READY
-        # draw basic line parts
+        # draw line parts
         src = trg = nil
-        line_segment_count.times do |i|
+        n = line_segment_count-1
+        (0..n).each do |i|
           src, trg = get_line_segment(i)
+          # at starting (src) segment draw src arrow and get updated arrow connection point
+          src = @src_arrow.draw(trg, src, dc) if i == 0 && @src_arrow
+          # at end (tgt) segment draw tgt arrow and get updated connection point
+          trg = @trg_arrow.draw(src, trg, dc) if i == n && @trg_arrow
+          # draw line segment
           dc.draw_line(src.to_point, trg.to_point)
-        end
-        # draw target arrow
-        @trg_arrow.draw(src, trg, dc) if @trg_arrow
-        # draw source arrow
-        if @src_arrow
-          src, trg = get_line_segment(0)
-          @src_arrow.draw(trg, src, dc)
         end
 
       when LINEMODE::UNDERCONSTRUCTION

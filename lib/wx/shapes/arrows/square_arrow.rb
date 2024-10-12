@@ -16,7 +16,7 @@ module Wx::SF
 
       def arrow(size)
         y = size / 2.0
-        [Wx::RealPoint.new(0, y), Wx::RealPoint.new(size, y), Wx::RealPoint.new(size, -y), Wx::RealPoint.new(0 ,-y)]
+        [Wx::RealPoint.new(0, y), Wx::RealPoint.new(size, y), Wx::RealPoint.new(size, -y), Wx::RealPoint.new(0 ,-y), Wx::RealPoint.new(size, 0)]
       end
 
     end

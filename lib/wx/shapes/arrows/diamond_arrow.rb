@@ -13,7 +13,7 @@ module Wx::SF
 
       def arrow(ratio)
         x = ratio*10; y = ratio*4
-        [Wx::RealPoint.new(0,0), Wx::RealPoint.new(x, y), Wx::RealPoint.new(2*x,0), Wx::RealPoint.new(x,-y)]
+        [Wx::RealPoint.new(0,0), Wx::RealPoint.new(x, y), Wx::RealPoint.new(2*x,0), Wx::RealPoint.new(x,-y), Wx::RealPoint.new(2*x,0)]
       end
 
     end

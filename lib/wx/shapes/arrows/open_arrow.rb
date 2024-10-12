@@ -39,12 +39,14 @@ module Wx::SF
 	  # @param [Wx::RealPoint] from Start of the virtual line
 	  # @param [Wx::RealPoint] to End of the virtual line
 	  # @param [Wx::DC] dc Device context for drawing
+    # @return [Wx::Point] translated connection point for arrow
     def draw(from, to, dc)
       rarrow = translate_arrow(vertices, from, to)
       dc.with_pen(@pen) do |dc|
         dc.draw_line(rarrow[0], rarrow[1])
         dc.draw_line(rarrow[0], rarrow[2])
       end
+      to.to_point
     end
 
   end

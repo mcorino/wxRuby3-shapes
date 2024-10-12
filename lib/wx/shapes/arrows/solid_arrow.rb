@@ -12,7 +12,7 @@ module Wx::SF
     class << self
       def arrow(ratio)
         x = ratio*10; y = ratio*4
-        [Wx::RealPoint.new(0,0), Wx::RealPoint.new(x, y), Wx::RealPoint.new(x,-y)]
+        [Wx::RealPoint.new(0,0), Wx::RealPoint.new(x, y), Wx::RealPoint.new(x,-y), Wx::RealPoint.new(x,0)]
       end
     end
 
@@ -38,13 +38,16 @@ module Wx::SF
 	  # @param [Wx::RealPoint] from Start of the virtual line
 	  # @param [Wx::RealPoint] to End of the virtual line
 	  # @param [Wx::DC] dc Device context for drawing
+    # @return [Wx::Point] translated connection point for arrow
     def draw(from, to, dc)
       rarrow = translate_arrow(vertices, from, to)
+      cp = rarrow.pop # get connection point
       dc.with_pen(@pen) do |dc|
         dc.with_brush(@fill) do |dc|
           dc.draw_polygon(rarrow)
         end
       end
+      cp
     end
 
   end
