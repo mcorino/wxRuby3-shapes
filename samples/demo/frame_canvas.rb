@@ -859,6 +859,34 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
   end
 
+  class StateDialog < Wx::Dialog
+
+    def initialize(parent, shape)
+      super(parent, title: "State of #{shape}")
+      sizer_top = Wx::VBoxSizer.new
+
+      sizer = Wx::HBoxSizer.new
+      text = Wx::TextCtrl.new(self, size: [500, 350], style: Wx::TE_MULTILINE|Wx::TE_READONLY|Wx::HSCROLL)
+      txt_attr = text.get_default_style
+      txt_attr.font = Wx::Font.new(Wx::FontInfo.new(10.0).family(Wx::FontFamily::FONTFAMILY_TELETYPE))
+      text.set_default_style(txt_attr)
+      text.set_value(shape.serialize(format: :yaml))
+      sizer.add(text, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new)
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_RIGHT).border(Wx::LEFT, 80))
+
+      set_auto_layout(true)
+      set_sizer(sizer_top)
+
+      sizer_top.set_size_hints(self)
+      sizer_top.fit(self)
+    end
+
+  end
+
   def on_right_down(event)
     # try to find shape under cursor
     shape = get_shape_under_cursor
@@ -964,36 +992,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
           end
         end
       when POPUP_ID::DUMP
-        # show basic info
-        msg = "Class name: #{shape.class}, ID: #{shape.object_id}\n"
-
-        msg << "\nBounding box: #{shape.get_bounding_box.inspect}\n"
-
-        # show parent (if any)
-        if shape.parent_shape
-          msg << "\nParent: #{shape.parent_shape.class}, ID: #{shape.parent_shape.object_id}\n"
-        end
-
-        # show info about shape's children
-        lst_shapes = shape.get_child_shapes(nil, Wx::SF::RECURSIVE)
-        unless lst_shapes.empty?
-          msg << "\nChildren:\n"
-          lst_shapes.each_with_index do |child, i|
-            msg << "#{i+1}. Class name: #{child.class}, ID: #{child.object_id}\n"
-          end
-        end
-
-        # show info about shape's neighbours
-        lst_shapes = shape.get_neighbours(Wx::SF::LineShape, Wx::SF::Shape::CONNECTMODE::BOTH, Wx::SF::INDIRECT)
-        unless lst_shapes.empty?
-          msg << "\nNeighbours:\n"
-          lst_shapes.each_with_index do |nbr, i|
-            msg << "#{i+1}. Class name: #{nbr.class}, ID: #{nbr.object_id}\n"
-          end
-        end
-
-        # show message
-        Wx.message_box(msg, 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_INFORMATION)
+        FrameCanvas.StateDialog(self, shape)
       end
     else
       Wx.message_box('No shape found on this position.', 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_INFORMATION)
