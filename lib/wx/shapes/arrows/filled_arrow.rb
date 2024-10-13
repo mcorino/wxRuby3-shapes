@@ -9,7 +9,13 @@ module Wx::SF
   # enclosed and filled arrow shapes.
   class FilledArrow < LineArrow
 
-    property :arrow_fill
+    module DEFAULT
+      class << self
+        def fill; Wx::Brush.new(Wx::WHITE); end
+      end
+    end
+
+    property :fill
 
     # Constructor
     # @param [Wx::SF::Shape] parent parent shape
@@ -20,17 +26,17 @@ module Wx::SF
 
     # Get arrow fill brush
     # @return [Wx::Brush]
-    def get_arrow_fill
+    def get_fill
       @fill
     end
-    alias :arrow_fill :get_arrow_fill
+    alias :fill :get_fill
 
     # Set arrow fill brush
     # @param [Wx::Brush] brush
-    def set_arrow_fill(brush)
+    def set_fill(brush)
       @fill = brush
     end
-    alias :arrow_fill= :set_arrow_fill
+    alias :fill= :set_fill
 
   end
 

@@ -30,7 +30,7 @@ module Wx::SF
 
     def scale
       @vertices = nil
-      @ratio = 1 + (@pen.width / 2) * 0.5
+      @ratio = 1 + (pen_width / 2) * 0.5
     end
     protected :scale
 
@@ -42,7 +42,7 @@ module Wx::SF
     def draw(from, to, dc)
       rarrow = translate_arrow(vertices, from, to)
       cp = rarrow.pop # get connection point
-      dc.with_pen(@pen) do |dc|
+      dc.with_pen(pen) do |dc|
         dc.with_brush(@fill) do |dc|
           dc.draw_polygon(rarrow)
         end

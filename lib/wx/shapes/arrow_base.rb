@@ -10,13 +10,6 @@ module Wx::SF
 
     include FIRM::Serializable
 
-    module DEFAULT
-      class << self
-        def fill; Wx::Brush.new(Wx::WHITE); end
-        def border; Wx::Pen.new(Wx::BLACK); end
-      end
-    end
-
     # Constructor
     # @param [Wx::SF::Shape] parent parent shape
     def initialize(parent=nil)
@@ -31,7 +24,7 @@ module Wx::SF
     alias :parent_shape= :set_parent_shape
 
 	  # Get pointer to a parent shape.
-	  # @return [Wx::SF::Shape] parent shape if exists, otherwise nil
+	  # @return [Wx::SF::Shape, nil] parent shape if exists, otherwise nil
     def get_parent_shape
       @parent_shape
     end

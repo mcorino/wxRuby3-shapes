@@ -10,29 +10,44 @@ module Wx::SF
   # The shapes are automatically scaled based on the line width used.
   class LineArrow < ArrowBase
 
-    property :arrow_pen
+    property pen: :serialize_pen
 
     # Constructor
     # @param [Wx::SF::Shape] parent parent shape
     def initialize(parent=nil)
       super
-      @pen = DEFAULT.border
+      @pen = nil
     end
 
     # Get arrow border pen
-    # @return [Wx::Pen]
-    def get_arrow_pen
-      @pen
+    # @return [Wx::Pen,nil]
+    def get_pen
+      @pen || @parent_shape&.line_pen
     end
-    alias :arrow_pen :get_arrow_pen
+    alias :pen :get_pen
 
     # Set arrow border pen (when nil restore the default).
     # @param [Wx::Pen,nil] pen
-    def set_arrow_pen(pen)
-      @pen = pen || DEFAULT.border
+    def set_pen(pen)
+      @pen = pen
       scale
     end
-    alias :arrow_pen= :set_arrow_pen
+    alias :pen= :set_pen
+
+    # Return current pen width.
+    # @return [Integer]
+    def get_pen_width
+      get_pen&.width || 1
+    end
+    alias :pen_width :get_pen_width
+
+    # Set a parent of the arrow shape.
+    # @param [Wx::SF::Shape] parent parent shape
+    def set_parent_shape(parent)
+      super
+      scale
+    end
+    alias :parent_shape= :set_parent_shape
 
     # Scale the arrow.
     # Does nothing by default.
@@ -40,6 +55,12 @@ module Wx::SF
       # noop
     end
     protected :scale
+
+    def serialize_pen(*arg)
+      @pen = arg.shift unless arg.empty?
+      @pen
+    end
+    private :serialize_pen
 
   end
 

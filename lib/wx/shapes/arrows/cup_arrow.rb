@@ -9,8 +9,8 @@ module Wx::SF
   # cup arrow shapes.
   class CupArrow < LineArrow
 
-    # Default square size
-    RADIUS = 4
+    # Default arc radius size
+    RADIUS = 6
 
     class << self
 
@@ -40,7 +40,7 @@ module Wx::SF
 
     def scale
       @coords = nil
-      @ratio = 1 + (@pen.width / 2) * 0.5
+      @ratio = 1 + (pen_width / 2) * 0.5
     end
     protected :scale
 
@@ -52,7 +52,7 @@ module Wx::SF
     def draw(from, to, dc)
       rarrow = translate_arrow(coords, from, to)
       cp = rarrow.pop
-      dc.with_pen(@pen) do |dc|
+      dc.with_pen(pen) do |dc|
         dc.with_brush(Wx::TRANSPARENT_BRUSH) do |dc|
           dc.draw_arc(*rarrow)
         end

@@ -31,7 +31,7 @@ module Wx::SF
 
     def scale
       @vertices = nil
-      @ratio = 1 + (@pen.width / 2) * 0.5
+      @ratio = 1 + (pen_width / 2) * 0.5
     end
     protected :scale
 
@@ -42,7 +42,7 @@ module Wx::SF
     # @return [Wx::Point] translated connection point for arrow
     def draw(from, to, dc)
       rarrow = translate_arrow(vertices, from, to)
-      dc.with_pen(@pen) do |dc|
+      dc.with_pen(pen) do |dc|
         dc.draw_line(rarrow[0], rarrow[1])
         dc.draw_line(rarrow[0], rarrow[2])
       end

@@ -26,7 +26,7 @@ module Wx::SF
     alias :radius :get_radius
 
     def scale
-      @ratio = 1 + (@pen.width / 2) * 0.5
+      @ratio = 1 + (pen_width / 2) * 0.5
     end
     protected :scale
 
@@ -37,7 +37,7 @@ module Wx::SF
     def draw(from, to, dc)
       r = radius
       centre, cp = translate_arrow([Wx::RealPoint.new(r, 0), Wx::RealPoint.new(2*r, 0)], from, to)
-      dc.with_pen(@pen) do |dc|
+      dc.with_pen(pen) do |dc|
         dc.with_brush(@fill) do |dc|
           dc.draw_circle(centre, r)
         end
