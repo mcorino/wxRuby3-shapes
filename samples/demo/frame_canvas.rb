@@ -18,8 +18,6 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
     # rect
     FILL_BRUSH = self.next_id
-    FILL_COLOR = self.next_id
-    FILL_STYLE = self.next_id
     BORDER_PEN = self.next_id
 
     # line
@@ -452,10 +450,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     menu.append(POPUP_ID::VBORDER, 'Change vertical margin', 'Change vertical margin')
 
     @rect_mi = []
-    submenu = Wx::Menu.new
-    submenu.append(POPUP_ID::FILL_COLOR, 'Change fill colour', 'Change fill colour')
-    submenu.append(POPUP_ID::FILL_STYLE, 'Change fill style', 'Change fill style')
-    @rect_mi << Wx::MenuItem.new(menu, POPUP_ID::FILL_BRUSH, 'Change fill', '', Wx::ItemKind::ITEM_NORMAL, submenu)
+    @rect_mi << Wx::MenuItem.new(menu, POPUP_ID::FILL_BRUSH, 'Change fill', 'Change fill brush')
     @rect_mi << Wx::MenuItem.new(menu, POPUP_ID::BORDER_PEN, 'Change border', 'Change border pen')
 
     @line_mi = []
@@ -551,6 +546,69 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
   def style_to_selections(enum, style, exclude: nil)
     self.class.style_to_selections(enum, style, exclude: exclude)
+  end
+
+  EXCL_BRUSH_STYLES = [
+    Wx::BrushStyle::BRUSHSTYLE_INVALID,
+    Wx::BrushStyle::BRUSHSTYLE_STIPPLE,
+    Wx::BrushStyle::BRUSHSTYLE_STIPPLE_MASK,
+    Wx::BrushStyle::BRUSHSTYLE_STIPPLE_MASK_OPAQUE
+  ]
+
+  class BrushDialog < Wx::Dialog
+
+    def initialize(parent, title, brush)
+      super(parent, Wx::ID_ANY, title)
+      sizer_top = Wx::VBoxSizer.new
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Colour:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_clr = Wx::ColourPickerCtrl.new(self, Wx::ID_ANY)
+      sizer.add(@fill_clr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_style = Wx::ComboBox.new(self, Wx::ID_ANY,
+                                     choices: get_style_choices(Wx::BrushStyle,
+                                                                exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
+      sizer.add(@fill_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      @fill_clr.colour = brush.colour
+      @fill_style.selection = get_style_index(brush.style,
+                                              exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::Button.new(self, Wx::ID_CANCEL, "&Cancel"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::RIGHT, 80))
+
+      set_auto_layout(true)
+      set_sizer(sizer_top)
+
+      sizer_top.set_size_hints(self)
+      sizer_top.fit(self)
+    end
+
+    def get_brush
+      Wx::Brush.new(@fill_clr.colour,
+                    index_to_style(Wx::BrushStyle, @fill_style.selection,
+                                   exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
+    end
+
+    def get_style_choices(enum, exclude: nil)
+      FrameCanvas.get_style_choices(enum, exclude: exclude)
+    end
+    private :get_style_choices
+
+    def get_style_index(enumerator, exclude: nil)
+      FrameCanvas.get_style_index(enumerator, exclude: exclude)
+    end
+    private :get_style_index
+
+    def index_to_style(enum, index, exclude: nil)
+      FrameCanvas.index_to_style(enum, index, exclude: exclude)
+    end
+    private :index_to_style
+
   end
 
   class PenDialog < Wx::Dialog
@@ -668,14 +726,14 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       @fill_szr.add(Wx::StaticText.new(@fill_szr.static_box, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @fill_style = Wx::ComboBox.new(@fill_szr.static_box, Wx::ID_ANY,
                                      choices: get_style_choices(Wx::BrushStyle,
-                                                                exclude: ->(e) { e ==  Wx::BrushStyle::BRUSHSTYLE_INVALID }))
+                                                                exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
       @fill_szr.add(@fill_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
       sizer_top.add(@fill_szr, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
 
       if Wx::SF::FilledArrow === arrow
         @fill_clr.colour = arrow.fill.colour
         @fill_style.selection = get_style_index(arrow.fill.style,
-                                                exclude: ->(e) { e ==  Wx::BrushStyle::BRUSHSTYLE_INVALID })
+                                                exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })
       else
         @fill_szr.static_box.enable(false)
       end
@@ -728,7 +786,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         end
         arrow.set_fill(Wx::Brush.new(@fill_clr.colour,
                                      index_to_style(Wx::BrushStyle, @fill_style.selection,
-                                                    exclude: ->(e) { e == Wx::BrushStyle::BRUSHSTYLE_INVALID })))
+                                                    exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })))
         arrow
       end
     end
@@ -870,24 +928,12 @@ class FrameCanvas < Wx::SF::ShapeCanvas
             shape.update
           end
         end
-      when POPUP_ID::FILL_COLOR
-        color = Wx.get_colour_from_user(self, shape.get_fill.colour, 'Select fill colour')
-        if color.ok?
-          shape.set_fill(Wx::Brush.new(color, shape.get_fill.style))
-          shape.update
-        end
-      when POPUP_ID::FILL_STYLE
-        style_ix = Wx.get_single_choice_index('Select fill style',
-                                              'Select',
-                                              get_style_choices(Wx::BrushStyle,
-                                                                exclude: ->(e) { e ==  Wx::BrushStyle::BRUSHSTYLE_INVALID }),
-                                              self,
-                                              initial_selection: get_style_index(shape.get_fill.style,
-                                                                                 exclude: ->(e) { e ==  Wx::BrushStyle::BRUSHSTYLE_INVALID }))
-        if style_ix >= 0
-          shape.set_fill(Wx::Brush.new(shape.get_fill.colour,
-                                       index_to_style(Wx::BrushStyle, style_ix,
-                                                      exclude: ->(e) { e ==  Wx::BrushStyle::BRUSHSTYLE_INVALID })))
+      when POPUP_ID::FILL_BRUSH
+        FrameCanvas.BrushDialog(self, 'Fill brush', shape.fill) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.set_fill(dlg.get_brush)
+            shape.update
+          end
         end
       when POPUP_ID::BORDER_PEN
         FrameCanvas.PenDialog(self, 'Border pen', shape.border) do |dlg|
