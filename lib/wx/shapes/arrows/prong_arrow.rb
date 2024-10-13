@@ -5,7 +5,7 @@ require 'wx/shapes/arrows/open_arrow'
 
 module Wx::SF
 
-  # Class extends the Wx::LineArrow class and encapsulates
+  # Class extends the Wx::OpenArrow class and encapsulates
   # arrow shape consisting of single two lines bisecting before the end of the
   # parent line shape.
   class ProngArrow < OpenArrow
