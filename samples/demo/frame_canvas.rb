@@ -575,7 +575,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
       sizer = Wx::HBoxSizer.new
       sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Arrow type:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
-      @arrow = Wx::ComboBox.new(self, Wx::ID_ANY, arrow_type(arrow), choices: %w[None Open Prong Cup Solid Diamond Circle Square])
+      @arrow = Wx::ComboBox.new(self, Wx::ID_ANY, arrow_type(arrow),
+                                choices: %w[None Open Prong Crossbar DoubleCrossbar Cup Solid Diamond Circle Square])
       sizer.add(@arrow, Wx::SizerFlags.new.border(Wx::ALL, 5))
       sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
 
@@ -652,11 +653,13 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       case @arrow.get_value
       when 'None'
         nil
-      when 'Open', 'Cup', 'Prong'
+      when 'Open', 'Cup', 'Prong', 'Crossbar', 'DoubleCrossbar'
         arrow = case @arrow.get_value
                 when 'Open' then Wx::SF::OpenArrow.new
                 when 'Prong' then Wx::SF::ProngArrow.new
                 when 'Cup' then Wx::SF::CupArrow.new
+                when 'Crossbar' then Wx::SF::CrossBarArrow.new
+                when 'DoubleCrossbar' then Wx::SF::DoubleCrossBarArrow.new
                 end
         if @custom_pen_rb.value
           arrow.set_pen(Wx::Pen.new(@line_clr.colour, @line_wdt.value,
@@ -689,6 +692,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       when Wx::SF::ProngArrow then 'Prong'
       when Wx::SF::OpenArrow then 'Open'
       when Wx::SF::CupArrow then 'Cup'
+      when Wx::SF::DoubleCrossBarArrow then 'DoubleCrossbar'
+      when Wx::SF::CrossBarArrow then 'Crossbar'
       when Wx::SF::DiamondArrow then 'Diamond'
       when Wx::SF::SquareArrow then 'Square'
       when Wx::SF::SolidArrow then 'Solid'
@@ -739,7 +744,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         @line_style.enable(false)
         @line_wdt.enable(false)
         case @arrow.get_value
-        when 'Open', 'Prong', 'Cup'
+        when 'Open', 'Prong', 'Cup', 'Crossbar', 'DoubleCrossbar'
           @fill_szr.static_box.enable(false)
         else
           @fill_szr.static_box.enable(true)
@@ -896,7 +901,6 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         FrameCanvas.ArrowDialog(self, 'Source arrow', shape.get_src_arrow) do |dlg|
           if dlg.show_modal == Wx::ID_OK
             shape.src_arrow = dlg.get_arrow
-            p shape.src_arrow
             shape.update
           end
         end
