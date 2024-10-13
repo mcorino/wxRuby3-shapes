@@ -21,15 +21,9 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     FILL_COLOR = self.next_id
     FILL_STYLE = self.next_id
     BORDER_PEN = self.next_id
-    BORDER_COLOR = self.next_id
-    BORDER_WIDTH = self.next_id
-    BORDER_STYLE = self.next_id
 
     # line
     LINE_PEN = self.next_id
-    LINE_COLOR = self.next_id
-    LINE_WIDTH = self.next_id
-    LINE_STYLE = self.next_id
     LINE_ARROWS = self.next_id
     SRC_ARROW = self.next_id
     TRG_ARROW = self.next_id
@@ -462,18 +456,10 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     submenu.append(POPUP_ID::FILL_COLOR, 'Change fill colour', 'Change fill colour')
     submenu.append(POPUP_ID::FILL_STYLE, 'Change fill style', 'Change fill style')
     @rect_mi << Wx::MenuItem.new(menu, POPUP_ID::FILL_BRUSH, 'Change fill', '', Wx::ItemKind::ITEM_NORMAL, submenu)
-    submenu = Wx::Menu.new
-    submenu.append(POPUP_ID::BORDER_COLOR, 'Change border colour', 'Change border colour')
-    submenu.append(POPUP_ID::BORDER_STYLE, 'Change border style', 'Change border style')
-    submenu.append(POPUP_ID::BORDER_WIDTH, 'Change border width', 'Change border width')
-    @rect_mi << Wx::MenuItem.new(menu, POPUP_ID::BORDER_PEN, 'Change border', '', Wx::ItemKind::ITEM_NORMAL, submenu)
+    @rect_mi << Wx::MenuItem.new(menu, POPUP_ID::BORDER_PEN, 'Change border', 'Change border pen')
 
     @line_mi = []
-    submenu = Wx::Menu.new
-    submenu.append(POPUP_ID::LINE_COLOR, 'Change line colour', 'Change line colour')
-    submenu.append(POPUP_ID::LINE_STYLE, 'Change line style', 'Change line style')
-    submenu.append(POPUP_ID::LINE_WIDTH, 'Change line width', 'Change line width')
-    @line_mi << Wx::MenuItem.new(menu, POPUP_ID::LINE_PEN, 'Change line', '', Wx::ItemKind::ITEM_NORMAL, submenu)
+    @line_mi << Wx::MenuItem.new(menu, POPUP_ID::LINE_PEN, 'Change line', 'Change line pen')
     submenu = Wx::Menu.new
     submenu.append(POPUP_ID::SRC_ARROW, 'Change source arrow', 'Change source arrow')
     submenu.append(POPUP_ID::TRG_ARROW, 'Change target arrow', 'Change target arrow')
@@ -565,6 +551,66 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
   def style_to_selections(enum, style, exclude: nil)
     self.class.style_to_selections(enum, style, exclude: exclude)
+  end
+
+  class PenDialog < Wx::Dialog
+
+    def initialize(parent, title, pen)
+      super(parent, Wx::ID_ANY, title)
+      sizer_top = Wx::VBoxSizer.new
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Colour:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @line_clr = Wx::ColourPickerCtrl.new(self, Wx::ID_ANY)
+      sizer.add(@line_clr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Width:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @line_wdt = Wx::SpinCtrl.new(self, Wx::ID_ANY)
+      sizer.add(@line_wdt, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @line_style = Wx::ComboBox.new(self, Wx::ID_ANY,
+                                     choices: get_style_choices(Wx::PenStyle,
+                                                                exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }))
+      sizer.add(@line_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
+
+      @line_clr.colour = pen.colour
+      @line_wdt.value = pen.width
+      @line_style.selection = get_style_index(pen.style,
+                                              exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID })
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::Button.new(self, Wx::ID_CANCEL, "&Cancel"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::RIGHT, 80))
+
+      set_auto_layout(true)
+      set_sizer(sizer_top)
+
+      sizer_top.set_size_hints(self)
+      sizer_top.fit(self)
+    end
+
+    def get_pen
+      Wx::Pen.new(@line_clr.colour, @line_wdt.value,
+                  index_to_style(Wx::PenStyle, @line_style.selection,
+                                 exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID }))
+    end
+
+    def get_style_choices(enum, exclude: nil)
+      FrameCanvas.get_style_choices(enum, exclude: exclude)
+    end
+    private :get_style_choices
+
+    def get_style_index(enumerator, exclude: nil)
+      FrameCanvas.get_style_index(enumerator, exclude: exclude)
+    end
+    private :get_style_index
+
+    def index_to_style(enum, index, exclude: nil)
+      FrameCanvas.index_to_style(enum, index, exclude: exclude)
+    end
+    private :index_to_style
+
   end
 
   class ArrowDialog < Wx::Dialog
@@ -843,59 +889,19 @@ class FrameCanvas < Wx::SF::ShapeCanvas
                                        index_to_style(Wx::BrushStyle, style_ix,
                                                       exclude: ->(e) { e ==  Wx::BrushStyle::BRUSHSTYLE_INVALID })))
         end
-      when POPUP_ID::BORDER_COLOR
-        color = Wx.get_colour_from_user(self, shape.get_border.get_colour, 'Select border colour')
-        if color.ok?
-          border_pen =  shape.get_border
-          shape.set_border(Wx::Pen.new(color, border_pen.width, border_pen.style))
-          shape.update
+      when POPUP_ID::BORDER_PEN
+        FrameCanvas.PenDialog(self, 'Border pen', shape.border) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.set_border(dlg.get_pen)
+            shape.update
+          end
         end
-      when POPUP_ID::BORDER_STYLE
-        style_ix = Wx.get_single_choice_index('Select border style',
-                                              'Select',
-                                              get_style_choices(Wx::PenStyle,
-                                                                exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }),
-                                              self,
-                                              initial_selection: get_style_index(shape.get_border.style,
-                                                                                 exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }))
-        if style_ix >= 0
-          shape.set_border(Wx::Pen.new(shape.get_border.colour,
-                                       shape.get_border.width,
-                                       index_to_style(Wx::PenStyle, style_ix,
-                                                      exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID })))
-        end
-      when POPUP_ID::BORDER_WIDTH
-        wdt = Wx.get_number_from_user('Enter border width:', '', 'Border width', shape.border.width, 0, 100, self)
-        if wdt >= 0
-          border_pen =  shape.get_border
-          shape.set_border(Wx::Pen.new(border_pen.colour, wdt, border_pen.style))
-        end
-      when POPUP_ID::LINE_COLOR
-        color = Wx.get_colour_from_user(self, shape.line_pen.get_colour, 'Select line colour')
-        if color.ok?
-          line_pen =  shape.get_line_pen
-          shape.set_line_pen(Wx::Pen.new(color, line_pen.width, line_pen.style))
-          shape.update
-        end
-      when POPUP_ID::LINE_STYLE
-        style_ix = Wx.get_single_choice_index('Select line style',
-                                              'Select',
-                                              get_style_choices(Wx::PenStyle,
-                                                                exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }),
-                                              self,
-                                              initial_selection: get_style_index(shape.get_line_pen.style,
-                                                                                 exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }))
-        if style_ix >= 0
-          shape.set_line_pen(Wx::Pen.new(shape.get_line_pen.colour,
-                                         shape.get_line_pen.width,
-                                         index_to_style(Wx::PenStyle, style_ix,
-                                                        exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID })))
-        end
-      when POPUP_ID::LINE_WIDTH
-        wdt = Wx.get_number_from_user('Enter line width:', '', 'Line width', shape.line_pen.width, 0, 100, self)
-        if wdt >= 0
-          line_pen =  shape.get_line_pen
-          shape.set_line_pen(Wx::Pen.new(line_pen.colour, wdt, line_pen.style))
+      when POPUP_ID::LINE_PEN
+        FrameCanvas.PenDialog(self, 'Line pen', shape.line_pen) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.set_line_pen(dlg.get_pen)
+            shape.update
+          end
         end
       when POPUP_ID::SRC_ARROW
         FrameCanvas.ArrowDialog(self, 'Source arrow', shape.get_src_arrow) do |dlg|
