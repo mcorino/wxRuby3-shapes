@@ -40,7 +40,6 @@ module Wx::SF
         dc.draw_line(cp, wing2)
         dc.draw_line(cp, tip)
       end
-      cp
       super(from, cp, dc)
     end
 
