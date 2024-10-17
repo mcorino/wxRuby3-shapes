@@ -10,7 +10,7 @@ module Wx::SF
   class SquareArrow < SolidArrow
 
     # Default square size
-    SIZE = 8
+    SIZE = 11
 
     class << self
 

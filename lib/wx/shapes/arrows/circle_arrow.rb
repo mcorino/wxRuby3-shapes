@@ -10,7 +10,7 @@ module Wx::SF
   class CircleArrow < FilledArrow
 
     # Default circle radius.
-    RADIUS = 4
+    RADIUS = 6
 
     # Constructor
     # @param [Wx::SF::Shape] parent parent shape
