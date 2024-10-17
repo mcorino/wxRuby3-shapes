@@ -680,7 +680,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       sizer = Wx::HBoxSizer.new
       sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Arrow type:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @arrow = Wx::ComboBox.new(self, Wx::ID_ANY, arrow_type(arrow),
-                                choices: %w[None Open Prong Crossbar DoubleCrossbar Cup Solid Diamond Circle Square])
+                                choices: %w[None Open Prong Crossbar DoubleCrossbar Cup Solid Diamond Circle Square CrossBarCircle CrossBarProng CircleProng])
       sizer.add(@arrow, Wx::SizerFlags.new.border(Wx::ALL, 5))
       sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
 
@@ -757,13 +757,14 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       case @arrow.get_value
       when 'None'
         nil
-      when 'Open', 'Cup', 'Prong', 'Crossbar', 'DoubleCrossbar'
+      when 'Open', 'Cup', 'Prong', 'Crossbar', 'DoubleCrossbar', 'CrossBarProng'
         arrow = case @arrow.get_value
                 when 'Open' then Wx::SF::OpenArrow.new
                 when 'Prong' then Wx::SF::ProngArrow.new
                 when 'Cup' then Wx::SF::CupArrow.new
                 when 'Crossbar' then Wx::SF::CrossBarArrow.new
                 when 'DoubleCrossbar' then Wx::SF::DoubleCrossBarArrow.new
+                when 'CrossBarProng' then Wx::SF::CrossBarProngArrow.new
                 end
         if @custom_pen_rb.value
           arrow.set_pen(Wx::Pen.new(@line_clr.colour, @line_wdt.value,
@@ -772,13 +773,14 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         end
         arrow
       else
-        arrow_klass = case @arrow.get_value
-                      when 'Solid' then Wx::SF::SolidArrow
-                      when 'Diamond' then Wx::SF::DiamondArrow
-                      when 'Circle' then Wx::SF::CircleArrow
-                      when 'Square' then Wx::SF::SquareArrow
-                      end
-        arrow = arrow_klass.new
+        arrow = case @arrow.get_value
+                when 'Solid' then Wx::SF::SolidArrow.new
+                when 'Diamond' then Wx::SF::DiamondArrow.new
+                when 'Circle' then Wx::SF::CircleArrow.new
+                when 'Square' then Wx::SF::SquareArrow.new
+                when 'CrossBarCircle' then Wx::SF::CrossBarCircleArrow.new
+                when 'CircleProng' then Wx::SF::CircleProngArrow.new
+                end
         if @custom_pen_rb.value
           arrow.set_pen(Wx::Pen.new(@line_clr.colour, @line_wdt.value,
                                     index_to_style(Wx::PenStyle, @line_style.selection,
@@ -802,6 +804,9 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       when Wx::SF::SquareArrow then 'Square'
       when Wx::SF::SolidArrow then 'Solid'
       when Wx::SF::CircleArrow then 'Circle'
+      when Wx::SF::CrossBarCircleArrow then 'CrossBarCircle'
+      when Wx::SF::CrossBarProngArrow then 'CrossBarProng'
+      when Wx::SF::CircleProngArrow then 'CircleProng'
       else
         'None'
       end
@@ -848,7 +853,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         @line_style.enable(false)
         @line_wdt.enable(false)
         case @arrow.get_value
-        when 'Open', 'Prong', 'Cup', 'Crossbar', 'DoubleCrossbar'
+        when 'Open', 'Prong', 'Cup', 'Crossbar', 'DoubleCrossbar', 'CrossBarProng'
           @fill_szr.static_box.enable(false)
         else
           @fill_szr.static_box.enable(true)

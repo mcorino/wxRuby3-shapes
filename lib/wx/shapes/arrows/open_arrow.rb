@@ -13,7 +13,7 @@ module Wx::SF
     class << self
       def arrow(ratio)
         x = ratio*10; y = ratio*4
-        [Wx::RealPoint.new(0,0), Wx::RealPoint.new(x, y), Wx::RealPoint.new(x,-y)]
+        [Wx::RealPoint.new(0,0), Wx::RealPoint.new(x, y), Wx::RealPoint.new(x,-y), Wx::RealPoint.new(x, 0)]
       end
     end
 
@@ -41,12 +41,13 @@ module Wx::SF
 	  # @param [Wx::DC] dc Device context for drawing
     # @return [Wx::Point] translated connection point for arrow
     def draw(from, to, dc)
-      rarrow = translate_arrow(vertices, from, to)
+      tip, wing1, wing2, cp = translate_arrow(vertices, from, to)
       dc.with_pen(pen) do |dc|
-        dc.draw_line(rarrow[0], rarrow[1])
-        dc.draw_line(rarrow[0], rarrow[2])
+        dc.draw_line(tip, wing1)
+        dc.draw_line(tip, wing2)
+        dc.draw_line(tip, cp)
       end
-      to.to_point
+      cp
     end
 
   end
