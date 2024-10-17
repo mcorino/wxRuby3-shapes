@@ -2967,7 +2967,7 @@ module Wx::SF
         prev_parent = shape.get_parent_shape
     
         if parent_shape
-          if parent_shape.get_parent_shape != shape
+          if parent_shape != shape && parent_shape.get_parent_shape != shape
             # update relative position to new parent
             apos = shape.get_absolute_position - parent_shape.get_absolute_position
             shape.set_relative_position(apos)

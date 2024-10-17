@@ -323,9 +323,10 @@ module Wx::SF
     # @param [Wx::SF::Shape] child child shape to add
     # @return [Wx::SF::Shape,nil] added child shape or nil if not accepted
     def add_child_shape(child)
+      raise SFException, 'Illegal attempt to add self as Shape child' if child == self
       if is_child_accepted(child.class)
         if child.get_diagram
-          child.get_diagram.reparent_shape(child, shape)
+          child.get_diagram.reparent_shape(child, self)
         else
           child.set_parent_shape(self)
         end
@@ -351,6 +352,7 @@ module Wx::SF
     # @note Note that this does not add (if parent == nil) or remove (if parent != nil) the shape from the diagram's
     # toplevel shapes. Use Diagram#reparent_shape when that is needed.
     def set_parent_shape(parent)
+      raise SFException, 'Illegal attempt to set Shape parent to self' if parent == self
       @parent_shape.send(:remove_child, self) if @parent_shape
       parent.send(:add_child, self) if parent
       set_diagram(parent.get_diagram) if parent
