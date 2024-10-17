@@ -516,29 +516,59 @@ module Wx::SF
     # Load serialized canvas content (diagrams).
     # @overload load_canvas(file)
     #   @param [String] file Full file name
+    #   @param [Symbol,nil] format specifies the serialization format to use;
+    #          determined from file extension if not specified defaulting to :json for unknown extensions
     #   @return [self]
     # @overload load_canvas(io)
     #   @param [IO] io IO object
+    #   @param [Symbol,nil] format specifies the serialization format to use (by default :json)
     #   @return [self]
-    def load_canvas(io)
+    def load_canvas(io, format: nil)
       # get IO stream to read from
-      ios = io.is_a?(::String) ? File.open(io, 'r') : io
+      ios = if io.is_a?(::String)
+              format ||= case File.extname(io)
+                         when '.json' then :json
+                         when '.yaml', '.yml' then :yaml
+                         when '.xml' then :xml
+                         else
+                           :json
+                         end
+              File.open(io, 'r')
+            else
+              format ||= :json
+              io
+            end
+      old_diagram = @diagram
+      old_settings = @settings
       begin
-        _, @settings, diagram = FIRM.deserialize(ios)
-      rescue SFException
+        begin
+          _, @settings, diagram = FIRM.deserialize(ios, format: format)
+        rescue SFException
+          ::Kernel.raise
+        rescue ::Exception
+          ::Kernel.raise SFException, "Failed to load canvas: #{$!.message}"
+        ensure
+          ShapeCanvas.reset_compat_loading
+          ios.close if io.is_a?(::String) && ios
+        end
+        set_diagram(diagram)
+        clear_canvas_history
+        save_canvas_state
+        set_scale(@settings.scale)
+        update_virtual_size
+        refresh(false)
+      rescue Exception
+        # restore previous state
+        @settings = old_settings
+        set_diagram(old_diagram)
+        clear_canvas_history
+        save_canvas_state
+        set_scale(@settings.scale)
+        update_virtual_size
+        refresh(false)
+        # propagate exception
         ::Kernel.raise
-      rescue ::Exception
-        ::Kernel.raise SFException, "Failed to load canvas: #{$!.message}"
-      ensure
-        ShapeCanvas.reset_compat_loading
-        ios.close if io.is_a?(::String) && ios
       end
-      set_diagram(diagram)
-      clear_canvas_history
-      save_canvas_state
-      set_scale(@settings.scale)
-      update_virtual_size
-      refresh(false)
 
       @diagram.set_modified(false)
 
@@ -549,18 +579,33 @@ module Wx::SF
     # @overload save_canvas(file, compact: true)
     #   @param [String] file Full file name
     #   @param [Boolean] compact specifies whether to write content in compact mode (true) or not (false)
+    #   @param [Symbol,nil] format specifies the serialization format to use;
+    #          determined from file extension if not specified defaulting to :json for unknown extensions
     #   @return [self]
     # @overload save_canvas(io, compact: true)
     #   @param [IO] io IO object
     #   @param [Boolean] compact specifies whether to write content in compact mode (true) or not (false)
+    #   @param [Symbol,nil] format specifies the serialization format to use (by default :json)
     #   @return [self]
-    def save_canvas(io, compact: true)
+    def save_canvas(io, compact: true, format: nil)
       return self unless @diagram
       # get IO stream to write to
-      ios = io.is_a?(::String) ? Tempfile.new(File.basename(io, '.*')) : io
+      ios = if io.is_a?(::String)
+              format ||= case File.extname(io)
+                         when '.json' then :json
+                         when '.yaml', '.yml' then :yaml
+                         when '.xml' then :xml
+                         else
+                           :json
+                         end
+              Tempfile.new(File.basename(io, '.*'))
+            else
+              format ||= :json
+              io
+            end
       # write canvas data to temp file
       begin
-        [Version.new, @settings, @diagram].serialize(ios, pretty: !compact)
+        [Version.new, @settings, @diagram].serialize(ios, pretty: !compact, format: format)
       rescue SFException
         ::Kernel.raise
       rescue Exception

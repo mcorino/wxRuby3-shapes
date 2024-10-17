@@ -58,17 +58,24 @@ module Wx::SF
         if !@lst_points.empty?
           (0..@lst_points.size).each do |i|
             a,b,c,d = get_segment_quaternion(i)
-            catmul_rom_kubika(a, b, c, d, dc)
+            if i == 0 && @src_arrow
+              src, trg = get_line_segment(i)
+              src = @src_arrow.draw(trg, src, dc)
+              a = b = src.to_real
+            end
+            if i == @lst_points.size && @trg_arrow
+              src, trg = get_line_segment(i)
+              trg = @trg_arrow.draw(src, trg, dc)
+              c = d = trg.to_real
+            end
+            catmul_rom_kubika(a, b, c, d, dc, at_end: i == @lst_points.size)
           end
         else
-          b,c = get_direct_line
-          dc.draw_line(b.to_point, c.to_point)
+          src, trg = get_direct_line.collect(&:to_point)
+          src = @src_arrow.draw(trg, src, dc) if @src_arrow
+          trg = @trg_arrow.draw(src, trg, dc) if @trg_arrow
+          dc.draw_line(src, trg)
         end
-        # draw target arrow
-        @trg_arrow.draw(b, c, dc) if @trg_arrow
-        b, c = get_line_segment(0)
-        # draw source arrow
-        @src_arrow.draw(c, b, dc) if @src_arrow
 
       when LINEMODE::UNDERCONSTRUCTION
         # draw basic line parts
@@ -138,7 +145,6 @@ module Wx::SF
     # @return [Array(Wx::RealPoint,Wx::RealPoint,Wx::RealPoint,Wx::RealPoint)]
     def get_segment_quaternion(segment)
       quart = [nil,nil,nil,nil]
-      # wxXS::RealPointList::compatibility_iterator node
       index = 2 - segment
 
       quart[index - 1] = get_src_point if (index - 1) >= 0
@@ -179,7 +185,7 @@ module Wx::SF
     # @param [Wx::RealPoint] c
     # @param [Wx::RealPoint] d
     # @param [Wx::DC] dc
-    def catmul_rom_kubika(a, b, c, d, dc)
+    def catmul_rom_kubika(a, b, c, d, dc, at_end: false)
       # the beginning of the curve is in the B point
       point0 = b
 
@@ -190,11 +196,15 @@ module Wx::SF
       t = 0.0
       while t <= (1 + (1.0 / optim_steps))
         point1 = coord_catmul_rom_kubika(a,b,c,d,t)
+        # make sure not to overshoot at the target/arrow connection point
+        point1 = c if at_end && point0.distance_to(point1) > point0.distance_to(c)
         dc.draw_line(point0.x.to_i, point0.y.to_i, point1.x.to_i, point1.y.to_i)
         point0 = point1
         t += 1.0 / (optim_steps-1)
       end
       point1 = coord_catmul_rom_kubika(a,b,c,d,1)
+      # make sure not to overshoot at the target/arrow connection point
+      point1 = c if at_end && point0.distance_to(point1) > point0.distance_to(c)
       dc.draw_line(point0.x.to_i, point0.y.to_i, point1.x.to_i, point1.y.to_i)
     end
 

@@ -10,13 +10,6 @@ module Wx::SF
 
     include FIRM::Serializable
 
-    module DEFAULT
-      class << self
-        def fill; Wx::Brush.new(Wx::WHITE); end
-        def border; Wx::Pen.new(Wx::BLACK); end
-      end
-    end
-
     # Constructor
     # @param [Wx::SF::Shape] parent parent shape
     def initialize(parent=nil)
@@ -31,7 +24,7 @@ module Wx::SF
     alias :parent_shape= :set_parent_shape
 
 	  # Get pointer to a parent shape.
-	  # @return [Wx::SF::Shape] parent shape if exists, otherwise nil
+	  # @return [Wx::SF::Shape, nil] parent shape if exists, otherwise nil
     def get_parent_shape
       @parent_shape
     end
@@ -40,9 +33,9 @@ module Wx::SF
 	  # Draw arrow shape at the end of a virtual line.
 	  # @param [Wx::RealPoint] from Start of the virtual line
 	  # @param [Wx::RealPoint] to End of the virtual line
-	  # @param [Wx::DC] dc Device context for drawing
+    # @return [Wx::Point] translated connection point for arrow
     def draw(from, to, dc)
-      # needs to be overridden
+      raise NotImplementedError, 'Overload missing'
     end
 
     protected

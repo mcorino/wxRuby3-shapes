@@ -39,20 +39,22 @@ module Wx::SF
       case @mode
       when LINEMODE::READY
         # draw basic line parts
-        line_segment_count.times do |i|
+        n = line_segment_count-1
+        (0..n).each do |i|
           src, trg = get_line_segment(i)
+          # at starting (src) segment draw src arrow and get updated arrow connection point
+          if i == 0 && @src_arrow
+            asrc, atrg = get_first_subsegment(src, trg, get_used_connection_points(cp_src, cp_trg, 0))
+            src = @src_arrow.draw(atrg, asrc, dc)
+            cp_src = nil
+          end
+          # at end (tgt) segment draw tgt arrow and get updated connection point
+          if i == n && @trg_arrow
+            asrc, atrg = get_last_subsegment(src, trg, get_used_connection_points(cp_src, cp_trg, @lst_points.size))
+            trg = @trg_arrow.draw(asrc, atrg, dc)
+            cp_trg = nil
+          end
           draw_line_segment(dc, src, trg, get_used_connection_points(cp_src, cp_trg, i))
-        end
-        # draw target arrow
-        if @trg_arrow
-          asrc, atrg = get_last_subsegment(src, trg, get_used_connection_points(cp_src, cp_trg, @lst_points.size))
-          @trg_arrow.draw(asrc, atrg, dc)
-        end
-        # draw source arrow
-        if @src_arrow
-          src, trg = get_line_segment(0)
-          asrc, atrg = get_first_subsegment(src, trg, get_used_connection_points(cp_src, cp_trg, 0))
-          @src_arrow.draw(atrg, asrc, dc)
         end
 
       when LINEMODE::UNDERCONSTRUCTION

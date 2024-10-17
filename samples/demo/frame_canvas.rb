@@ -5,6 +5,30 @@ require 'wx/shapes'
 
 class FrameCanvas < Wx::SF::ShapeCanvas
 
+  module POPUP_ID
+    include Wx::IDHelper
+
+    # commmon
+    STYLE = self.next_id
+    HOVER_COLOR = self.next_id
+    HALIGN = self.next_id
+    VALIGN = self.next_id
+    HBORDER = self.next_id
+    VBORDER = self.next_id
+
+    # rect
+    FILL_BRUSH = self.next_id
+    BORDER_PEN = self.next_id
+
+    # line
+    LINE_PEN = self.next_id
+    LINE_ARROWS = self.next_id
+    SRC_ARROW = self.next_id
+    TRG_ARROW = self.next_id
+
+    DUMP = self.next_id
+  end
+
   # Constructor
   # @param [Wx::SF::Diagram] diagram shape diagram
   # @param [Wx::Window] parent Parent window
@@ -390,44 +414,586 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     end
   end
 
+  class FloatDialog < Wx::Dialog
+    def initialize(parent, title, label: 'Value:', value: 0.0, min: 0.0, max: 100.0, inc: 0.1)
+      super(parent, Wx::ID_ANY, title, size: [400, -1])
+      sizer_top = Wx::VBoxSizer.new
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, label), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @spin_ctrl = Wx::SpinCtrlDouble.new(self, Wx::ID_ANY, value.to_s, min: min, max: max, inc: inc)
+      sizer.add(@spin_ctrl, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::Button.new(self, Wx::ID_CANCEL, "&Cancel"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::RIGHT, 80))
+
+      set_auto_layout(true)
+      set_sizer(sizer_top)
+
+      sizer_top.set_size_hints(self)
+      sizer_top.fit(self)
+    end
+
+    def get_value
+      @spin_ctrl.get_value
+    end
+  end
+
+  def create_shape_popup
+    menu = Wx::Menu.new
+    menu.append(POPUP_ID::STYLE, 'Change style', 'Change style')
+    menu.append(POPUP_ID::HOVER_COLOR, 'Change hover colour', 'Change hover colour')
+    menu.append(POPUP_ID::HALIGN, 'Change horizontal alignment', 'Change horizontal alignment')
+    menu.append(POPUP_ID::VALIGN, 'Change vertical alignment', 'Change vertical alignment')
+    menu.append(POPUP_ID::HBORDER, 'Change horizontal margin', 'Change horizontal margin')
+    menu.append(POPUP_ID::VBORDER, 'Change vertical margin', 'Change vertical margin')
+
+    @rect_mi = []
+    @rect_mi << Wx::MenuItem.new(menu, POPUP_ID::FILL_BRUSH, 'Change fill', 'Change fill brush')
+    @rect_mi << Wx::MenuItem.new(menu, POPUP_ID::BORDER_PEN, 'Change border', 'Change border pen')
+
+    @line_mi = []
+    @line_mi << Wx::MenuItem.new(menu, POPUP_ID::LINE_PEN, 'Change line', 'Change line pen')
+    submenu = Wx::Menu.new
+    submenu.append(POPUP_ID::SRC_ARROW, 'Change source arrow', 'Change source arrow')
+    submenu.append(POPUP_ID::TRG_ARROW, 'Change target arrow', 'Change target arrow')
+    @line_mi << Wx::MenuItem.new(menu, POPUP_ID::LINE_ARROWS, 'Change arrows', '', Wx::ItemKind::ITEM_NORMAL, submenu)
+
+    menu.append_separator
+    menu.append(POPUP_ID::DUMP, 'Show serialized state', 'Show serialized state')
+    menu
+  end
+  private :create_shape_popup
+
+  def get_shape_popup(shape)
+    @popup ||= create_shape_popup
+    case shape
+    when Wx::SF::RectShape
+      @popup.remove(POPUP_ID::LINE_PEN) if @popup.find_item(POPUP_ID::LINE_PEN)
+      @popup.remove(POPUP_ID::LINE_ARROWS) if @popup.find_item(POPUP_ID::LINE_ARROWS)
+      n = @popup.get_menu_item_count
+      @rect_mi.reverse.each { |mi| @popup.insert(n-2, mi) unless  @popup.find_item(mi.id) }
+    when Wx::SF::LineShape
+      @popup.remove(POPUP_ID::FILL_BRUSH) if @popup.find_item(POPUP_ID::FILL_BRUSH)
+      @popup.remove(POPUP_ID::BORDER_PEN) if @popup.find_item(POPUP_ID::BORDER_PEN)
+      n = @popup.get_menu_item_count
+      @line_mi.reverse.each { |mi| @popup.insert(n-2, mi) unless @popup.find_item(mi.id) }
+    else
+      @popup.remove(POPUP_ID::LINE_PEN) if @popup.find_item(POPUP_ID::LINE_PEN)
+      @popup.remove(POPUP_ID::LINE_ARROWS) if @popup.find_item(POPUP_ID::LINE_ARROWS)
+      @popup.remove(POPUP_ID::FILL_BRUSH) if @popup.find_item(POPUP_ID::FILL_BRUSH)
+      @popup.remove(POPUP_ID::BORDER_PEN) if @popup.find_item(POPUP_ID::BORDER_PEN)
+    end
+    @popup
+  end
+  private :get_shape_popup
+
+  class << self
+    def get_style_choices(enum, exclude: nil)
+      enumerators = enum.enumerators.values
+      enumerators.reject!.each { |e| exclude ? exclude.call(enum[e]) : true }
+      enumerators.collect { |id| id.to_s }
+    end
+
+    def get_style_index(enumerator, exclude: nil)
+      enum = enumerator.class
+      enumerators = enum.enumerators.keys
+      enumerators.reject!.each { |e| exclude ? exclude.call(e) : true }
+      enumerators.index(enumerator.to_i)
+    end
+
+    def index_to_style(enum, index, exclude: nil)
+      enumerators = enum.enumerators.values
+      enumerators.reject!.each { |e| exclude ? exclude.call(enum[e]) : true }
+      enum[enumerators[index]]
+    end
+
+    def selections_to_style(enum, selections, exclude: nil)
+      enumerators = enum.enumerators.keys
+      enumerators.reject!.each { |e| exclude ? exclude.call(e) : true }
+      selections.inject(enum.new(0)) do |mask, ix|
+        mask | enumerators[ix]
+      end
+    end
+
+    def style_to_selections(enum, style, exclude: nil)
+      sel = []
+      enumerators = enum.enumerators.keys
+      enumerators.reject!.each { |e| exclude ? exclude.call(e) : true }
+      enumerators.each_with_index do |eval, ix|
+        sel << ix if style.allbits?(eval)
+      end
+      sel
+    end
+  end
+
+  def get_style_choices(enum, exclude: nil)
+    self.class.get_style_choices(enum, exclude: exclude)
+  end
+
+  def get_style_index(enumerator, exclude: nil)
+    self.class.get_style_index(enumerator, exclude: exclude)
+  end
+
+  def index_to_style(enum, index, exclude: nil)
+    self.class.index_to_style(enum, index, exclude: exclude)
+  end
+
+  def selections_to_style(enum, selections, exclude: nil)
+    self.class.selections_to_style(enum, selections, exclude: exclude)
+  end
+
+  def style_to_selections(enum, style, exclude: nil)
+    self.class.style_to_selections(enum, style, exclude: exclude)
+  end
+
+  EXCL_BRUSH_STYLES = [
+    Wx::BrushStyle::BRUSHSTYLE_INVALID,
+    Wx::BrushStyle::BRUSHSTYLE_STIPPLE,
+    Wx::BrushStyle::BRUSHSTYLE_STIPPLE_MASK,
+    Wx::BrushStyle::BRUSHSTYLE_STIPPLE_MASK_OPAQUE
+  ]
+
+  class BrushDialog < Wx::Dialog
+
+    def initialize(parent, title, brush)
+      super(parent, Wx::ID_ANY, title)
+      sizer_top = Wx::VBoxSizer.new
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Colour:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_clr = Wx::ColourPickerCtrl.new(self, Wx::ID_ANY)
+      sizer.add(@fill_clr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_style = Wx::ComboBox.new(self, Wx::ID_ANY,
+                                     choices: get_style_choices(Wx::BrushStyle,
+                                                                exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
+      sizer.add(@fill_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      @fill_clr.colour = brush.colour
+      @fill_style.selection = get_style_index(brush.style,
+                                              exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::Button.new(self, Wx::ID_CANCEL, "&Cancel"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::RIGHT, 80))
+
+      set_auto_layout(true)
+      set_sizer(sizer_top)
+
+      sizer_top.set_size_hints(self)
+      sizer_top.fit(self)
+    end
+
+    def get_brush
+      Wx::Brush.new(@fill_clr.colour,
+                    index_to_style(Wx::BrushStyle, @fill_style.selection,
+                                   exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
+    end
+
+    def get_style_choices(enum, exclude: nil)
+      FrameCanvas.get_style_choices(enum, exclude: exclude)
+    end
+    private :get_style_choices
+
+    def get_style_index(enumerator, exclude: nil)
+      FrameCanvas.get_style_index(enumerator, exclude: exclude)
+    end
+    private :get_style_index
+
+    def index_to_style(enum, index, exclude: nil)
+      FrameCanvas.index_to_style(enum, index, exclude: exclude)
+    end
+    private :index_to_style
+
+  end
+
+  class PenDialog < Wx::Dialog
+
+    def initialize(parent, title, pen)
+      super(parent, Wx::ID_ANY, title)
+      sizer_top = Wx::VBoxSizer.new
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Colour:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @line_clr = Wx::ColourPickerCtrl.new(self, Wx::ID_ANY)
+      sizer.add(@line_clr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Width:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @line_wdt = Wx::SpinCtrl.new(self, Wx::ID_ANY)
+      sizer.add(@line_wdt, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @line_style = Wx::ComboBox.new(self, Wx::ID_ANY,
+                                     choices: get_style_choices(Wx::PenStyle,
+                                                                exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }))
+      sizer.add(@line_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
+
+      @line_clr.colour = pen.colour
+      @line_wdt.value = pen.width
+      @line_style.selection = get_style_index(pen.style,
+                                              exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID })
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::Button.new(self, Wx::ID_CANCEL, "&Cancel"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::RIGHT, 80))
+
+      set_auto_layout(true)
+      set_sizer(sizer_top)
+
+      sizer_top.set_size_hints(self)
+      sizer_top.fit(self)
+    end
+
+    def get_pen
+      Wx::Pen.new(@line_clr.colour, @line_wdt.value,
+                  index_to_style(Wx::PenStyle, @line_style.selection,
+                                 exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID }))
+    end
+
+    def get_style_choices(enum, exclude: nil)
+      FrameCanvas.get_style_choices(enum, exclude: exclude)
+    end
+    private :get_style_choices
+
+    def get_style_index(enumerator, exclude: nil)
+      FrameCanvas.get_style_index(enumerator, exclude: exclude)
+    end
+    private :get_style_index
+
+    def index_to_style(enum, index, exclude: nil)
+      FrameCanvas.index_to_style(enum, index, exclude: exclude)
+    end
+    private :index_to_style
+
+  end
+
+  class ArrowDialog < Wx::Dialog
+
+    def initialize(parent, title, arrow)
+      super(parent, Wx::ID_ANY, title)
+      sizer_top = Wx::VBoxSizer.new
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Arrow type:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @arrow = Wx::ComboBox.new(self, Wx::ID_ANY, arrow_type(arrow),
+                                choices: %w[None Open Prong Crossbar DoubleCrossbar Cup Solid Diamond Circle Square])
+      sizer.add(@arrow, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
+
+      @line_szr = Wx::StaticBoxSizer.new(Wx::Orientation::VERTICAL, self, 'Pen')
+      sizer = Wx::HBoxSizer.new
+      @line_pen_rb = Wx::RadioButton.new(@line_szr.static_box, Wx::ID_ANY, 'Use line pen', style: Wx::RB_GROUP)
+      sizer.add(@line_pen_rb, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @custom_pen_rb = Wx::RadioButton.new(@line_szr.static_box, Wx::ID_ANY, 'Use custom pen')
+      sizer.add(@custom_pen_rb, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @line_szr.add(sizer, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::StaticText.new(@line_szr.static_box, Wx::ID_ANY, 'Colour:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @line_clr = Wx::ColourPickerCtrl.new(@line_szr.static_box, Wx::ID_ANY)
+      sizer.add(@line_clr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::StaticText.new(@line_szr.static_box, Wx::ID_ANY, 'Width:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @line_wdt = Wx::SpinCtrl.new(@line_szr.static_box, Wx::ID_ANY)
+      sizer.add(@line_wdt, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::StaticText.new(@line_szr.static_box, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @line_style = Wx::ComboBox.new(@line_szr.static_box, Wx::ID_ANY,
+                                     choices: get_style_choices(Wx::PenStyle,
+                                                                exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }))
+      sizer.add(@line_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @line_szr.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
+      sizer_top.add(@line_szr, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
+
+      if Wx::SF::LineArrow === arrow
+        @line_pen_rb.value = true
+        @line_clr.colour = arrow.pen.colour
+        @line_wdt.value = arrow.pen.width
+        @line_style.selection = get_style_index(arrow.pen.style,
+                                                exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID })
+        @line_clr.enable(false)
+        @line_wdt.enable(false)
+        @line_style.enable(false)
+      else
+        @line_szr.static_box.enable(false)
+      end
+
+      @fill_szr = Wx::StaticBoxSizer.new(Wx::Orientation::HORIZONTAL, self, 'Fill')
+      @fill_szr.add(Wx::StaticText.new(@fill_szr.static_box, Wx::ID_ANY, 'Colour:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_clr = Wx::ColourPickerCtrl.new(@fill_szr.static_box, Wx::ID_ANY)
+      @fill_szr.add(@fill_clr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_szr.add(Wx::StaticText.new(@fill_szr.static_box, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_style = Wx::ComboBox.new(@fill_szr.static_box, Wx::ID_ANY,
+                                     choices: get_style_choices(Wx::BrushStyle,
+                                                                exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
+      @fill_szr.add(@fill_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(@fill_szr, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
+
+      if Wx::SF::FilledArrow === arrow
+        @fill_clr.colour = arrow.fill.colour
+        @fill_style.selection = get_style_index(arrow.fill.style,
+                                                exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })
+      else
+        @fill_szr.static_box.enable(false)
+      end
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::Button.new(self, Wx::ID_CANCEL, "&Cancel"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::RIGHT, 80))
+
+      set_auto_layout(true)
+      set_sizer(sizer_top)
+
+      sizer_top.set_size_hints(self)
+      sizer_top.fit(self)
+
+      evt_combobox @arrow, :on_arrow_type
+      evt_radiobutton Wx::ID_ANY, :on_radiobutton
+    end
+
+    def get_arrow
+      case @arrow.get_value
+      when 'None'
+        nil
+      when 'Open', 'Cup', 'Prong', 'Crossbar', 'DoubleCrossbar'
+        arrow = case @arrow.get_value
+                when 'Open' then Wx::SF::OpenArrow.new
+                when 'Prong' then Wx::SF::ProngArrow.new
+                when 'Cup' then Wx::SF::CupArrow.new
+                when 'Crossbar' then Wx::SF::CrossBarArrow.new
+                when 'DoubleCrossbar' then Wx::SF::DoubleCrossBarArrow.new
+                end
+        if @custom_pen_rb.value
+          arrow.set_pen(Wx::Pen.new(@line_clr.colour, @line_wdt.value,
+                                    index_to_style(Wx::PenStyle, @line_style.selection,
+                                                   exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID })))
+        end
+        arrow
+      else
+        arrow_klass = case @arrow.get_value
+                      when 'Solid' then Wx::SF::SolidArrow
+                      when 'Diamond' then Wx::SF::DiamondArrow
+                      when 'Circle' then Wx::SF::CircleArrow
+                      when 'Square' then Wx::SF::SquareArrow
+                      end
+        arrow = arrow_klass.new
+        if @custom_pen_rb.value
+          arrow.set_pen(Wx::Pen.new(@line_clr.colour, @line_wdt.value,
+                                    index_to_style(Wx::PenStyle, @line_style.selection,
+                                                   exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID })))
+        end
+        arrow.set_fill(Wx::Brush.new(@fill_clr.colour,
+                                     index_to_style(Wx::BrushStyle, @fill_style.selection,
+                                                    exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })))
+        arrow
+      end
+    end
+
+    def arrow_type(arrow)
+      case arrow
+      when Wx::SF::ProngArrow then 'Prong'
+      when Wx::SF::OpenArrow then 'Open'
+      when Wx::SF::CupArrow then 'Cup'
+      when Wx::SF::DoubleCrossBarArrow then 'DoubleCrossbar'
+      when Wx::SF::CrossBarArrow then 'Crossbar'
+      when Wx::SF::DiamondArrow then 'Diamond'
+      when Wx::SF::SquareArrow then 'Square'
+      when Wx::SF::SolidArrow then 'Solid'
+      when Wx::SF::CircleArrow then 'Circle'
+      else
+        'None'
+      end
+    end
+    private :arrow_type
+
+    def get_style_choices(enum, exclude: nil)
+      FrameCanvas.get_style_choices(enum, exclude: exclude)
+    end
+    private :get_style_choices
+
+    def get_style_index(enumerator, exclude: nil)
+      FrameCanvas.get_style_index(enumerator, exclude: exclude)
+    end
+    private :get_style_index
+
+    def index_to_style(enum, index, exclude: nil)
+      FrameCanvas.index_to_style(enum, index, exclude: exclude)
+    end
+    private :index_to_style
+
+    def on_radiobutton(_evt)
+      if @line_pen_rb.value
+        @line_clr.enable(false)
+        @line_wdt.enable(false)
+        @line_style.enable(false)
+      else
+        @line_clr.enable(true)
+        @line_wdt.enable(true)
+        @line_style.enable(true)
+      end
+    end
+    private :on_radiobutton
+
+    def on_arrow_type(_evt)
+      case @arrow.get_value
+      when 'None'
+        @line_szr.static_box.enable(false)
+        @fill_szr.static_box.enable(false)
+      else
+        @line_szr.static_box.enable(true)
+        @line_pen_rb.value = true
+        @line_clr.enable(false)
+        @line_style.enable(false)
+        @line_wdt.enable(false)
+        case @arrow.get_value
+        when 'Open', 'Prong', 'Cup', 'Crossbar', 'DoubleCrossbar'
+          @fill_szr.static_box.enable(false)
+        else
+          @fill_szr.static_box.enable(true)
+        end
+      end
+    end
+    protected :get_style_choices
+
+  end
+
+  class StateDialog < Wx::Dialog
+
+    def initialize(parent, shape)
+      super(parent, title: "State of #{shape}")
+      sizer_top = Wx::VBoxSizer.new
+
+      sizer = Wx::HBoxSizer.new
+      text = Wx::TextCtrl.new(self, size: [500, 350], style: Wx::TE_MULTILINE|Wx::TE_READONLY|Wx::HSCROLL)
+      txt_attr = text.get_default_style
+      txt_attr.font = Wx::Font.new(Wx::FontInfo.new(10.0).family(Wx::FontFamily::FONTFAMILY_TELETYPE))
+      text.set_default_style(txt_attr)
+      text.set_value(shape.serialize(format: :yaml))
+      sizer.add(text, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new)
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_RIGHT).border(Wx::LEFT, 80))
+
+      set_auto_layout(true)
+      set_sizer(sizer_top)
+
+      sizer_top.set_size_hints(self)
+      sizer_top.fit(self)
+    end
+
+  end
+
   def on_right_down(event)
     # try to find shape under cursor
     shape = get_shape_under_cursor
     # alternatively you can use:
     # shape = get_shape_at_position(dp2lp(event.getposition), 1, SEARCHMODE::BOTH)
 
-    # print out information about the shape (if found)
+    # show shape popup (if found)
     if shape
-      # show basic info
-      msg = "Class name: #{shape.class}, ID: #{shape.object_id}\n"
-
-      msg << "\nBounding box: #{shape.get_bounding_box.inspect}\n"
-
-      # show parent (if any)
-      if shape.parent_shape
-        msg << "\nParent: #{shape.parent_shape.class}, ID: #{shape.parent_shape.object_id}\n"
-      end
-
-      # show info about shape's children
-      lst_shapes = shape.get_child_shapes(nil, Wx::SF::RECURSIVE)
-      unless lst_shapes.empty?
-        msg << "\nChildren:\n"
-        lst_shapes.each_with_index do |child, i|
-            msg << "#{i+1}. Class name: #{child.class}, ID: #{child.object_id}\n"
+      case self.get_popup_menu_selection_from_user(get_shape_popup(shape))
+      when POPUP_ID::STYLE
+        choices = get_style_choices(Wx::SF::Shape::STYLE,
+                                    exclude: ->(e) { e ==  Wx::SF::Shape::STYLE::DEFAULT_SHAPE_STYLE })
+        choices.pop # remove default style mask
+        sel = Wx.get_selected_choices('Select styles',
+                                      'Select multiple',
+                                      choices,
+                                      self,
+                                      initial_selections: style_to_selections(Wx::SF::Shape::STYLE, shape.get_style,
+                                                                              exclude: ->(e) { e ==  Wx::SF::Shape::STYLE::DEFAULT_SHAPE_STYLE }))
+        if sel
+          shape.set_style(selections_to_style(Wx::SF::Shape::STYLE, sel,
+                                              exclude: ->(e) { e ==  Wx::SF::Shape::STYLE::DEFAULT_SHAPE_STYLE }))
+          shape.update
         end
-      end
-
-      # show info about shape's neighbours
-      lst_shapes = shape.get_neighbours(Wx::SF::LineShape, Wx::SF::Shape::CONNECTMODE::BOTH, Wx::SF::INDIRECT)
-      unless lst_shapes.empty?
-        msg << "\nNeighbours:\n"
-        lst_shapes.each_with_index do |nbr, i|
-          msg << "#{i+1}. Class name: #{nbr.class}, ID: #{nbr.object_id}\n"
+      when POPUP_ID::HOVER_COLOR
+        color = Wx.get_colour_from_user(self, shape.get_hover_colour, 'Select hover colour')
+        if color.ok?
+          shape.set_hover_colour(color)
+          shape.update
         end
+      when POPUP_ID::HALIGN
+        case Wx.get_single_choice('Select horizontal alignment',
+                                  'Select',
+                                  %w[NONE LEFT CENTER RIGHT EXPAND],
+                                  self,
+                                  initial_selection: shape.get_h_align.to_i)
+        when 'NONE' then shape.set_h_align(Wx::SF::Shape::HALIGN::NONE)
+        when 'LEFT' then shape.set_h_align(Wx::SF::Shape::HALIGN::LEFT)
+        when 'CENTER' then shape.set_h_align(Wx::SF::Shape::HALIGN::CENTER)
+        when 'RIGHT' then shape.set_h_align(Wx::SF::Shape::HALIGN::RIGHT)
+        when 'EXPAND' then shape.set_h_align(Wx::SF::Shape::HALIGN::EXPAND)
+        end
+      when POPUP_ID::VALIGN
+        case Wx.get_single_choice('Select vertical alignment',
+                                  'Select',
+                                  %w[NONE TOP MIDDLE BOTTOM EXPAND],
+                                  self,
+                                  initial_selection: shape.get_v_align.to_i)
+        when 'NONE' then shape.set_v_align(Wx::SF::Shape::VALIGN::NONE)
+        when 'TOP' then shape.set_v_align(Wx::SF::Shape::VALIGN::TOP)
+        when 'MIDDLE' then shape.set_v_align(Wx::SF::Shape::VALIGN::MIDDLE)
+        when 'BOTTOM' then shape.set_v_align(Wx::SF::Shape::VALIGN::BOTTOM)
+        when 'EXPAND' then shape.set_v_align(Wx::SF::Shape::HALIGN::EXPAND)
+        end
+        shape.update
+      when POPUP_ID::HBORDER
+        FrameCanvas.FloatDialog(self, 'Enter horizontal margin', value: shape.get_h_border) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.set_h_border(dlg.get_value)
+            shape.update
+          end
+        end
+      when POPUP_ID::VBORDER
+        FrameCanvas.FloatDialog(self, 'Enter vertical margin', value: shape.get_v_border) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.set_v_border(dlg.get_value)
+            shape.update
+          end
+        end
+      when POPUP_ID::FILL_BRUSH
+        FrameCanvas.BrushDialog(self, 'Fill brush', shape.fill) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.set_fill(dlg.get_brush)
+            shape.update
+          end
+        end
+      when POPUP_ID::BORDER_PEN
+        FrameCanvas.PenDialog(self, 'Border pen', shape.border) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.set_border(dlg.get_pen)
+            shape.update
+          end
+        end
+      when POPUP_ID::LINE_PEN
+        FrameCanvas.PenDialog(self, 'Line pen', shape.line_pen) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.set_line_pen(dlg.get_pen)
+            shape.update
+          end
+        end
+      when POPUP_ID::SRC_ARROW
+        FrameCanvas.ArrowDialog(self, 'Source arrow', shape.get_src_arrow) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.src_arrow = dlg.get_arrow
+            shape.update
+          end
+        end
+      when POPUP_ID::TRG_ARROW
+        FrameCanvas.ArrowDialog(self, 'Target arrow', shape.get_trg_arrow) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.trg_arrow = dlg.get_arrow
+            shape.update
+          end
+        end
+      when POPUP_ID::DUMP
+        FrameCanvas.StateDialog(self, shape)
       end
-
-      # show message
-      Wx.message_box(msg, 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_INFORMATION)
     else
       Wx.message_box('No shape found on this position.', 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_INFORMATION)
     end

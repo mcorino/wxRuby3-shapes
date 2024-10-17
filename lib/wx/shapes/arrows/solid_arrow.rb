@@ -1,67 +1,53 @@
 # Wx::SF::SolidArrow - solid arrow class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
-require 'wx/shapes/arrow_base'
+require 'wx/shapes/arrows/filled_arrow'
 
 module Wx::SF
 
-  class SolidArrow < ArrowBase
+  # Class extends the Wx::FilledArrow class and encapsulates
+  # solid arrow shapes.
+  class SolidArrow < FilledArrow
 
     class << self
-      def solid_arrow
-        @solid_arrow ||= [Wx::RealPoint.new(0,0), Wx::RealPoint.new(10,4), Wx::RealPoint.new(10,-4)]
+      def arrow(ratio)
+        x = ratio*10; y = ratio*4
+        [Wx::RealPoint.new(0,0), Wx::RealPoint.new(x, y), Wx::RealPoint.new(x,-y), Wx::RealPoint.new(x,0)]
       end
     end
-
-    property :arrow_fill, :arrow_pen
 
     # Constructor
     # @param [Wx::SF::Shape] parent parent shape
     def initialize(parent=nil)
       super
-      @fill = DEFAULT.fill
-      @pen = DEFAULT.border
+      scale
     end
 
-    # Get arrow fill brush
-    # @return [Wx::Brush]
-    def get_arrow_fill
-      @fill
+    def vertices
+      @vertices ||= SolidArrow.arrow(@ratio)
     end
-    alias :arrow_fill :get_arrow_fill
-    
-    # Set arrow fill brush
-    # @param [Wx::Brush] brush
-    def set_arrow_fill(brush)
-      @fill = brush
-    end
-    alias :arrow_fill= :set_arrow_fill
+    protected :vertices
 
-    # Get arrow border pen
-    # @return [Wx::Pen]
-    def get_arrow_pen
-      @pen
+    def scale
+      @vertices = nil
+      @ratio = 1 + (pen_width / 2) * 0.5
     end
-    alias :arrow_pen :get_arrow_pen
-
-    # Set arrow border pen
-    # @param [Wx::Pen] pen
-    def set_arrow_pen(pen)
-      @pen = pen
-    end
-    alias :arrow_pen= :set_arrow_pen
+    protected :scale
 
 	  # Draw arrow shape at the end of a virtual line.
 	  # @param [Wx::RealPoint] from Start of the virtual line
 	  # @param [Wx::RealPoint] to End of the virtual line
 	  # @param [Wx::DC] dc Device context for drawing
+    # @return [Wx::Point] translated connection point for arrow
     def draw(from, to, dc)
-      rarrow = translate_arrow(SolidArrow.solid_arrow, from, to)
-      dc.with_pen(@pen) do |dc|
+      rarrow = translate_arrow(vertices, from, to)
+      cp = rarrow.pop # get connection point
+      dc.with_pen(pen) do |dc|
         dc.with_brush(@fill) do |dc|
           dc.draw_polygon(rarrow)
         end
       end
+      cp
     end
 
   end

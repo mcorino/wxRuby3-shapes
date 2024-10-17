@@ -96,7 +96,7 @@ module Wx::SF
     alias :src_shape :get_src_shape
 
     # Set source shape.
-    # @param [Shape] shape
+    # @param [Shape, nil] shape
     def set_src_shape(shape)
       @src_shape = shape
     end
@@ -110,7 +110,7 @@ module Wx::SF
     alias :trg_shape :get_trg_shape
 
     # Set target shape.
-    # @param [Shape] shape
+    # @param [Shape, nil] shape
     def set_trg_shape(shape)
       @trg_shape = shape
     end
@@ -175,7 +175,7 @@ module Wx::SF
     end
 
     # Get source arrow.
-    # @return [Wx::SF::ArrowBase]
+    # @return [Wx::SF::ArrowBase, nil]
     def get_src_arrow
       @src_arrow
     end
@@ -183,22 +183,23 @@ module Wx::SF
 
     # Set source arrow
     # @overload set_src_arrow(arrow)
-    #   @param [Wx::SF::ArrowBase] arrow
-    #   @return [Wx::SF::ArrowBase,nil] the new source arrow object if invalid
+    #   @param [Wx::SF::ArrowBase, nil] arrow
+    #   @return [Wx::SF::ArrowBase,nil] the new source arrow object if valid
     # @overload set_src_arrow(arrow_klass)
     #   @param [Class] arrow_klass
-    #   @return [Wx::SF::ArrowBase,nil] the new source arrow object if invalid
+    #   @return [Wx::SF::ArrowBase,nil] the new source arrow object if valid
     def set_src_arrow(arg)
-      if (arg.is_a?(::Class) && arg < ArrowBase) || arg.is_a?(ArrowBase)
-        @src_arrow = arg.is_a?(ArrowBase) ? arg : arg.new
-        @src_arrow.set_parent_shape(self)
+      if arg.nil? || (arg.is_a?(::Class) && arg < ArrowBase) || arg.is_a?(ArrowBase)
+        @src_arrow = (arg.nil? || arg.is_a?(ArrowBase)) ? arg : arg.new
+        @src_arrow.set_parent_shape(self) if @src_arrow
+        return @src_arrow
       end
       nil
     end
     alias :src_arrow= :set_src_arrow
 
     # Get target arrow.
-    # @return [Wx::SF::ArrowBase]
+    # @return [Wx::SF::ArrowBase, nil]
     def get_trg_arrow
       @trg_arrow
     end
@@ -206,15 +207,16 @@ module Wx::SF
 
     # Set target arrow
     # @overload set_trg_arrow(arrow)
-    #   @param [Wx::SF::ArrowBase] arrow
-    #   @return [Wx::SF::ArrowBase,nil] the new source arrow object if invalid
+    #   @param [Wx::SF::ArrowBase, nil] arrow
+    #   @return [Wx::SF::ArrowBase,nil] the new source arrow object if valid
     # @overload set_trg_arrow(arrow_klass)
     #   @param [Class] arrow_klass
-    #   @return [Wx::SF::ArrowBase,nil] the new source arrow object if invalid
+    #   @return [Wx::SF::ArrowBase,nil] the new source arrow object if valid
     def set_trg_arrow(arg)
-      if (arg.is_a?(::Class) && arg < ArrowBase) || arg.is_a?(ArrowBase)
-        @trg_arrow = arg.is_a?(ArrowBase) ? arg : arg.new
-        @trg_arrow.set_parent_shape(self)
+      if arg.nil? || (arg.is_a?(::Class) && arg < ArrowBase) || arg.is_a?(ArrowBase)
+        @trg_arrow = (arg.nil? || arg.is_a?(ArrowBase)) ? arg : arg.new
+        @trg_arrow.set_parent_shape(self) if @trg_arrow
+        return @trg_arrow
       end
       nil
     end
@@ -678,18 +680,17 @@ module Wx::SF
     
       case @mode
       when LINEMODE::READY
-        # draw basic line parts
+        # draw line parts
         src = trg = nil
-        line_segment_count.times do |i|
+        n = line_segment_count-1
+        (0..n).each do |i|
           src, trg = get_line_segment(i)
+          # at starting (src) segment draw src arrow and get updated arrow connection point
+          src = @src_arrow.draw(trg, src, dc) if i == 0 && @src_arrow
+          # at end (tgt) segment draw tgt arrow and get updated connection point
+          trg = @trg_arrow.draw(src, trg, dc) if i == n && @trg_arrow
+          # draw line segment
           dc.draw_line(src.to_point, trg.to_point)
-        end
-        # draw target arrow
-        @trg_arrow.draw(src, trg, dc) if @trg_arrow
-        # draw source arrow
-        if @src_arrow
-          src, trg = get_line_segment(0)
-          @src_arrow.draw(trg, src, dc)
         end
 
       when LINEMODE::UNDERCONSTRUCTION
