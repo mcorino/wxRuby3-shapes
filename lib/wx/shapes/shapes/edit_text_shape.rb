@@ -30,7 +30,7 @@ module Wx::SF
       set_insertion_point_end
       if @parent_shape
         # update the font size in accordance to the canvas scale
-        font = @parent_shape.get_font
+        font = @parent_shape.get_font.dup
         font.set_point_size((font.get_point_size * @parent_shape.get_parent_canvas.get_scale).to_i)
 
         set_font(font)

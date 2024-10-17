@@ -11,9 +11,9 @@ module Wx::SF
     module DEFAULT
       class << self
         # Default value of TextShape @font data member.
-        def font; Wx::SWISS_FONT; end
+        def font; Wx::SWISS_FONT.dup; end
         # Default value of TextShape @text_color data member.
-        def text_color; Wx::BLACK; end
+        def text_color; Wx::BLACK.dup; end
       end
       TEXT = 'Text'
     end
@@ -165,7 +165,7 @@ module Wx::SF
       size = @font.get_point_size * s
       size = 5 if size < 5
 
-      @font.set_point_size(size.to_i)
+      @font.set_point_size(size.to_i) unless size == @font.get_point_size
       update_rect_size
     end
 
