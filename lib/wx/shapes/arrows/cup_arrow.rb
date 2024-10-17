@@ -10,7 +10,7 @@ module Wx::SF
   class CupArrow < LineArrow
 
     # Default arc radius size
-    RADIUS = 6
+    RADIUS = 7
 
     class << self
 

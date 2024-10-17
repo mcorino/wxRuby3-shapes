@@ -12,8 +12,8 @@ module Wx::SF
 
     class << self
       def arrow(ratio)
-        x = ratio*6; y = ratio*5
-        [[Wx::RealPoint.new(x/2,y), Wx::RealPoint.new(x/2, -y)],[Wx::RealPoint.new(x,y), Wx::RealPoint.new(x, -y)]]
+        x = ratio*7; y = ratio*6
+        [[Wx::RealPoint.new(2+x/2,y), Wx::RealPoint.new(2+x/2, -y)],[Wx::RealPoint.new(2+x,y), Wx::RealPoint.new(2+x, -y), Wx::RealPoint.new(2+x, 0)]]
       end
     end
 

@@ -1,14 +1,14 @@
-# Wx::SF::ProngArrow - prong arrow class
+# Wx::SF::CircleProngArrow - circle with prong arrow class
 # Copyright (c) M.J.N. Corino, The Netherlands
 
-require 'wx/shapes/arrows/open_arrow'
+require 'wx/shapes/arrows/circle_arrow'
 
 module Wx::SF
 
-  # Class extends the Wx::OpenArrow class and encapsulates
+  # Class extends the Wx::CircleArrow class and encapsulates
   # arrow shape consisting of single two lines bisecting before the end of the
-  # parent line shape.
-  class ProngArrow < OpenArrow
+  # parent line shape with a preceding circle.
+  class CircleProngArrow < CircleArrow
 
     class << self
       def arrow(ratio)
@@ -18,9 +18,15 @@ module Wx::SF
     end
 
     def vertices
-      @vertices ||= ProngArrow.arrow(@ratio)
+      @vertices ||= CircleProngArrow.arrow(@ratio)
     end
     private :vertices
+
+    def scale
+      @vertices = nil
+      super
+    end
+    protected :scale
 
     # Draw arrow shape at the end of a virtual line.
     # @param [Wx::RealPoint] from Start of the virtual line
@@ -34,7 +40,7 @@ module Wx::SF
         dc.draw_line(cp, wing2)
         dc.draw_line(cp, tip)
       end
-      cp
+      super(from, cp, dc)
     end
 
   end
