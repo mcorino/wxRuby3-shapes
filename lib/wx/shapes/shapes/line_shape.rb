@@ -313,8 +313,8 @@ module Wx::SF
           end
           return [src, trg]
         end
+        raise SFException, 'Missing src and/or trg shape for connector line'
       end
-      nil # should not happen
     end
     
 	  # Get a list of the line's control points (their positions).
