@@ -17,15 +17,16 @@ module Wx::SF
       SIZE = Wx::RealPoint.new(100, 50)
     end
 
-    property :rect_size, :fill, :border
+    property rect_size: :serialize_rect_size
+    property :fill, :border
 
     # Constructor.
     # @param [Wx::RealPoint,Wx::Point] pos Initial position
-    # @param [Wx::RealPoint,Wx::Size,Wx::Point] size Initial size
+    # @param [Wx::RealPoint,Wx::Size,Wx::Point,Array(Float,Float)] size Initial size
     # @param [Wx::SF::Diagram] diagram parent diagram
     def initialize(pos = Shape::DEFAULT::POSITION, size = DEFAULT::SIZE, diagram: nil)
       super(pos, diagram: diagram)
-      @rect_size = Wx::RealPoint === size ? size.dup : size.to_real_point
+      set_rect_size(size.to_real_point)
       @fill = DEFAULT.fill
       @border = DEFAULT.border
     end
@@ -63,9 +64,11 @@ module Wx::SF
     #   @param [Float] x Horizontal size
     #   @param [Float] y Vertical size
     # @overload set_rect_size(size)
-    #   @param [Wx::RealPoint] size New size
-    def set_rect_size(arg1, arg2 = nil)
-      @rect_size = arg2 ? Wx::RealPoint.new(arg1.to_f, arg2.to_f) : arg1.to_real_point
+    #   @param [Wx::RealPoint,Array(Float, Float)] size New size
+    def set_rect_size(*args)
+      x, y = args.size == 1 ? args.first.to_real_point : args
+      # set new size while preventing 'invisible' shapes
+      @rect_size = Wx::RealPoint.new([1.0, x].max, [1.0, y].max)
     end
     alias :rect_size= :set_rect_size
 
@@ -314,6 +317,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       @rect_size.x += handle.get_delta.x
+      @rect_size.x = 1.0 if @rect_size.x < 1.0
     end
 
     # Event handler called during dragging of the left shape handle.
@@ -323,7 +327,11 @@ module Wx::SF
       # HINT: overload it for custom actions...
   
       dx = handle.get_delta.x.to_f
-    
+
+      if (@rect_size.x - dx) < 1.0
+        dx = @rect_size.x - 1.0
+      end
+
       # update position of children
       unless has_style?(STYLE::LOCK_CHILDREN)
         @child_shapes.each do |child|
@@ -342,7 +350,11 @@ module Wx::SF
       # HINT: overload it for custom actions...
   
       dy = handle.get_delta.y.to_f
-    
+
+      if (@rect_size.y - dy) < 1.0
+        dy = @rect_size.y - 1.0
+      end
+
       # update position of children
       unless has_style?(STYLE::LOCK_CHILDREN)
         @child_shapes.each do |child|
@@ -361,7 +373,15 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       @rect_size.y += handle.get_delta.y
+      @rect_size.y = 1.0 if @rect_size.y < 1.0
     end
+
+    def serialize_rect_size(*val)
+      @rect_size = val.first unless val.empty?
+      @rect_size
+    end
+    private :serialize_rect_size
+
   end
 
 end
