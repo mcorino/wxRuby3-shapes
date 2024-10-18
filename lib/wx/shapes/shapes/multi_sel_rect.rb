@@ -60,7 +60,7 @@ module Wx::SF
         lst_selection.each do |shape|
           # scale main parent shape
           if !shape.is_a?(LineShape)
-            shape.scale(sx, 1, WITHCHILDREN) if shape.has_style?(STYLE::SIZE_CHANGE)
+            shape.scale(sx, 1, children: WITHCHILDREN) if shape.has_style?(STYLE::SIZE_CHANGE)
             if shape.has_style?(STYLE::POSITION_CHANGE)
               dx = (shape.get_absolute_position.x - (get_absolute_position.x + DEFAULT_ME_OFFSET))/(get_rect_size.x - 2*DEFAULT_ME_OFFSET)*handle.get_delta.x
               shape.move_by(dx, 0)
@@ -90,7 +90,7 @@ module Wx::SF
     
         lst_selection.each do |shape|
           if !shape.is_a?(LineShape)
-            if shape.has_style?(STYLE:POSITION_CHANGE)
+            if shape.has_style?(STYLE::POSITION_CHANGE)
               if shape.get_parent_shape
                 shape.set_relative_position(shape.get_relative_position.x*sx, shape.get_relative_position.y)
               else
@@ -98,7 +98,7 @@ module Wx::SF
                 shape.move_by(dx, 0)
               end
             end
-            shape.scale(sx, 1, WITHCHILDREN) if shape.has_style?(STYLE::SIZE_CHANGE)
+            shape.scale(sx, 1, children: WITHCHILDREN) if shape.has_style?(STYLE::SIZE_CHANGE)
             shape.fit_to_children unless shape.has_style?(STYLE::NO_FIT_TO_CHILDREN)
           else
             if shape.has_style?(STYLE::POSITION_CHANGE)
@@ -132,7 +132,7 @@ module Wx::SF
                 shape.move_by(0, dy)
               end
             end
-            shape.scale(1, sy, WITHCHILDREN) if shape.has_style?(STYLE::SIZE_CHANGE)
+            shape.scale(1, sy, children: WITHCHILDREN) if shape.has_style?(STYLE::SIZE_CHANGE)
             shape.fit_to_children unless shape.has_style?(STYLE::NO_FIT_TO_CHILDREN)
           else
             if shape.has_style?(STYLE::POSITION_CHANGE)
@@ -153,12 +153,12 @@ module Wx::SF
     def on_bottom_handle(handle)
       if get_parent_canvas && !any_height_exceeded(handle.get_delta)
         sy = (get_rect_size.y - 2*DEFAULT_ME_OFFSET + handle.get_delta.y).to_f/(get_rect_size.y - 2*DEFAULT_ME_OFFSET)
-    
+
         lst_selection = get_parent_canvas.get_selected_shapes
     
         lst_selection.each do |shape|
           if !shape.is_a?(LineShape)
-            shape.scale(1, sy, WITHCHILDREN) if shape.has_style?(STYLE::SIZE_CHANGE)
+            shape.scale(1, sy, children: WITHCHILDREN) if shape.has_style?(STYLE::SIZE_CHANGE)
             if shape.has_style?(STYLE::POSITION_CHANGE)
               dy = (shape.get_absolute_position.y - (get_absolute_position.y + DEFAULT_ME_OFFSET))/(get_rect_size.y - 2*DEFAULT_ME_OFFSET)*handle.get_delta.y
               shape.move_by(0, dy)
@@ -187,7 +187,7 @@ module Wx::SF
         lst_selection = get_parent_canvas.get_selected_shapes
         # determine whether any shape in the selection exceeds its bounds
         lst_selection.each do |shape|
-          return true if !shape.is_a?(LineShape) && (shape.get_bounding_box.width + delta.x) <= 1
+          return true if !shape.is_a?(LineShape) && (shape.get_bounding_box.width + delta.x) < 1
         end
         return false
       end
@@ -202,7 +202,7 @@ module Wx::SF
         lst_selection = get_parent_canvas.get_selected_shapes
         # determine whether any shape in the selection exceeds its bounds
         lst_selection.each do |shape|
-          return true if !shape.is_a?(LineShape) && (shape.get_bounding_box.height + delta.y) <= 1
+          return true if !shape.is_a?(LineShape) && (shape.get_bounding_box.height + delta.y) < 1
         end
         return false
       end
