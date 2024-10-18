@@ -313,8 +313,8 @@ module Wx::SF
           end
           return [src, trg]
         end
-        raise SFException, 'Missing src and/or trg shape for connector line'
       end
+      raise SFException, 'Missing src and/or trg for line'
     end
     
 	  # Get a list of the line's control points (their positions).
@@ -347,7 +347,7 @@ module Wx::SF
 	  # Initialize line's starting point with existing fixed connection point.
 	  # @param [Wx::SF::ConnectionPoint] cp Pointer to connection point
     def set_starting_connection_point(cp)
-      if cp && cp.get_parent_shape
+      if cp&.get_parent_shape
         pos_cp = cp.get_connection_point
         rct_bb = cp.get_parent_shape.get_bounding_box
 
@@ -359,7 +359,7 @@ module Wx::SF
 	  # Initialize line's ending point with existing fixed connection point.
 	  # @param [Wx::SF::ConnectionPoint] cp Pointer to connection point
     def set_ending_connection_point(cp)
-      if cp && cp.get_parent_shape
+      if cp&.get_parent_shape
         pos_cp = cp.get_connection_point
         rct_bb = cp.get_parent_shape.get_bounding_box
 
@@ -654,7 +654,7 @@ module Wx::SF
       end
     end
 
-	  # Draw the shape in the hower mode (the mouse cursor is above the shape).
+	  # Draw the shape in the hover mode (the mouse cursor is above the shape).
     # The function can be overridden if necessary.
 	  # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_hover(dc)
@@ -681,7 +681,6 @@ module Wx::SF
       case @mode
       when LINEMODE::READY
         # draw line parts
-        src = trg = nil
         n = line_segment_count-1
         (0..n).each do |i|
           src, trg = get_line_segment(i)
@@ -695,7 +694,7 @@ module Wx::SF
 
       when LINEMODE::UNDERCONSTRUCTION
         # draw basic line parts
-        src = trg = nil
+        trg = nil
         @lst_points.size.times do |i|
           src, trg = get_line_segment(i)
           dc.draw_line(src.to_point, trg.to_point)
@@ -718,14 +717,13 @@ module Wx::SF
 
       when LINEMODE::SRCCHANGE
         # draw basic line parts
-        src = trg = nil
         @lst_points.size.times do |i|
           src, trg = get_line_segment(i+1)
           dc.draw_line(src.to_point, trg.to_point)
         end
 
         # draw linesegment being updated
-        src, trg = get_line_segment(0)
+        _, trg = get_line_segment(0)
 
         dc.set_pen(Wx::Pen.new(Wx::BLACK, 1, Wx::PENSTYLE_DOT)) unless @stand_alone
         dc.draw_line(@unfinished_point, trg.to_point)
@@ -733,7 +731,7 @@ module Wx::SF
 
       when LINEMODE::TRGCHANGE
         # draw basic line parts
-        src = trg = nil
+        trg = nil
         if @lst_points.empty?
           trg = get_src_point
         else
