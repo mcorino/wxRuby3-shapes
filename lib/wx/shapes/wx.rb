@@ -31,6 +31,7 @@ module Wx
     def to_real_point
       Wx::RealPoint.new(self.width.to_f, self.height.to_f)
     end
+    alias :to_real :to_real_point
 
   end
 
