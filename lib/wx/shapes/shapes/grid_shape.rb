@@ -263,7 +263,7 @@ module Wx::SF
     end
 
     # Update shape (align all child shapes and resize it to fit them)
-    def update
+    def update(recurse= true)
       # check for existence of de-assigned shapes
       @cells.delete_if do |shape|
         shape && !@child_shapes.include?(shape)
@@ -280,15 +280,12 @@ module Wx::SF
 
       # do self-alignment
       do_alignment
-  
-      # do alignment of shape's children
-      do_children_layout
-  
+
       # fit the shape to its children
       fit_to_children unless has_style?(STYLE::NO_FIT_TO_CHILDREN)
   
       # do it recursively on all parent shapes
-      get_parent_shape.update if get_parent_shape
+      get_parent_shape.update(recurse) if recurse && get_parent_shape
     end
 
     # Resize the shape to bound all child shapes. The function can be overridden if necessary.
@@ -310,24 +307,6 @@ module Wx::SF
       @rect_size = Wx::RealPoint.new(ch_bb.width + 2*@cell_space, ch_bb.height + 2*@cell_space)
     end
 
-    # Do layout of assigned child shapes
-    def do_children_layout
-      return if @cols == 0 || @rows == 0
-  
-      max_size = get_max_child_size
-
-      @cells.each_with_index do |shape, i|
-        if shape
-          col = (i % @cols)
-          row = (i / @cols)
-
-          fit_shape_to_rect(shape, Wx::Rect.new(col*max_size.width + (col+1)*@cell_space,
-                                                row*max_size.height + (row+1)*@cell_space,
-                                                max_size.width, max_size.height))
-        end
-      end
-    end
-
     # Event handler called when any shape is dropped above this shape (and the dropped
     # shape is accepted as a child of this shape). The function can be overridden if necessary.
     #
@@ -344,6 +323,24 @@ module Wx::SF
     end
 
     protected
+
+    # Do layout of assigned child shapes
+    def do_children_layout
+      return if @cols == 0 || @rows == 0
+
+      max_size = get_max_child_size
+
+      @cells.each_with_index do |shape, i|
+        if shape
+          col = (i % @cols)
+          row = (i / @cols)
+
+          fit_shape_to_rect(shape, Wx::Rect.new(col*max_size.width + (col+1)*@cell_space,
+                                                row*max_size.height + (row+1)*@cell_space,
+                                                max_size.width, max_size.height))
+        end
+      end
+    end
 
     # called after the shape has been newly imported/pasted/dropped
     # checks the cells for stale links

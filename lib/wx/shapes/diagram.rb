@@ -217,11 +217,13 @@ module Wx::SF
                 # initialize shape's children
                 lst_children.each do |child|
                   child.create_handles
-                  child.update
+                  child.update(false)
 
                   child.set_hover_colour(@shape_canvas.get_hover_colour) if @shape_canvas
                 end
             end
+
+            shape.update
           end
 
           # reset scale of assigned shape canvas (if exists and it is necessary...)

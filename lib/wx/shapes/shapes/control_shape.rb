@@ -328,7 +328,7 @@ module Wx::SF
     end
 	
 	  # Update shape (align all child shapes an resize it to fit them)
-    def update
+    def update(recurse = true)
       super
       update_control
     end

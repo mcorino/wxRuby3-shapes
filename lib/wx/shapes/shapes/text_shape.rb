@@ -87,7 +87,7 @@ module Wx::SF
     alias :text_colour :get_text_colour
     
     # Update shape (align all child shapes and resize it to fit them)
-    def update
+    def update(recurse = true)
       update_rect_size
       super
     end

@@ -793,7 +793,7 @@ module Wx::SF
     end
 
     # Update shape (align all child shapes and resize it to fit them)
-    def update
+    def update(recurse = true)
       # do self-alignment
       do_alignment
 
@@ -804,8 +804,8 @@ module Wx::SF
       fit_to_children unless has_style?(STYLE::NO_FIT_TO_CHILDREN)
 
       # do it recursively on all parent shapes
-      if (parent = get_parent_shape)
-        parent.update
+      if recurse && (parent = get_parent_shape)
+        parent.update(recurse)
       end
     end
 

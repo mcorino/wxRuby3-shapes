@@ -185,6 +185,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         # set shape policy
         shape.accept_child(Wx::SF::TextShape)
         shape.accept_child(Wx::SF::EditTextShape)
+        shape.accept_child(Wx::SF::RectShape)
+        shape.accept_child(Wx::SF::VBoxShape)
 
         shape.accept_connection(Wx::SF::ACCEPT_ALL)
         shape.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
@@ -382,14 +384,11 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         end
 
     when MainFrame::MODE::STANDALONELINE
-      _, shape = get_diagram.create_shape(Wx::SF::LineShape, event.get_position, Wx::SF::DONT_SAVE_STATE)
+      _, shape = get_diagram.insert_shape(Wx::SF::LineShape.new((event.get_position - [50, 0]).to_real,
+                                                                (event.get_position + [50, 0]).to_real),
+                                          event.get_position,
+                                          Wx::SF::DONT_SAVE_STATE)
       if shape
-        # set the line to be stand-alone
-        shape.set_stand_alone(true)
-
-        shape.set_src_point((event.get_position - [50, 0]).to_real_point)
-        shape.set_trg_point((event.get_position + [50, 0]).to_real_point)
-
         # line's ending style can be set as follows:
         # shape.set_src_arrow(Wx::SF::CircleArrow)
         # shape.set_trg_arrow(Wx::SF::CircleArrow)
@@ -796,6 +795,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
     def arrow_type(arrow)
       case arrow
+      when Wx::SF::CrossBarProngArrow then 'CrossBarProng'
       when Wx::SF::ProngArrow then 'Prong'
       when Wx::SF::OpenArrow then 'Open'
       when Wx::SF::CupArrow then 'Cup'
@@ -806,9 +806,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       when Wx::SF::SolidArrow then 'Solid'
       when Wx::SF::CrossedCircleArrow then 'CrossedCircle'
       when Wx::SF::CircleProngArrow then 'CircleProng'
-      when Wx::SF::CircleArrow then 'Circle'
       when Wx::SF::CrossBarCircleArrow then 'CrossBarCircle'
-      when Wx::SF::CrossBarProngArrow then 'CrossBarProng'
+      when Wx::SF::CircleArrow then 'Circle'
       else
         'None'
       end
@@ -936,6 +935,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         when 'RIGHT' then shape.set_h_align(Wx::SF::Shape::HALIGN::RIGHT)
         when 'EXPAND' then shape.set_h_align(Wx::SF::Shape::HALIGN::EXPAND)
         end
+        shape.update
       when POPUP_ID::VALIGN
         case Wx.get_single_choice('Select vertical alignment',
                                   'Select',
