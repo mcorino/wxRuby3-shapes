@@ -1056,8 +1056,9 @@ module Wx::SF
         data_obj = Wx::SF::ShapeDataObject.new
         if clipboard.fetch(data_obj)
 
+          sdata = data_obj.get_data_here
           # deserialize shapes
-          new_shapes = FIRM.deserialize(data_obj.get_data_here)
+          new_shapes = FIRM.deserialize(sdata)
           # add new shapes to diagram and remove those that are not accepted
           new_shapes.select! do |shape|
             ERRCODE::OK == @diagram.add_shape(shape, nil, shape.get_relative_position, INITIALIZE, DONT_SAVE_STATE)
@@ -1172,6 +1173,17 @@ module Wx::SF
       refresh(false)
     end
     protected :restore_canvas_state
+
+    # Restores current last saved canvas state.
+    def restore_current_state
+      return unless has_style?(STYLE::UNDOREDO)
+
+      clear_temporaries
+
+      restore_canvas_state(@canvas_history.current_state)
+      @shp_multi_edit.show(false)
+    end
+    protected :restore_current_state
 
     # @!group Print methods
 
@@ -2167,6 +2179,10 @@ module Wx::SF
             # perform selection
             lst_selection = get_selected_shapes
 
+            if @selection_mode == SELECTIONMODE::NORMAL
+              save_canvas_state if @canvas_history.empty?
+            end
+
             # cancel previous selections if necessary...
             if @selection_mode == SELECTIONMODE::NORMAL && (selected_top_shape.nil? || !lst_selection.include?(selected_top_shape))
               deselect_all
@@ -2234,6 +2250,7 @@ module Wx::SF
           # update canvas
           invalidate_visible_rect
         else
+          save_canvas_state if @canvas_history.empty?
           if @selected_handle.get_parent_shape == @shp_multi_edit
             if has_style?(STYLE::MULTI_SIZE_CHANGE)
               @working_mode = MODE::MULTIHANDLEMOVE
@@ -2722,6 +2739,13 @@ module Wx::SF
             line.send(:set_line_mode, LineShape::LINEMODE::READY)
             @selected_handle = nil
           end
+          restore_current_state
+
+        when MODE::MULTIHANDLEMOVE
+          restore_current_state
+
+        when MODE::SHAPEMOVE
+          restore_current_state
 
         else
           # send event to selected shapes
