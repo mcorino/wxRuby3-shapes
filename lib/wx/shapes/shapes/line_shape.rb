@@ -11,7 +11,7 @@ module Wx::SF
     module DEFAULT
       class << self
         # Default value of LineShape @pen data member.
-        def pen; Wx::Pen.new(Wx::BLACK); end
+        def pen; @pen ||= Wx::BLACK_PEN.dup; end
      end
       # Default value of LineShape @dock_point data member.
       DOCKPOINT = 0

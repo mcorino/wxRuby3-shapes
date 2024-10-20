@@ -9,9 +9,9 @@ module Wx::SF
     module DEFAULT
       class << self
         # Default value of RectShape @fill data member.
-        def fill; Wx::Brush.new(Wx::WHITE); end
+        def fill; @file ||= Wx::WHITE_BRUSH.dup; end
         # Default value of RectShape @border data member.
-        def border; Wx::Pen.new(Wx::BLACK); end
+        def border; @border ||= Wx::BLACK_PEN.dup; end
       end
       # Default value of RectShape @rect_size data member.
       SIZE = Wx::RealPoint.new(100, 50)

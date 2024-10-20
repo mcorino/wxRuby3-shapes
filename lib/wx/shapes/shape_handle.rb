@@ -26,6 +26,16 @@ module Wx::SF
         UNDEF = self.new(11)
       end
 
+      class << self
+        def handle_brush
+          if ShapeCanvas.gc_enabled?
+            @gc_brush ||= Wx::Brush.new(Wx::Colour.new(0, 0, 0, 128))
+          else
+            @dc_brush ||= Wx::BLACK_BRUSH.dup
+          end
+        end
+      end
+
       # Constructor
       # @param [Wx::Shape] parent Parent shape
       # @param [TYPE] type Handle type
@@ -131,17 +141,14 @@ module Wx::SF
       # @param [Wx::DC] dc Device context where the handle will be drawn
       def draw_normal(dc)
         dc.with_pen(Wx::PLATFORM == 'WXGTK' ? Wx::TRANSPARENT_PEN : Wx::BLACK_PEN) do
-          if ShapeCanvas::gc_enabled?
-            dc.brush = Wx::Brush.new(Wx::Colour.new(0, 0, 0, 128))
-          else
-            dc.brush = Wx::BLACK_BRUSH
-            # dc.logical_function = Wx::RasterOperationMode::INVERT
+          dc.with_brush(Handle.handle_brush) do
+            # unless ShapeCanvas::gc_enabled?
+            #   dc.logical_function = Wx::RasterOperationMode::INVERT
+            # end
+
+            dc.draw_rectangle(handle_rect)
+            # dc.logical_function = Wx::RasterOperationMode::COPY
           end
-
-          dc.draw_rectangle(handle_rect)
-          # dc.logical_function = Wx::RasterOperationMode::COPY
-
-          dc.brush = Wx::NULL_BRUSH
         end
       end
 

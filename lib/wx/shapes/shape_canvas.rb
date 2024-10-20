@@ -194,19 +194,19 @@ module Wx::SF
     module DEFAULT
       class << self
         # Default value of Wx::SF::CanvasSettings @background_color data member
-        def background_color; Wx::Colour.new(240, 240, 240); end
+        def background_color; @bgcolor ||= Wx::Colour.new(240, 240, 240); end
         # Default value of Wx::SF::CanvasSettings @common_hover_color data member
-        def hover_color; Wx::Colour.new(120, 120, 255); end
+        def hover_color; @hvrcolor ||= Wx::Colour.new(120, 120, 255); end
         # Default value of Wx::SF::CanvasSettings @grid_color data member
-        def grid_color; Wx::Colour.new(200, 200, 200); end
+        def grid_color; @gridcolor ||= Wx::Colour.new(200, 200, 200); end
         # Default value of Wx::SF::CanvasSettings @gradient_from data member
-        def gradient_from; Wx::Colour.new(240, 240, 240); end
+        def gradient_from; @gradcolor_from ||= Wx::Colour.new(240, 240, 240); end
         # Default value of Wx::SF::CanvasSettings @gradient_to data member
-        def gradient_to; Wx::Colour.new(200, 200, 255); end
+        def gradient_to; @gradcolor_to ||= Wx::Colour.new(200, 200, 255); end
         # Default shadow colour
-        def shadow_color; Wx::Colour.new(150, 150, 150, 128); end
+        def shadow_color; @shadowcolor ||= Wx::Colour.new(150, 150, 150, 128); end
         # Default value of Wx::SF::CanvasSettings @shadow_fill data member
-        def shadow_brush; Wx::Brush.new(shadow_color, Wx::BrushStyle::BRUSHSTYLE_SOLID); end
+        def shadow_brush; @shadowbrush ||= Wx::Brush.new(shadow_color, Wx::BrushStyle::BRUSHSTYLE_SOLID); end
       end
       # Default value of Wx::SF::CanvasSettings @grid_size data member
       GRIDSIZE = Wx::Size.new(10, 10)

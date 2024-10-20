@@ -11,9 +11,9 @@ module Wx::SF
     module DEFAULT
       class << self
         # Default value of TextShape @font data member.
-        def font; Wx::SWISS_FONT.dup; end
+        def font; @font ||= Wx::SWISS_FONT.dup; end
         # Default value of TextShape @text_color data member.
-        def text_color; Wx::BLACK.dup; end
+        def text_color; @txtclr ||= Wx::BLACK.dup; end
       end
       TEXT = 'Text'
     end
