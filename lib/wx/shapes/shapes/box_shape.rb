@@ -33,6 +33,32 @@ module Wx::SF
       SPACING  = 3
     end
 
+    class << self
+
+      # Returns the minimum size for *empty* boxes
+      # @return [Wx::Size]
+      def get_min_size
+        @min_size ||= Wx::Size.new(20, 20)
+      end
+      alias :min_size :get_min_size
+
+      # Sets the minimum size for *empty* boxes
+      # @overload set_min_size(sz)
+      #   @param [Wx::Size] sz
+      # @overload set_min_size(w, h)
+      #   @param [Integer] w
+      #   @param [Integer] h
+      def set_min_size(arg1, arg2 = nil)
+        @min_size = if arg2.nil?
+                      raise ArgumentError, 'Expected Wx::Size' unless Wx::Size === arg1
+                      arg1
+                    else
+                      Wx::Size.new(arg1, arg2)
+                    end
+      end
+      alias :min_size= :set_min_size
+
+    end
 
     property :spacing, :orientation, :slots
 
@@ -199,10 +225,10 @@ module Wx::SF
         child.get_complete_bounding_box(ch_bb, BBMODE::SELF | BBMODE::CHILDREN) if child.has_style?(STYLE::ALWAYS_INSIDE)
       end
 
-      # do not let the grid shape 'disappear' due to zero sizes...
-      if (ch_bb.width == 0 || ch_bb.height == 0) && @spacing == 0
-        ch_bb.set_width(20)
-        ch_bb.set_height(20)
+      if @child_shapes.empty?
+        # do not let the empty box shape 'disappear' due to zero sizes...
+        ch_bb.set_width(BoxShape.min_size.width) if (ch_bb.width + 2*@spacing) <= BoxShape.min_size.width && get_h_align != HALIGN::EXPAND
+        ch_bb.set_height(BoxShape.min_size.height) if (ch_bb.height + 2*@spacing) <= BoxShape.min_size.height && get_v_align != VALIGN::EXPAND
       end
 
       @rect_size = Wx::RealPoint.new(ch_bb.width + 2*@spacing, ch_bb.height + 2*@spacing)
