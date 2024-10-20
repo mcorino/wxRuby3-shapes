@@ -325,11 +325,10 @@ module Wx::SF
         child.get_complete_bounding_box(ch_bb, BBMODE::SELF | BBMODE::CHILDREN) if child.has_style?(STYLE::ALWAYS_INSIDE)
       end
 
-
       if @child_shapes.empty?
-        # do not let the empty box shape 'disappear' due to zero sizes...
-        ch_bb.set_width(GridShape.min_size.width) if (ch_bb.width + 2*@cell_space) <= GridShape.min_size.width && get_h_align != HALIGN::EXPAND
-        ch_bb.set_height(GridShape.min_size.height) if (ch_bb.height + 2*@cell_space) <= GridShape.min_size.height && get_v_align != VALIGN::EXPAND
+        # do not let the empty grid shape 'disappear' due to zero sizes...
+        ch_bb.set_width(GridShape.min_size.width) if (ch_bb.width + 2*@cell_space) <= GridShape.min_size.width
+        ch_bb.set_height(GridShape.min_size.height) if (ch_bb.height + 2*@cell_space) <= GridShape.min_size.height
       end
 
       @rect_size = Wx::RealPoint.new(ch_bb.width + 2*@cell_space, ch_bb.height + 2*@cell_space)
