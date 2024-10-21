@@ -103,8 +103,10 @@ module Wx::SF
       HIGHLIGHTING = self.new(16)
       # Shape is always inside its parent
       ALWAYS_INSIDE = self.new(32)
-      # available
-      # XXX = self.new(64)
+      # Shape is not drawn. Does not apply to children.
+      # Should be combined with PROPAGATE_DRAGGING | PROPAGATE_SELECTION | PROPAGATE_INTERACTIVE_CONNECTION | PROPAGATE_HOVERING | PROPAGATE_HIGHLIGHTING
+      # in most cases.
+      NOT_DRAWN = self.new(64)
       # The DEL key is processed by the shape (not by the shape canvas)
       PROCESS_DEL = self.new(128)
       # Show handles if the shape is selected
@@ -129,6 +131,8 @@ module Wx::SF
       PROPAGATE_HIGHLIGHTING = self.new(131072)
       # Default shape style
       DEFAULT_SHAPE_STYLE = PARENT_CHANGE | POSITION_CHANGE | SIZE_CHANGE | HOVERING | HIGHLIGHTING | SHOW_HANDLES | ALWAYS_INSIDE
+      # Shortcut for all propagation options
+      PROPAGATE_ALL = PROPAGATE_DRAGGING | PROPAGATE_SELECTION | PROPAGATE_INTERACTIVE_CONNECTION | PROPAGATE_HOVERING | PROPAGATE_HIGHLIGHTING
     end
 
     # Default values
@@ -392,25 +396,29 @@ module Wx::SF
       return unless @diagram && @diagram.shape_canvas
       return unless @visible
 
-      # draw the shape shadow if required
-      draw_shadow(dc) if !@selected && has_style?(STYLE::SHOW_SHADOW)
+      unless has_style?(STYLE::NOT_DRAWN)
 
-      # first, draw itself
-      if @mouse_over && (@highlight_parent || has_style?(STYLE::HOVERING))
-        if @highlight_parent
-          draw_highlighted(dc)
-          @highlight_parent = false
+        # draw the shape shadow if required
+        draw_shadow(dc) if !@selected && has_style?(STYLE::SHOW_SHADOW)
+
+        # first, draw itself
+        if @mouse_over && (@highlight_parent || has_style?(STYLE::HOVERING))
+          if @highlight_parent
+            draw_highlighted(dc)
+            @highlight_parent = false
+          else
+            draw_hover(dc)
+          end
         else
-          draw_hover(dc)
+          draw_normal(dc)
         end
-      else
-        draw_normal(dc)
+
+        draw_selected(dc) if @selected
+
+        # ... then draw connection points ...
+        @connection_pts.each { |cpt| cpt.draw(dc) } unless has_style?(STYLE::PROPAGATE_INTERACTIVE_CONNECTION)
+
       end
-
-      draw_selected(dc) if @selected
-
-      # ... then draw connection points ...
-      @connection_pts.each { |cpt| cpt.draw(dc) }
 
       # ... then draw child shapes
       if children
@@ -514,7 +522,7 @@ module Wx::SF
       @style &= ~style
     end
     def contains_style(style)
-      (@style & style) != 0
+      @style.allbits?(style)
     end
     alias :contains_style? :contains_style
     alias :has_style? :contains_style
@@ -823,7 +831,7 @@ module Wx::SF
     # @param [Boolean] state Selection state (true is selected, false is deselected)
     def select(state)
       @selected = state
-      show_handles(state && (@style & STYLE::SHOW_HANDLES) != 0)
+      show_handles(state && has_style?(STYLE::SHOW_HANDLES))
     end
 
     # Set shape's relative position. Absolute shape's position is then calculated
@@ -1038,7 +1046,7 @@ module Wx::SF
       unless is_child_accepted(ACCEPT_ALL)
         lst_selection = get_shape_canvas.get_selected_shapes
 
-        return false if lst_selection.any? { |shape| !@accepted_children.include?(shape.class.name) }
+        return false if lst_selection.any? { |shape| !@accepted_children.include?(shape.class) }
       end
       true
     end
@@ -1754,7 +1762,7 @@ module Wx::SF
           rct.union!(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
 
           # add also shadow offset if necessary
-          if mask.allbits?(BBMODE::SHADOW) && has_style?(STYLE::SHOW_SHADOW) && get_parent_canvas
+          if mask.allbits?(BBMODE::SHADOW) && has_style?(STYLE::SHOW_SHADOW) && !has_style(STYLE::NOT_DRAWN) && get_parent_canvas
             n_offset = get_parent_canvas.get_shadow_offset
 
             if n_offset.x < 0
@@ -1820,7 +1828,7 @@ module Wx::SF
         @handles.each { |h| h.__send__(:_on_mouse_move, pos) }
 
         # send the event to the connection points too...
-        @connection_pts.each { |cp| cp.__send__(:_on_mouse_move, pos) }
+        @connection_pts.each { |cp| cp.__send__(:_on_mouse_move, pos) } unless has_style?(STYLE::PROPAGATE_INTERACTIVE_CONNECTION)
 
         # determine, whether the shape should be highlighted for any reason
         if canvas
