@@ -770,7 +770,7 @@ module Wx::SF
       case args.first
       when Wx::SF::LineShape
         shape = args.shift
-        shape_klass = shape.class.name
+        shape_klass = shape.class
         if args.first.is_a?(Wx::SF::ConnectionPoint)
           connection_point = args.shift
         end
@@ -778,7 +778,7 @@ module Wx::SF
       when ::Class
         shape_info = args.shift
         pos = args.shift.to_point
-        shape_klass = shape_info.name
+        shape_klass = shape_info
       end
       ::Kernel.raise ArgumentError, "Invalid arguments #{args}" unless args.empty?
       return ERRCODE::INVALID_INPUT unless pos
