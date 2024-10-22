@@ -104,7 +104,7 @@ module Wx::SF
       # Shape is always inside its parent
       ALWAYS_INSIDE = self.new(32)
       # Shape is not drawn. Does not apply to children.
-      # Should be combined with PROPAGATE_DRAGGING | PROPAGATE_SELECTION | PROPAGATE_INTERACTIVE_CONNECTION | PROPAGATE_HOVERING | PROPAGATE_HIGHLIGHTING
+      # Should be combined with PROPAGATE_DRAGGING | PROPAGATE_SELECTION | PROPAGATE_INTERACTIVE_CONNECTION | PROPAGATE_HOVERING | PROPAGATE_HIGHLIGHTING | PROPAGATE_DROPPING
       # in most cases.
       NOT_DRAWN = self.new(64)
       # The DEL key is processed by the shape (not by the shape canvas)
@@ -127,12 +127,14 @@ module Wx::SF
       NO_FIT_TO_CHILDREN = self.new(32768)
       # Propagate hovering to parent.
       PROPAGATE_HOVERING = self.new(65536)
-      # Propagate hovering to parent.
+      # Propagate highlighting to parent.
       PROPAGATE_HIGHLIGHTING = self.new(131072)
+      # Propagate dropping to parent.
+      PROPAGATE_DROPPING = self.new(262144)
       # Default shape style
       DEFAULT_SHAPE_STYLE = PARENT_CHANGE | POSITION_CHANGE | SIZE_CHANGE | HOVERING | HIGHLIGHTING | SHOW_HANDLES | ALWAYS_INSIDE
       # Shortcut for all propagation options
-      PROPAGATE_ALL = PROPAGATE_DRAGGING | PROPAGATE_SELECTION | PROPAGATE_INTERACTIVE_CONNECTION | PROPAGATE_HOVERING | PROPAGATE_HIGHLIGHTING
+      PROPAGATE_ALL = PROPAGATE_DRAGGING | PROPAGATE_SELECTION | PROPAGATE_INTERACTIVE_CONNECTION | PROPAGATE_HOVERING | PROPAGATE_HIGHLIGHTING | PROPAGATE_DROPPING
     end
 
     # Default values
@@ -356,7 +358,8 @@ module Wx::SF
     # @note Note that this does not add (if parent == nil) or remove (if parent != nil) the shape from the diagram's
     # toplevel shapes. Use Diagram#reparent_shape when that is needed.
     def set_parent_shape(parent)
-      raise SFException, 'Illegal attempt to set Shape parent to self' if parent == self
+      raise SFException, 'Illegal to set Shape parent to self' if parent == self
+      raise SFException, 'Illegal to set Shape parent to (grand-)child of self' if parent && include_child_shape?(parent, true)
       @parent_shape.send(:remove_child, self) if @parent_shape
       parent.send(:add_child, self) if parent
       set_diagram(parent.get_diagram) if parent
@@ -827,6 +830,12 @@ module Wx::SF
       @selected
     end
 
+    # Returns true if any (grand-)parent is selected?
+    def has_selected_parent?
+      @parent_shape&.selected? || @parent_shape&.has_selected_parent?
+    end
+    alias :selected_parent? :has_selected_parent?
+
     # Set the shape as a selected/deselected one
     # @param [Boolean] state Selection state (true is selected, false is deselected)
     def select(state)
@@ -1043,7 +1052,7 @@ module Wx::SF
     def accept_currently_dragged_shapes
       return false unless get_shape_canvas
 
-      unless is_child_accepted(ACCEPT_ALL)
+      unless @accepted_children.include?(ACCEPT_ALL)
         lst_selection = get_shape_canvas.get_selected_shapes
 
         return false if lst_selection.any? { |shape| !@accepted_children.include?(shape.class) }
