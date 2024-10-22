@@ -471,6 +471,9 @@ module Wx::SF
       @shapes
     end
 
+    # Get all shapes recursively.
+    # This is an optimized convenience method which returns all shapes the same as if #get_shapes() was called with
+    # default arguments.
     def get_all_shapes
       @shapes.all
     end
@@ -546,7 +549,7 @@ module Wx::SF
     # @see Wx::SF::ShapeCanvas::dp2lp
     def get_shapes_at_position(pos, shapes = [])
       pos = pos.to_point
-      get_shapes.each do |shape|
+      get_all_shapes.each do |shape|
         shapes << shape if shape.visible? && shape.active? && shape.contains?(pos)
       end
     end
@@ -556,7 +559,7 @@ module Wx::SF
     # @param [Array<Wx::SF::Shape>] shapes shape list where all found shapes will be stored
     # @return [Array<Wx::SF::Shape>] shape list
     def get_shapes_inside(rct, shapes = [])
-      get_shapes.each do |shape|
+      get_all_shapes.each do |shape|
         shapes << shape if shape.visible? && shape.active? && shape.intersects?(rct)
       end
     end
