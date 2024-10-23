@@ -1244,10 +1244,10 @@ module Wx::SF
 
     # Get connection point of given type assigned to the shape.
 	  # @param [Wx::SF::ConnectionPoint::CPTYPE] type Connection point type
-	  # @param [Integer] id Optional connection point ID
+	  # @param [Integer, nil] id Optional connection point ID
 	  # @return [Wx::SF::ConnectionPoint,nil] connection point if exists, otherwise nil
 	  # @see Wx::SF::ConnectionPoint::CPTYPE
-    def get_connection_point(type, id = -1)
+    def get_connection_point(type, id = nil)
       @connection_pts.find { |cp| cp.type == type && cp.id == id }
     end
     alias :connection_point :get_connection_point
