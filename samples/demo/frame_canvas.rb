@@ -20,6 +20,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     ACC_CONNECTIONS = self.next_id
     ACC_CONNECTION_FROM = self.next_id
     ACC_CONNECTION_TO = self.next_id
+    CONNECTION_POINTS = self.next_id
 
     # rect
     FILL_BRUSH = self.next_id
@@ -468,6 +469,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     submenu.append(POPUP_ID::ACC_CONNECTION_FROM, 'Connection sources', 'Change accepted connection sources')
     submenu.append(POPUP_ID::ACC_CONNECTION_TO, 'Connection targets', 'Change accepted connection targets')
     menu.append(Wx::MenuItem.new(submenu, POPUP_ID::ACCEPTED, 'Change accepted', '', Wx::ItemKind::ITEM_NORMAL, submenu))
+    menu.append(POPUP_ID::CONNECTION_POINTS, 'Change connection points', 'Change connection points')
 
     @rect_mi = []
     @rect_mi << Wx::MenuItem.new(menu, POPUP_ID::FILL_BRUSH, 'Change fill', 'Change fill brush')
@@ -540,26 +542,26 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     def get_enum_choices(enum, exclude: nil)
       enumerators = enum.enumerators.values
       enumerators.sort
-      enumerators.reject!.each { |e| exclude ? exclude.call(enum[e]) : true }
+      enumerators.reject!.each { |e| exclude && exclude.call(e) }
       enumerators.collect { |id| id.to_s }
     end
 
     def get_enum_index(enumerator, exclude: nil)
       enum = enumerator.class
       enumerators = enum.enumerators.keys
-      enumerators.reject!.each { |e| exclude ? exclude.call(e) : true }
+      enumerators.reject!.each { |e| exclude && exclude.call(e) }
       enumerators.index(enumerator.to_i)
     end
 
     def index_to_enum(enum, index, exclude: nil)
       enumerators = enum.enumerators.values
-      enumerators.reject!.each { |e| exclude ? exclude.call(enum[e]) : true }
+      enumerators.reject!.each { |e| exclude && exclude.call(e) }
       enum[enumerators[index]]
     end
 
     def selections_to_enum(enum, selections, exclude: nil)
       enumerators = enum.enumerators.keys
-      enumerators.reject!.each { |e| exclude ? exclude.call(e) : true }
+      enumerators.reject!.each { |e| exclude && exclude.call(e) }
       selections.inject(enum.new(0)) do |mask, ix|
         mask | enumerators[ix]
       end
@@ -568,7 +570,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     def enum_to_selections(enum, style, exclude: nil)
       sel = []
       enumerators = enum.enumerators.keys
-      enumerators.reject!.each { |e| exclude ? exclude.call(e) : true }
+      enumerators.reject!.each { |e| exclude && exclude.call(e) }
       enumerators.each_with_index do |eval, ix|
         sel << ix if style.allbits?(eval)
       end
@@ -594,6 +596,200 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
   def enum_to_selections(enum, style, exclude: nil)
     self.class.enum_to_selections(enum, style, exclude: exclude)
+  end
+
+  class ConnectionPointDialog < Wx::Dialog
+
+    def initialize(parent, conn_pts)
+      super(parent, Wx::ID_ANY, 'Change connection points')
+      sizer_top = Wx::VBoxSizer.new
+
+      sizer = Wx::HBoxSizer.new
+      vszr = Wx::VBoxSizer.new
+      vszr.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Connection points:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @lst_view = Wx::ListView.new(self)
+      @lst_view.append_column("Connection type",Wx::LIST_FORMAT_LEFT, Wx::LIST_AUTOSIZE_USEHEADER)
+      @lst_view.append_column("Id",Wx::LIST_FORMAT_LEFT, Wx::LIST_AUTOSIZE_USEHEADER)
+      @lst_view.append_column("Otho direction",Wx::LIST_FORMAT_LEFT, Wx::LIST_AUTOSIZE_USEHEADER)
+      @lst_view.append_column("Rel position",Wx::LIST_FORMAT_LEFT, Wx::LIST_AUTOSIZE_USEHEADER)
+
+      cptypes = Wx::SF::ConnectionPoint::CPTYPE.enumerators
+      cpodirs = Wx::SF::ConnectionPoint::CPORTHODIR.enumerators
+      (@cpts = conn_pts.dup).each do |cpt|
+        add_list_item(cpt)
+      end
+
+      vszr.add(@lst_view, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(vszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      vszr = Wx::VBoxSizer.new
+      @cpt_szr = Wx::StaticBoxSizer.new(Wx::Orientation::VERTICAL, self, 'Connection point')
+      hszr = Wx::HBoxSizer.new
+      hszr.add(Wx::StaticText.new(@cpt_szr.static_box, Wx::ID_ANY, 'Type:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_type = Wx::ComboBox.new(@cpt_szr.static_box, Wx::ID_ANY,
+                                     choices: get_enum_choices(Wx::SF::ConnectionPoint::CPTYPE))
+      hszr.add(@cpt_type, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_szr.add(hszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      hszr = Wx::HBoxSizer.new
+      hszr.add(Wx::StaticText.new(@cpt_szr.static_box, Wx::ID_ANY, 'Id:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_id = Wx::TextCtrl.new(@cpt_szr.static_box, validator: Wx::TextValidator.new(Wx::TextValidatorStyle::FILTER_DIGITS))
+      @cpt_id.enable(false)
+      hszr.add(@cpt_id, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_szr.add(hszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      hszr = Wx::HBoxSizer.new
+      hszr.add(Wx::StaticText.new(@cpt_szr.static_box, Wx::ID_ANY, 'Orthogonal direction:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_odir = Wx::ComboBox.new(@cpt_szr.static_box, Wx::ID_ANY,
+                                   choices: get_enum_choices(Wx::SF::ConnectionPoint::CPORTHODIR))
+      hszr.add(@cpt_odir, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_szr.add(hszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      hszr = Wx::HBoxSizer.new
+      hszr.add(Wx::StaticText.new(@cpt_szr.static_box, Wx::ID_ANY, 'Relative position x:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @rpos_x = Wx::SpinCtrlDouble.new(@cpt_szr.static_box, Wx::ID_ANY, min: 0.0, inc: 1.0)
+      hszr.add(@rpos_x, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      hszr.add(Wx::StaticText.new(@cpt_szr.static_box, Wx::ID_ANY, 'y:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @rpos_y = Wx::SpinCtrlDouble.new(@cpt_szr.static_box, Wx::ID_ANY, min: 0.0, inc: 1.0)
+      hszr.add(@rpos_y, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_szr.add(hszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      hszr = Wx::HBoxSizer.new
+      @add_btn = Wx::Button.new(@cpt_szr.static_box, Wx::ID_ANY, 'Add')
+      @add_btn.enable(false)
+      hszr.add(@add_btn, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @chg_btn = Wx::Button.new(@cpt_szr.static_box, Wx::ID_ANY, 'Change selected')
+      hszr.add(@chg_btn, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @chg_btn.enable(false)
+      @cpt_szr.add(hszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      vszr.add(@cpt_szr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      @del_btn = Wx::Button.new(self, Wx::ID_ANY, 'Delete selected')
+      @del_btn.enable(false)
+      vszr.add(@del_btn, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      sizer.add(vszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_CENTRE_HORIZONTAL).border(Wx::ALL, 5))
+
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::Button.new(self, Wx::ID_CANCEL, "&Cancel"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::RIGHT, 80))
+
+      set_auto_layout(true)
+      set_sizer(sizer_top)
+
+      sizer_top.set_size_hints(self)
+      sizer_top.fit(self)
+
+      evt_update_ui @cpt_type, :on_cpt_type_update
+      evt_update_ui @add_btn, :on_add_cpt_update
+      evt_update_ui @del_btn, :on_del_cpt_update
+      evt_update_ui @chg_btn, :on_chg_cpt_update
+      evt_list_item_selected @lst_view, :on_list_item_selected
+      evt_button @del_btn, :on_delete_cpt
+      evt_button @chg_btn, :on_change_cpt
+      evt_button @add_btn, :on_add_cpt
+    end
+
+    def set_shape_connection_points(shape)
+      @cpts.each { |cpt| cpt.set_parent_shape(shape) }
+      shape.connection_points.replace(@cpts)
+    end
+
+    def on_cpt_type_update(_evt)
+      @cpt_id.enable(@cpt_type.string_selection == 'CUSTOM')
+    end
+    private :on_cpt_type_update
+
+    def on_add_cpt_update(_evt)
+      @add_btn.enable(@cpt_type.selection != -1 && @cpt_odir.selection != -1)
+    end
+    private :on_add_cpt_update
+
+    def on_del_cpt_update(_evt)
+      @del_btn.enable(@lst_view.get_selected_item_count > 0)
+    end
+    private :on_del_cpt_update
+
+    def on_chg_cpt_update(_evt)
+      @chg_btn.enable(@lst_view.get_selected_item_count > 0)
+    end
+    private :on_chg_cpt_update
+
+    def on_list_item_selected(evt)
+      sel_cpt = @cpts[evt.index]
+      @cpt_type.set_selection(Wx::SF::ConnectionPoint::CPTYPE.enumerators.keys.index(sel_cpt.type.to_i))
+      @cpt_id.value = sel_cpt.id.to_s
+      @cpt_odir.set_selection(Wx::SF::ConnectionPoint::CPORTHODIR.enumerators.keys.index(sel_cpt.ortho_direction.to_i))
+      @rpos_x.value = sel_cpt.relative_position.x
+      @rpos_y.value = sel_cpt.relative_position.y
+    end
+    private :on_list_item_selected
+
+    def on_delete_cpt(_evt)
+      unless (sel = @lst_view.get_first_selected) == -1
+        @lst_view.delete_item(sel)
+        @cpts.delete_at(sel)
+      end
+    end
+    private :on_delete_cpt
+
+    def update_connection_point(cpt)
+      cpt.type = index_to_enum(Wx::SF::ConnectionPoint::CPTYPE, @cpt_type.selection)
+      cpt.id = (@cpt_type.string_selection == 'CUSTOM' && !@cpt_id.value.empty?) ? @cpt_id.value.to_i : nil
+      cpt.ortho_direction = index_to_enum(Wx::SF::ConnectionPoint::CPORTHODIR, @cpt_odir.selection)
+      cpt.relative_position = Wx::RealPoint.new(@rpos_x.value, @rpos_y.value)
+    end
+    private :update_connection_point
+
+    def update_list_item(item)
+      @lst_view.set_item(item, 0, Wx::SF::ConnectionPoint::CPTYPE.enumerators[@cpts[item].type.to_i].to_s)
+      @lst_view.set_item(item, 1, @cpts[item].id.to_s)
+      @lst_view.set_item(item, 2, Wx::SF::ConnectionPoint::CPORTHODIR.enumerators[@cpts[item].ortho_direction.to_i].to_s)
+      @lst_view.set_item(item, 3, '%.2f x %.2f' % @cpts[item].relative_position.to_ary)
+    end
+    private :update_list_item
+    
+    def on_change_cpt(_evt)
+      unless (sel = @lst_view.get_first_selected) == -1
+        update_connection_point(@cpts[sel])
+        update_list_item(sel)
+      end
+    end
+    private :on_change_cpt
+
+    def add_list_item(cpt)
+      item = @lst_view.insert_item(@lst_view.item_count, Wx::SF::ConnectionPoint::CPTYPE.enumerators[cpt.type.to_i].to_s)
+      @lst_view.set_item(item, 1, cpt.id.to_s)
+      @lst_view.set_item(item, 2, Wx::SF::ConnectionPoint::CPORTHODIR.enumerators[cpt.ortho_direction.to_i].to_s)
+      @lst_view.set_item(item, 3, '%.2f x %.2f' % cpt.relative_position.to_ary)
+    end
+    private :add_list_item
+
+    def on_add_cpt(_evt)
+      @cpts << Wx::SF::ConnectionPoint.new
+      update_connection_point(@cpts.last)
+      add_list_item(@cpts.last)
+    end
+
+    def get_enum_choices(enum, exclude: nil)
+      FrameCanvas.get_enum_choices(enum, exclude: exclude)
+    end
+    private :get_enum_choices
+
+    def get_enum_index(enumerator, exclude: nil)
+      FrameCanvas.get_enum_index(enumerator, exclude: exclude)
+    end
+    private :get_enum_index
+
+    def index_to_enum(enum, index, exclude: nil)
+      FrameCanvas.index_to_enum(enum, index, exclude: exclude)
+    end
+    private :index_to_enum
+
   end
 
   EXCL_BRUSH_STYLES = [
@@ -1149,6 +1345,13 @@ class FrameCanvas < Wx::SF::ShapeCanvas
             if (ss = dlg.get_selected_shapes(shape_options))
               shape.accepted_trg_neighbours.merge(ss)
             end
+          end
+        end
+      when POPUP_ID::CONNECTION_POINTS
+        FrameCanvas.ConnectionPointDialog(self, shape.connection_points) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            dlg.set_shape_connection_points(shape)
+            shape.update
           end
         end
       when POPUP_ID::FILL_BRUSH
