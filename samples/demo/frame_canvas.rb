@@ -541,8 +541,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
   class << self
     def get_enum_choices(enum, exclude: nil)
       enumerators = enum.enumerators.values
-      enumerators.sort
-      enumerators.reject!.each { |e| exclude && exclude.call(e) }
+      enumerators.reject!.each { |e| exclude && exclude.call(enum[e]) }
       enumerators.collect { |id| id.to_s }
     end
 
@@ -555,7 +554,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
     def index_to_enum(enum, index, exclude: nil)
       enumerators = enum.enumerators.values
-      enumerators.reject!.each { |e| exclude && exclude.call(e) }
+      enumerators.reject!.each { |e| exclude && exclude.call(enum[e]) }
       enum[enumerators[index]]
     end
 
@@ -665,9 +664,14 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
       vszr.add(@cpt_szr, Wx::SizerFlags.new.border(Wx::ALL, 5))
 
+      hszr = Wx::HBoxSizer.new
       @del_btn = Wx::Button.new(self, Wx::ID_ANY, 'Delete selected')
       @del_btn.enable(false)
-      vszr.add(@del_btn, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      hszr.add(@del_btn, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @clear_btn = Wx::Button.new(self, Wx::ID_ANY, 'Delete all')
+      @clear_btn.enable(!@cpts.empty?)
+      hszr.add(@clear_btn, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      vszr.add(hszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
 
       sizer.add(vszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
       sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_CENTRE_HORIZONTAL).border(Wx::ALL, 5))
@@ -688,10 +692,12 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       evt_update_ui @add_btn, :on_add_cpt_update
       evt_update_ui @del_btn, :on_del_cpt_update
       evt_update_ui @chg_btn, :on_chg_cpt_update
+      evt_update_ui(@clear_btn) { @clear_btn.enable(!@cpts.empty?) }
       evt_list_item_selected @lst_view, :on_list_item_selected
       evt_button @del_btn, :on_delete_cpt
       evt_button @chg_btn, :on_change_cpt
       evt_button @add_btn, :on_add_cpt
+      evt_button(@clear_btn) { @lst_view.delete_all_items; @cpts.clear }
     end
 
     def set_shape_connection_points(shape)
@@ -1062,21 +1068,32 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         @line_szr.static_box.enable(false)
       end
 
-      @fill_szr = Wx::StaticBoxSizer.new(Wx::Orientation::HORIZONTAL, self, 'Fill')
-      @fill_szr.add(Wx::StaticText.new(@fill_szr.static_box, Wx::ID_ANY, 'Colour:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_szr = Wx::StaticBoxSizer.new(Wx::Orientation::VERTICAL, self, 'Fill')
+      sizer = Wx::HBoxSizer.new
+      @def_brush_rb = Wx::RadioButton.new(@fill_szr.static_box, Wx::ID_ANY, 'Use default brush', style: Wx::RB_GROUP)
+      sizer.add(@def_brush_rb, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @custom_brush_rb = Wx::RadioButton.new(@fill_szr.static_box, Wx::ID_ANY, 'Use custom brush')
+      sizer.add(@custom_brush_rb, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_szr.add(sizer, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::StaticText.new(@fill_szr.static_box, Wx::ID_ANY, 'Colour:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @fill_clr = Wx::ColourPickerCtrl.new(@fill_szr.static_box, Wx::ID_ANY)
-      @fill_szr.add(@fill_clr, Wx::SizerFlags.new.border(Wx::ALL, 5))
-      @fill_szr.add(Wx::StaticText.new(@fill_szr.static_box, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(@fill_clr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::StaticText.new(@fill_szr.static_box, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @fill_style = Wx::ComboBox.new(@fill_szr.static_box, Wx::ID_ANY,
                                      choices: get_enum_choices(Wx::BrushStyle,
                                                                exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
-      @fill_szr.add(@fill_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
-      sizer_top.add(@fill_szr, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
+      sizer.add(@fill_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_szr.add(sizer, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(@fill_szr, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).expand.border(Wx::ALL, 5))
 
       if Wx::SF::FilledArrow === arrow
+        @def_brush_rb.value = true
         @fill_clr.colour = arrow.fill.colour
         @fill_style.selection = get_enum_index(arrow.fill.style,
                                                exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })
+        @fill_clr.enable(false)
+        @fill_style.enable(false)
       else
         @fill_szr.static_box.enable(false)
       end
@@ -1130,9 +1147,11 @@ class FrameCanvas < Wx::SF::ShapeCanvas
                                     index_to_enum(Wx::PenStyle, @line_style.selection,
                                                   exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID })))
         end
-        arrow.set_fill(Wx::Brush.new(@fill_clr.colour,
-                                     index_to_enum(Wx::BrushStyle, @fill_style.selection,
-                                                   exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })))
+        if @custom_brush_rb.value
+          arrow.set_fill(Wx::Brush.new(@fill_clr.colour,
+                                       index_to_enum(Wx::BrushStyle, @fill_style.selection,
+                                                     exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })))
+        end
         arrow
       end
     end
@@ -1182,6 +1201,13 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         @line_clr.enable(true)
         @line_wdt.enable(true)
         @line_style.enable(true)
+      end
+      if @def_brush_rb.value
+        @fill_clr.enable(false)
+        @fill_style.enable(false)
+      else
+        @fill_clr.enable(true)
+        @fill_style.enable(true)
       end
     end
     private :on_radiobutton
