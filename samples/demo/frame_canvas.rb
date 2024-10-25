@@ -41,6 +41,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
     # grid
     GRID_SETTINGS = self.next_id
+    GRID_SPACING = self.next_id
+    GRID_MAXROWS = self.next_id
 
     DUMP = self.next_id
   end
@@ -488,7 +490,10 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
     @box_mi = Wx::MenuItem.new(menu, POPUP_ID::BOX_SPACING, 'Change slot spacing', 'Change slot spacing')
 
-    @grid_mi = Wx::MenuItem.new(menu, POPUP_ID::GRID_SETTINGS, 'Change grid settings', 'Change grid settings')
+    submenu = Wx::Menu.new
+    submenu.append(POPUP_ID::GRID_SPACING, 'Change cell spacing', 'Change cell spacing')
+    submenu.append(POPUP_ID::GRID_MAXROWS, 'Change row maximum', 'Change row maximum')
+    @grid_mi = Wx::MenuItem.new(menu, POPUP_ID::GRID_SETTINGS, 'Change grid settings', 'Change grid settings', Wx::ItemKind::ITEM_NORMAL, submenu)
 
     menu.append_separator
     menu.append(POPUP_ID::DUMP, 'Show serialized state', 'Show serialized state')
@@ -1411,6 +1416,20 @@ class FrameCanvas < Wx::SF::ShapeCanvas
                                 shape.spacing, 0, 100, self)
         if spc >= 0
           shape.spacing = spc
+          shape.update
+        end
+      when POPUP_ID::GRID_SPACING
+        spc = Wx.get_number_from_user('Enter GridShape cell spacing.', 'Value:', 'Cell spacing',
+                                      shape.cell_space, 0, 100, self)
+        if spc >= 0
+          shape.cell_space = spc
+          shape.update
+        end
+      when POPUP_ID::GRID_MAXROWS
+        spc = Wx.get_number_from_user('Enter GridShape maximum rows.', 'Value:', 'Maximum rows',
+                                      shape.max_rows, 0, 100, self)
+        if spc >= 0
+          shape.max_rows = spc
           shape.update
         end
       when POPUP_ID::LINE_PEN
