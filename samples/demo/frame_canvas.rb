@@ -526,6 +526,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         remove_popup_items(POPUP_ID::TEXT_FONT, POPUP_ID::TEXT_COLOR, POPUP_ID::BOX_SPACING)
         n = @popup.get_menu_item_count-2
         @popup.insert(n, @grid_mi) unless  @popup.find_item(@grid_mi.id)
+      else
+        remove_popup_items(POPUP_ID::TEXT_FONT, POPUP_ID::TEXT_COLOR, POPUP_ID::BOX_SPACING, POPUP_ID::GRID_SETTINGS)
       end
     when Wx::SF::LineShape
       remove_popup_items(POPUP_ID::FILL_BRUSH, POPUP_ID::BORDER_PEN,

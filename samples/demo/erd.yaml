@@ -1,0 +1,4730 @@
+---
+- !ruby/object:Wx::SF::ShapeCanvas::Version
+  :version_info: !ruby/struct:Wx::SF::ShapeCanvas::Version::VersionInfo
+    major: 0
+    minor: 9
+    release: 0
+- !ruby/object:Wx::SF::ShapeCanvas::Settings
+  :scale: 1.0
+  :min_scale: 0.1
+  :max_scale: 2.0
+  :background_color: !ruby/object:Wx::Colour
+    :colour:
+    - 240
+    - 240
+    - 240
+    - 255
+  :common_hover_color: &2 !ruby/object:Wx::Colour
+    :colour:
+    - 120
+    - 120
+    - 255
+    - 255
+  :grid_size: !ruby/object:Wx::Size
+    :width: 10
+    :height: 10
+  :grid_line_mult: 10
+  :grid_color: !ruby/object:Wx::Colour
+    :colour:
+    - 200
+    - 200
+    - 200
+    - 255
+  :grid_style: !ruby/object:Wx::PenStyle
+    :value: 103
+  :gradient_from: !ruby/object:Wx::Colour
+    :colour:
+    - 240
+    - 240
+    - 240
+    - 255
+  :gradient_to: !ruby/object:Wx::Colour
+    :colour:
+    - 200
+    - 200
+    - 255
+    - 255
+  :style: !ruby/object:Wx::SF::ShapeCanvas::STYLE
+    :value: 3059
+  :shadow_offset: !ruby/object:Wx::RealPoint
+    :x: 4.0
+    :y: 4.0
+  :shadow_fill: !ruby/object:Wx::Brush
+    :colour: !ruby/object:Wx::Colour
+      :colour:
+      - 150
+      - 150
+      - 150
+      - 128
+    :style: &1 !ruby/object:Wx::BrushStyle
+      :value: 100
+  :print_h_align: !ruby/object:Wx::SF::ShapeCanvas::HALIGN
+    :value: 2
+  :print_v_align: !ruby/object:Wx::SF::ShapeCanvas::VALIGN
+    :value: 2
+  :print_mode: !ruby/object:Wx::SF::ShapeCanvas::PRINTMODE
+    :value: 2
+- !ruby/object:Wx::SF::Diagram
+  :shapes: !ruby/object:Wx::SF::ShapeList
+    :list: !ruby/object:Set
+      hash:
+        ? !ruby/object:Wx::SF::RoundRectShape
+          :radius: 20
+          :rect_size: !ruby/object:Wx::RealPoint
+            :x: 151.0
+            :y: 102.0
+          :fill: !ruby/object:Wx::Brush
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 255
+              - 255
+              - 255
+              - 255
+            :style: *1
+          :border: !ruby/object:Wx::Pen
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 0
+              - 0
+              - 0
+              - 255
+            :width: 1
+            :style: &3 !ruby/object:Wx::PenStyle
+              :value: 100
+          :active: true
+          :visibility: true
+          :style: !ruby/object:Wx::SF::Shape::STYLE
+            :value: 319
+          :accepted_children: !ruby/object:Set
+            hash:
+              Wx::SF::TextShape: true
+              Wx::SF::EditTextShape: true
+              Wx::SF::RectShape: true
+              Wx::SF::VBoxShape: true
+          :accepted_connections: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_src_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_trg_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :hover_colour: *2
+          :relative_position: !ruby/object:Wx::RealPoint
+            :x: 391.0
+            :y: 106.0
+          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+            :value: 0
+          :v_align: &4 !ruby/object:Wx::SF::Shape::VALIGN
+            :value: 0
+          :h_border: 0.0
+          :v_border: 0.0
+          :custom_dock_point: -3
+          :connection_points: []
+          :user_data: 
+          :child_shapes: !ruby/object:Wx::SF::ShapeList
+            :list: !ruby/object:Set
+              hash:
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 1.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *1
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *3
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 35.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: *4
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &5 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &6 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *5
+                    :relative_position: *6
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &7 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *6
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *7
+                    :relative_position: *6
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &8 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &9 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *8
+                    :ortho_direction: *9
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash: {}
+                : true
+                ? &124 !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: &15 !ruby/object:Wx::BrushStyle
+                      :value: 106
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: &16 !ruby/object:Wx::PenStyle
+                      :value: 101
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 44.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &10 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &11 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *10
+                    :relative_position: *11
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &12 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *11
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *12
+                    :relative_position: *11
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &13 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &14 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *13
+                    :ortho_direction: *14
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'subject id : integer'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 132.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: &22 !ruby/object:Wx::PenStyle
+                              :value: 106
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 64.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &17 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &18 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *17
+                    :relative_position: *18
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &19 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *18
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *19
+                    :relative_position: *18
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &20 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &21 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *20
+                    :ortho_direction: *21
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'title : string'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 82.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::EditTextShape
+                  :force_multiline: false
+                  :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                    :value: 0
+                  :font: !ruby/object:Wx::Font
+                    :font_info: Sans 12
+                  :text_colour: !ruby/object:Wx::Colour
+                    :colour:
+                    - 0
+                    - 0
+                    - 0
+                    - 255
+                  :text: Subjects
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 65.0
+                    :y: 19.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *22
+                  :active: true
+                  :visibility: true
+                  :style: !ruby/object:Wx::SF::Shape::STYLE
+                    :value: 319
+                  :accepted_children: !ruby/object:Set
+                    hash: {}
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      Wx::SF::TextShape: true
+                      Wx::SF::EditTextShape: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 43.0
+                    :y: 10.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 2
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 1
+                  :h_border: 0.0
+                  :v_border: 10.0
+                  :custom_dock_point: -3
+                  :connection_points: []
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash: {}
+                : true
+        : true
+        ? !ruby/object:Wx::SF::RoundRectShape
+          :radius: 20
+          :rect_size: !ruby/object:Wx::RealPoint
+            :x: 151.0
+            :y: 102.0
+          :fill: !ruby/object:Wx::Brush
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 255
+              - 255
+              - 255
+              - 255
+            :style: *1
+          :border: !ruby/object:Wx::Pen
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 0
+              - 0
+              - 0
+              - 255
+            :width: 1
+            :style: *3
+          :active: true
+          :visibility: true
+          :style: !ruby/object:Wx::SF::Shape::STYLE
+            :value: 319
+          :accepted_children: !ruby/object:Set
+            hash:
+              Wx::SF::TextShape: true
+              Wx::SF::EditTextShape: true
+              Wx::SF::RectShape: true
+              Wx::SF::VBoxShape: true
+          :accepted_connections: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_src_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_trg_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :hover_colour: *2
+          :relative_position: !ruby/object:Wx::RealPoint
+            :x: 130.0
+            :y: 455.0
+          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+            :value: 0
+          :v_align: &23 !ruby/object:Wx::SF::Shape::VALIGN
+            :value: 0
+          :h_border: 0.0
+          :v_border: 0.0
+          :custom_dock_point: -3
+          :connection_points: []
+          :user_data: 
+          :child_shapes: !ruby/object:Wx::SF::ShapeList
+            :list: !ruby/object:Set
+              hash:
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 1.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *1
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *3
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 35.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: *23
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &24 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &25 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *24
+                    :relative_position: *25
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &26 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *25
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *26
+                    :relative_position: *25
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &27 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &28 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *27
+                    :ortho_direction: *28
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash: {}
+                : true
+                ? &96 !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 44.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &29 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &30 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *29
+                    :relative_position: *30
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &31 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *30
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *31
+                    :relative_position: *30
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &32 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &33 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *32
+                    :ortho_direction: *33
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'group id : integer'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 122.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 64.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &34 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &35 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *34
+                    :relative_position: *35
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &36 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *35
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *36
+                    :relative_position: *35
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &37 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &38 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *37
+                    :ortho_direction: *38
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'name : string'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 96.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::EditTextShape
+                  :force_multiline: false
+                  :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                    :value: 0
+                  :font: !ruby/object:Wx::Font
+                    :font_info: Sans 12
+                  :text_colour: !ruby/object:Wx::Colour
+                    :colour:
+                    - 0
+                    - 0
+                    - 0
+                    - 255
+                  :text: Groups
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 55.0
+                    :y: 19.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *22
+                  :active: true
+                  :visibility: true
+                  :style: !ruby/object:Wx::SF::Shape::STYLE
+                    :value: 319
+                  :accepted_children: !ruby/object:Set
+                    hash: {}
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      Wx::SF::TextShape: true
+                      Wx::SF::EditTextShape: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 48.0
+                    :y: 10.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 2
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 1
+                  :h_border: 0.0
+                  :v_border: 10.0
+                  :custom_dock_point: -3
+                  :connection_points: []
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash: {}
+                : true
+        : true
+        ? !ruby/object:Wx::SF::RoundRectShape
+          :radius: 20
+          :rect_size: !ruby/object:Wx::RealPoint
+            :x: 151.0
+            :y: 163.0
+          :fill: !ruby/object:Wx::Brush
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 255
+              - 255
+              - 255
+              - 255
+            :style: *1
+          :border: !ruby/object:Wx::Pen
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 0
+              - 0
+              - 0
+              - 255
+            :width: 1
+            :style: *3
+          :active: true
+          :visibility: true
+          :style: !ruby/object:Wx::SF::Shape::STYLE
+            :value: 319
+          :accepted_children: !ruby/object:Set
+            hash:
+              Wx::SF::TextShape: true
+              Wx::SF::EditTextShape: true
+              Wx::SF::RectShape: true
+              Wx::SF::VBoxShape: true
+          :accepted_connections: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_src_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_trg_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :hover_colour: *2
+          :relative_position: !ruby/object:Wx::RealPoint
+            :x: 130.0
+            :y: 10.0
+          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+            :value: 0
+          :v_align: &39 !ruby/object:Wx::SF::Shape::VALIGN
+            :value: 0
+          :h_border: 0.0
+          :v_border: 0.0
+          :custom_dock_point: -3
+          :connection_points: []
+          :user_data: 
+          :child_shapes: !ruby/object:Wx::SF::ShapeList
+            :list: !ruby/object:Set
+              hash:
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 1.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *1
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *3
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 35.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: *39
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &40 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &41 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *40
+                    :relative_position: *41
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &42 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *41
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *42
+                    :relative_position: *41
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &43 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &44 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *43
+                    :ortho_direction: *44
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash: {}
+                : true
+                ? &100 !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 44.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &45 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &46 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *45
+                    :relative_position: *46
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &47 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *46
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *47
+                    :relative_position: *46
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &48 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &49 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *48
+                    :ortho_direction: *49
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'mark id : integer'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 117.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 64.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &50 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &51 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *50
+                    :relative_position: *51
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &52 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *51
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *52
+                    :relative_position: *51
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &53 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &54 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *53
+                    :ortho_direction: *54
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'student id : integer'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 134.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? &126 !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 84.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &55 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &56 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *55
+                    :relative_position: *56
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &57 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *56
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *57
+                    :relative_position: *56
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &58 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &59 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *58
+                    :ortho_direction: *59
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'subject id : integer'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 132.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 104.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &60 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &61 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *60
+                    :relative_position: *61
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &62 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *61
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *62
+                    :relative_position: *61
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &63 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &64 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *63
+                    :ortho_direction: *64
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'date : datetime'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 109.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 124.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &65 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &66 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *65
+                    :relative_position: *66
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &67 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *66
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *67
+                    :relative_position: *66
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &68 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &69 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *68
+                    :ortho_direction: *69
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'mark : integer'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 100.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::EditTextShape
+                  :force_multiline: false
+                  :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                    :value: 0
+                  :font: !ruby/object:Wx::Font
+                    :font_info: Sans 12
+                  :text_colour: !ruby/object:Wx::Colour
+                    :colour:
+                    - 0
+                    - 0
+                    - 0
+                    - 255
+                  :text: Marks
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 48.0
+                    :y: 19.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *22
+                  :active: true
+                  :visibility: true
+                  :style: !ruby/object:Wx::SF::Shape::STYLE
+                    :value: 319
+                  :accepted_children: !ruby/object:Set
+                    hash: {}
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      Wx::SF::TextShape: true
+                      Wx::SF::EditTextShape: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 51.0
+                    :y: 10.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 2
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 1
+                  :h_border: 0.0
+                  :v_border: 10.0
+                  :custom_dock_point: -3
+                  :connection_points: []
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash: {}
+                : true
+        : true
+        ? !ruby/object:Wx::SF::RoundRectShape
+          :radius: 20
+          :rect_size: !ruby/object:Wx::RealPoint
+            :x: 151.0
+            :y: 145.0
+          :fill: !ruby/object:Wx::Brush
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 255
+              - 255
+              - 255
+              - 255
+            :style: *1
+          :border: !ruby/object:Wx::Pen
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 0
+              - 0
+              - 0
+              - 255
+            :width: 1
+            :style: *3
+          :active: true
+          :visibility: true
+          :style: !ruby/object:Wx::SF::Shape::STYLE
+            :value: 319
+          :accepted_children: !ruby/object:Set
+            hash:
+              Wx::SF::TextShape: true
+              Wx::SF::EditTextShape: true
+              Wx::SF::RectShape: true
+              Wx::SF::VBoxShape: true
+          :accepted_connections: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_src_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_trg_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :hover_colour: *2
+          :relative_position: !ruby/object:Wx::RealPoint
+            :x: 129.0
+            :y: 234.0
+          :h_align: &98 !ruby/object:Wx::SF::Shape::HALIGN
+            :value: 0
+          :v_align: &70 !ruby/object:Wx::SF::Shape::VALIGN
+            :value: 0
+          :h_border: 0.0
+          :v_border: 0.0
+          :custom_dock_point: -3
+          :connection_points: []
+          :user_data: 
+          :child_shapes: !ruby/object:Wx::SF::ShapeList
+            :list: !ruby/object:Set
+              hash:
+                ? !ruby/object:Wx::SF::EditTextShape
+                  :force_multiline: false
+                  :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                    :value: 0
+                  :font: !ruby/object:Wx::Font
+                    :font_info: Sans 12
+                  :text_colour: !ruby/object:Wx::Colour
+                    :colour:
+                    - 0
+                    - 0
+                    - 0
+                    - 255
+                  :text: Students
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 67.0
+                    :y: 19.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *22
+                  :active: true
+                  :visibility: true
+                  :style: !ruby/object:Wx::SF::Shape::STYLE
+                    :value: 319
+                  :accepted_children: !ruby/object:Set
+                    hash: {}
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      Wx::SF::TextShape: true
+                      Wx::SF::EditTextShape: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 42.0
+                    :y: 10.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 2
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 1
+                  :h_border: 0.0
+                  :v_border: 10.0
+                  :custom_dock_point: -3
+                  :connection_points: []
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash: {}
+                : true
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 1.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *1
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *3
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 35.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: *70
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &71 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &72 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *71
+                    :relative_position: *72
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &73 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *72
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *73
+                    :relative_position: *72
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &74 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &75 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *74
+                    :ortho_direction: *75
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash: {}
+                : true
+                ? &99 !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 44.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &76 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &77 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *76
+                    :relative_position: *77
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &78 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *77
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *78
+                    :relative_position: *77
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &79 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &80 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *79
+                    :ortho_direction: *80
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'student id : integer'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 134.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 64.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &81 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &82 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *81
+                    :relative_position: *82
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &83 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *82
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *83
+                    :relative_position: *82
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &84 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &85 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *84
+                    :ortho_direction: *85
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'first name : string'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 127.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 84.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &86 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &87 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *86
+                    :relative_position: *87
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &88 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *87
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *88
+                    :relative_position: *87
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &89 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &90 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *89
+                    :ortho_direction: *90
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'last name : string'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 126.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? &97 !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 104.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &91 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &92 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *91
+                    :relative_position: *92
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &93 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *92
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *93
+                    :relative_position: *92
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &94 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &95 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *94
+                    :ortho_direction: *95
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'group id : integer'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 122.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+        : true
+        ? !ruby/object:Wx::SF::RoundOrthoLineShape
+          :max_radius: 7
+          :src_shape: *96
+          :trg_shape: *97
+          :src_point: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.0
+          :trg_point: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.0
+          :stand_alone: false
+          :src_arrow: !ruby/object:Wx::SF::DoubleCrossBarArrow
+            :pen: 
+          :trg_arrow: !ruby/object:Wx::SF::CrossBarProngArrow
+            :pen: 
+          :src_offset: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.47619047619047616
+          :trg_offset: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.47619047619047616
+          :dock_point: 18446744073709551616
+          :line_pen: !ruby/object:Wx::Pen
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 0
+              - 0
+              - 0
+              - 255
+            :width: 1
+            :style: *3
+          :control_points:
+          - !ruby/object:Wx::RealPoint
+            :x: 20.0
+            :y: 476.0
+          - !ruby/object:Wx::RealPoint
+            :x: 23.0
+            :y: 376.0
+          :active: true
+          :visibility: true
+          :style: &101 !ruby/object:Wx::SF::Shape::STYLE
+            :value: 319
+          :accepted_children: !ruby/object:Set
+            hash:
+              Wx::SF::TextShape: true
+              Wx::SF::EditTextShape: true
+          :accepted_connections: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_src_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_trg_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :hover_colour: *2
+          :relative_position: !ruby/object:Wx::RealPoint
+            :x: 549.0
+            :y: 291.0
+          :h_align: *98
+          :v_align: *70
+          :h_border: 0.0
+          :v_border: 0.0
+          :custom_dock_point: -3
+          :connection_points: []
+          :user_data: 
+          :child_shapes: !ruby/object:Wx::SF::ShapeList
+            :list: !ruby/object:Set
+              hash: {}
+        : true
+        ? !ruby/object:Wx::SF::RoundOrthoLineShape
+          :max_radius: 7
+          :src_shape: *99
+          :trg_shape: *100
+          :src_point: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.0
+          :trg_point: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.0
+          :stand_alone: false
+          :src_arrow: !ruby/object:Wx::SF::DoubleCrossBarArrow
+            :pen: 
+          :trg_arrow: !ruby/object:Wx::SF::CrossBarProngArrow
+            :pen: 
+          :src_offset: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.47619047619047616
+          :trg_offset: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.47619047619047616
+          :dock_point: 18446744073709551616
+          :line_pen: !ruby/object:Wx::Pen
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 0
+              - 0
+              - 0
+              - 255
+            :width: 1
+            :style: *3
+          :control_points:
+          - !ruby/object:Wx::RealPoint
+            :x: 20.0
+            :y: 259.0
+          - !ruby/object:Wx::RealPoint
+            :x: 21.0
+            :y: 109.0
+          :active: true
+          :visibility: true
+          :style: *101
+          :accepted_children: !ruby/object:Set
+            hash:
+              Wx::SF::TextShape: true
+              Wx::SF::EditTextShape: true
+          :accepted_connections: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_src_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_trg_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :hover_colour: *2
+          :relative_position: !ruby/object:Wx::RealPoint
+            :x: 549.0
+            :y: 291.0
+          :h_align: *98
+          :v_align: *70
+          :h_border: 0.0
+          :v_border: 0.0
+          :custom_dock_point: -3
+          :connection_points: []
+          :user_data: 
+          :child_shapes: !ruby/object:Wx::SF::ShapeList
+            :list: !ruby/object:Set
+              hash: {}
+        : true
+        ? !ruby/object:Wx::SF::RoundRectShape
+          :radius: 20
+          :rect_size: !ruby/object:Wx::RealPoint
+            :x: 151.0
+            :y: 125.0
+          :fill: !ruby/object:Wx::Brush
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 255
+              - 255
+              - 255
+              - 255
+            :style: *1
+          :border: !ruby/object:Wx::Pen
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 0
+              - 0
+              - 0
+              - 255
+            :width: 1
+            :style: *3
+          :active: true
+          :visibility: true
+          :style: !ruby/object:Wx::SF::Shape::STYLE
+            :value: 319
+          :accepted_children: !ruby/object:Set
+            hash:
+              Wx::SF::TextShape: true
+              Wx::SF::EditTextShape: true
+              Wx::SF::RectShape: true
+              Wx::SF::VBoxShape: true
+          :accepted_connections: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_src_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_trg_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :hover_colour: *2
+          :relative_position: !ruby/object:Wx::RealPoint
+            :x: 388.0
+            :y: 316.0
+          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+            :value: 0
+          :v_align: &102 !ruby/object:Wx::SF::Shape::VALIGN
+            :value: 0
+          :h_border: 0.0
+          :v_border: 0.0
+          :custom_dock_point: -3
+          :connection_points: []
+          :user_data: 
+          :child_shapes: !ruby/object:Wx::SF::ShapeList
+            :list: !ruby/object:Set
+              hash:
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 1.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *1
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *3
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 35.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: *102
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &103 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &104 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *103
+                    :relative_position: *104
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &105 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *104
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *105
+                    :relative_position: *104
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &106 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &107 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *106
+                    :ortho_direction: *107
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash: {}
+                : true
+                ? &125 !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 44.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &108 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &109 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *108
+                    :relative_position: *109
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &110 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *109
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *110
+                    :relative_position: *109
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &111 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &112 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *111
+                    :ortho_direction: *112
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'subject id : integer'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 132.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? &127 !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 64.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &113 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &114 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *113
+                    :relative_position: *114
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &115 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *114
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *115
+                    :relative_position: *114
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &116 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &117 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *116
+                    :ortho_direction: *117
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'teacher id : integer'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 133.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? &123 !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 84.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &118 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &119 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *118
+                    :relative_position: *119
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &120 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *119
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *120
+                    :relative_position: *119
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &121 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &122 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *121
+                    :ortho_direction: *122
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'group id : integer'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 122.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::EditTextShape
+                  :force_multiline: false
+                  :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                    :value: 0
+                  :font: !ruby/object:Wx::Font
+                    :font_info: Sans 12
+                  :text_colour: !ruby/object:Wx::Colour
+                    :colour:
+                    - 0
+                    - 0
+                    - 0
+                    - 255
+                  :text: SubjectTeacher
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 113.0
+                    :y: 19.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *22
+                  :active: true
+                  :visibility: true
+                  :style: !ruby/object:Wx::SF::Shape::STYLE
+                    :value: 319
+                  :accepted_children: !ruby/object:Set
+                    hash: {}
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      Wx::SF::TextShape: true
+                      Wx::SF::EditTextShape: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 19.0
+                    :y: 10.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 2
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 1
+                  :h_border: 0.0
+                  :v_border: 10.0
+                  :custom_dock_point: -3
+                  :connection_points: []
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash: {}
+                : true
+        : true
+        ? !ruby/object:Wx::SF::RoundOrthoLineShape
+          :max_radius: 7
+          :src_shape: *96
+          :trg_shape: *123
+          :src_point: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.0
+          :trg_point: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.0
+          :stand_alone: false
+          :src_arrow: !ruby/object:Wx::SF::DoubleCrossBarArrow
+            :pen: 
+          :trg_arrow: !ruby/object:Wx::SF::CrossBarProngArrow
+            :pen: 
+          :src_offset: !ruby/object:Wx::RealPoint
+            :x: 0.9933774834437086
+            :y: 0.47619047619047616
+          :trg_offset: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.47619047619047616
+          :dock_point: 18446744073709551616
+          :line_pen: !ruby/object:Wx::Pen
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 0
+              - 0
+              - 0
+              - 255
+            :width: 1
+            :style: *3
+          :control_points:
+          - !ruby/object:Wx::RealPoint
+            :x: 326.0
+            :y: 509.0
+          - !ruby/object:Wx::RealPoint
+            :x: 326.0
+            :y: 410.0
+          :active: true
+          :visibility: true
+          :style: *101
+          :accepted_children: !ruby/object:Set
+            hash:
+              Wx::SF::TextShape: true
+              Wx::SF::EditTextShape: true
+          :accepted_connections: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_src_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_trg_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :hover_colour: *2
+          :relative_position: !ruby/object:Wx::RealPoint
+            :x: 549.0
+            :y: 291.0
+          :h_align: *98
+          :v_align: *70
+          :h_border: 0.0
+          :v_border: 0.0
+          :custom_dock_point: -3
+          :connection_points: []
+          :user_data: 
+          :child_shapes: !ruby/object:Wx::SF::ShapeList
+            :list: !ruby/object:Set
+              hash: {}
+        : true
+        ? !ruby/object:Wx::SF::RoundOrthoLineShape
+          :max_radius: 7
+          :src_shape: *124
+          :trg_shape: *125
+          :src_point: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.0
+          :trg_point: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.0
+          :stand_alone: false
+          :src_arrow: !ruby/object:Wx::SF::DoubleCrossBarArrow
+            :pen: 
+          :trg_arrow: !ruby/object:Wx::SF::CrossBarProngArrow
+            :pen: 
+          :src_offset: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.47619047619047616
+          :trg_offset: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.47619047619047616
+          :dock_point: 18446744073709551616
+          :line_pen: !ruby/object:Wx::Pen
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 0
+              - 0
+              - 0
+              - 255
+            :width: 1
+            :style: *3
+          :control_points:
+          - !ruby/object:Wx::RealPoint
+            :x: 306.0
+            :y: 172.0
+          - !ruby/object:Wx::RealPoint
+            :x: 306.0
+            :y: 324.0
+          :active: true
+          :visibility: true
+          :style: *101
+          :accepted_children: !ruby/object:Set
+            hash:
+              Wx::SF::TextShape: true
+              Wx::SF::EditTextShape: true
+          :accepted_connections: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_src_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_trg_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :hover_colour: *2
+          :relative_position: !ruby/object:Wx::RealPoint
+            :x: 549.0
+            :y: 291.0
+          :h_align: *98
+          :v_align: *70
+          :h_border: 0.0
+          :v_border: 0.0
+          :custom_dock_point: -3
+          :connection_points: []
+          :user_data: 
+          :child_shapes: !ruby/object:Wx::SF::ShapeList
+            :list: !ruby/object:Set
+              hash: {}
+        : true
+        ? !ruby/object:Wx::SF::RoundOrthoLineShape
+          :max_radius: 7
+          :src_shape: *124
+          :trg_shape: *126
+          :src_point: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.0
+          :trg_point: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.0
+          :stand_alone: false
+          :src_arrow: !ruby/object:Wx::SF::DoubleCrossBarArrow
+            :pen: 
+          :trg_arrow: !ruby/object:Wx::SF::CrossBarProngArrow
+            :pen: 
+          :src_offset: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.47619047619047616
+          :trg_offset: !ruby/object:Wx::RealPoint
+            :x: 0.9933774834437086
+            :y: 0.47619047619047616
+          :dock_point: 18446744073709551616
+          :line_pen: !ruby/object:Wx::Pen
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 0
+              - 0
+              - 0
+              - 255
+            :width: 1
+            :style: *3
+          :control_points: []
+          :active: true
+          :visibility: true
+          :style: *101
+          :accepted_children: !ruby/object:Set
+            hash:
+              Wx::SF::TextShape: true
+              Wx::SF::EditTextShape: true
+          :accepted_connections: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_src_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_trg_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :hover_colour: *2
+          :relative_position: !ruby/object:Wx::RealPoint
+            :x: 549.0
+            :y: 291.0
+          :h_align: *98
+          :v_align: *70
+          :h_border: 0.0
+          :v_border: 0.0
+          :custom_dock_point: -3
+          :connection_points: []
+          :user_data: 
+          :child_shapes: !ruby/object:Wx::SF::ShapeList
+            :list: !ruby/object:Set
+              hash: {}
+        : true
+        ? !ruby/object:Wx::SF::RoundOrthoLineShape
+          :max_radius: 7
+          :src_shape: *127
+          :trg_shape: &139 !ruby/object:Wx::SF::RectShape
+            :rect_size: !ruby/object:Wx::RealPoint
+              :x: 151.0
+              :y: 21.0
+            :fill: !ruby/object:Wx::Brush
+              :colour: !ruby/object:Wx::Colour
+                :colour:
+                - 255
+                - 255
+                - 255
+                - 255
+              :style: *15
+            :border: !ruby/object:Wx::Pen
+              :colour: !ruby/object:Wx::Colour
+                :colour:
+                - 0
+                - 0
+                - 0
+                - 255
+              :width: 1
+              :style: *16
+            :active: true
+            :visibility: true
+            :style: 317
+            :accepted_children: !ruby/object:Set
+              hash:
+                NilClass: true
+            :accepted_connections: !ruby/object:Set
+              hash:
+                NilClass: true
+            :accepted_src_neighbours: !ruby/object:Set
+              hash:
+                NilClass: true
+            :accepted_trg_neighbours: !ruby/object:Set
+              hash:
+                NilClass: true
+            :hover_colour: *2
+            :relative_position: !ruby/object:Wx::RealPoint
+              :x: 0.0
+              :y: 44.0
+            :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+              :value: 4
+            :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+              :value: 0
+            :h_border: 0.0
+            :v_border: 0.0
+            :custom_dock_point: -3
+            :connection_points:
+            - !ruby/object:Wx::SF::ConnectionPoint
+              :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                :value: 4
+              :ortho_direction: &128 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                :value: 2
+              :relative_position: &129 !ruby/object:Wx::RealPoint
+                :x: 0.0
+                :y: 0.0
+            - !ruby/object:Wx::SF::ConnectionPoint
+              :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                :value: 6
+              :ortho_direction: *128
+              :relative_position: *129
+            - !ruby/object:Wx::SF::ConnectionPoint
+              :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                :value: 2
+              :ortho_direction: &130 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                :value: 3
+              :relative_position: *129
+            - !ruby/object:Wx::SF::ConnectionPoint
+              :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                :value: 8
+              :ortho_direction: *130
+              :relative_position: *129
+            - !ruby/object:Wx::SF::ConnectionPoint
+              :type: &131 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                :value: 10
+              :ortho_direction: &132 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                :value: 1
+              :relative_position: !ruby/object:Wx::RealPoint
+                :x: 25.0
+                :y: 50.0
+            - !ruby/object:Wx::SF::ConnectionPoint
+              :type: *131
+              :ortho_direction: *132
+              :relative_position: !ruby/object:Wx::RealPoint
+                :x: 75.0
+                :y: 50.0
+            :user_data: 
+            :child_shapes: !ruby/object:Wx::SF::ShapeList
+              :list: !ruby/object:Set
+                hash:
+                  ? !ruby/object:Wx::SF::EditTextShape
+                    :force_multiline: false
+                    :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                      :value: 0
+                    :font: !ruby/object:Wx::Font
+                      :font_info: Sans 12
+                    :text_colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :text: 'teacher id : integer'
+                    :rect_size: !ruby/object:Wx::RealPoint
+                      :x: 133.0
+                      :y: 19.0
+                    :fill: !ruby/object:Wx::Brush
+                      :colour: !ruby/object:Wx::Colour
+                        :colour:
+                        - 0
+                        - 0
+                        - 0
+                        - 255
+                      :style: *15
+                    :border: !ruby/object:Wx::Pen
+                      :colour: !ruby/object:Wx::Colour
+                        :colour:
+                        - 0
+                        - 0
+                        - 0
+                        - 255
+                      :width: 1
+                      :style: *22
+                    :active: true
+                    :visibility: true
+                    :style: 16699
+                    :accepted_children: !ruby/object:Set
+                      hash: {}
+                    :accepted_connections: !ruby/object:Set
+                      hash:
+                        NilClass: true
+                    :accepted_src_neighbours: !ruby/object:Set
+                      hash:
+                        NilClass: true
+                    :accepted_trg_neighbours: !ruby/object:Set
+                      hash:
+                        Wx::SF::TextShape: true
+                        Wx::SF::EditTextShape: true
+                    :hover_colour: *2
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 5.0
+                      :y: 1.0
+                    :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                      :value: 1
+                    :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                      :value: 1
+                    :h_border: 5.0
+                    :v_border: 1.0
+                    :custom_dock_point: -3
+                    :connection_points: []
+                    :user_data: 
+                    :child_shapes: !ruby/object:Wx::SF::ShapeList
+                      :list: !ruby/object:Set
+                        hash: {}
+                  : true
+          :src_point: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.0
+          :trg_point: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.0
+          :stand_alone: false
+          :src_arrow: !ruby/object:Wx::SF::DoubleCrossBarArrow
+            :pen: 
+          :trg_arrow: !ruby/object:Wx::SF::CrossBarProngArrow
+            :pen: 
+          :src_offset: !ruby/object:Wx::RealPoint
+            :x: 0.9933774834437086
+            :y: 0.47619047619047616
+          :trg_offset: !ruby/object:Wx::RealPoint
+            :x: 0.0
+            :y: 0.47619047619047616
+          :dock_point: 18446744073709551616
+          :line_pen: !ruby/object:Wx::Pen
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 0
+              - 0
+              - 0
+              - 255
+            :width: 1
+            :style: *3
+          :control_points: []
+          :active: true
+          :visibility: true
+          :style: *101
+          :accepted_children: !ruby/object:Set
+            hash:
+              Wx::SF::TextShape: true
+              Wx::SF::EditTextShape: true
+          :accepted_connections: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_src_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_trg_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :hover_colour: *2
+          :relative_position: !ruby/object:Wx::RealPoint
+            :x: 549.0
+            :y: 291.0
+          :h_align: *98
+          :v_align: *70
+          :h_border: 0.0
+          :v_border: 0.0
+          :custom_dock_point: -3
+          :connection_points: []
+          :user_data: 
+          :child_shapes: !ruby/object:Wx::SF::ShapeList
+            :list: !ruby/object:Set
+              hash: {}
+        : true
+        ? !ruby/object:Wx::SF::RoundRectShape
+          :radius: 20
+          :rect_size: !ruby/object:Wx::RealPoint
+            :x: 151.0
+            :y: 125.0
+          :fill: !ruby/object:Wx::Brush
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 255
+              - 255
+              - 255
+              - 255
+            :style: *1
+          :border: !ruby/object:Wx::Pen
+            :colour: !ruby/object:Wx::Colour
+              :colour:
+              - 0
+              - 0
+              - 0
+              - 255
+            :width: 1
+            :style: *3
+          :active: true
+          :visibility: true
+          :style: !ruby/object:Wx::SF::Shape::STYLE
+            :value: 319
+          :accepted_children: !ruby/object:Set
+            hash:
+              Wx::SF::TextShape: true
+              Wx::SF::EditTextShape: true
+              Wx::SF::RectShape: true
+              Wx::SF::VBoxShape: true
+          :accepted_connections: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_src_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :accepted_trg_neighbours: !ruby/object:Set
+            hash:
+              NilClass: true
+          :hover_colour: *2
+          :relative_position: !ruby/object:Wx::RealPoint
+            :x: 657.0
+            :y: 253.0
+          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+            :value: 0
+          :v_align: &133 !ruby/object:Wx::SF::Shape::VALIGN
+            :value: 0
+          :h_border: 0.0
+          :v_border: 0.0
+          :custom_dock_point: -3
+          :connection_points: []
+          :user_data: 
+          :child_shapes: !ruby/object:Wx::SF::ShapeList
+            :list: !ruby/object:Set
+              hash:
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 1.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *1
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *3
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 35.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: *133
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &134 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &135 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *134
+                    :relative_position: *135
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &136 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *135
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *136
+                    :relative_position: *135
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &137 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &138 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *137
+                    :ortho_direction: *138
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash: {}
+                : true
+                *139: true
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 64.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &140 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &141 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *140
+                    :relative_position: *141
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &142 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *141
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *142
+                    :relative_position: *141
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &143 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &144 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *143
+                    :ortho_direction: *144
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'first name : string'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 127.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::RectShape
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 151.0
+                    :y: 21.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 255
+                      - 255
+                      - 255
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *16
+                  :active: true
+                  :visibility: true
+                  :style: 317
+                  :accepted_children: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 0.0
+                    :y: 84.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 4
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 0
+                  :h_border: 0.0
+                  :v_border: 0.0
+                  :custom_dock_point: -3
+                  :connection_points:
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 4
+                    :ortho_direction: &145 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 2
+                    :relative_position: &146 !ruby/object:Wx::RealPoint
+                      :x: 0.0
+                      :y: 0.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 6
+                    :ortho_direction: *145
+                    :relative_position: *146
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 2
+                    :ortho_direction: &147 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 3
+                    :relative_position: *146
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 8
+                    :ortho_direction: *147
+                    :relative_position: *146
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: &148 !ruby/object:Wx::SF::ConnectionPoint::CPTYPE
+                      :value: 10
+                    :ortho_direction: &149 !ruby/object:Wx::SF::ConnectionPoint::CPORTHODIR
+                      :value: 1
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 25.0
+                      :y: 50.0
+                  - !ruby/object:Wx::SF::ConnectionPoint
+                    :type: *148
+                    :ortho_direction: *149
+                    :relative_position: !ruby/object:Wx::RealPoint
+                      :x: 75.0
+                      :y: 50.0
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash:
+                        ? !ruby/object:Wx::SF::EditTextShape
+                          :force_multiline: false
+                          :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                            :value: 0
+                          :font: !ruby/object:Wx::Font
+                            :font_info: Sans 12
+                          :text_colour: !ruby/object:Wx::Colour
+                            :colour:
+                            - 0
+                            - 0
+                            - 0
+                            - 255
+                          :text: 'last name : string'
+                          :rect_size: !ruby/object:Wx::RealPoint
+                            :x: 126.0
+                            :y: 19.0
+                          :fill: !ruby/object:Wx::Brush
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :style: *15
+                          :border: !ruby/object:Wx::Pen
+                            :colour: !ruby/object:Wx::Colour
+                              :colour:
+                              - 0
+                              - 0
+                              - 0
+                              - 255
+                            :width: 1
+                            :style: *22
+                          :active: true
+                          :visibility: true
+                          :style: 16699
+                          :accepted_children: !ruby/object:Set
+                            hash: {}
+                          :accepted_connections: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_src_neighbours: !ruby/object:Set
+                            hash:
+                              NilClass: true
+                          :accepted_trg_neighbours: !ruby/object:Set
+                            hash:
+                              Wx::SF::TextShape: true
+                              Wx::SF::EditTextShape: true
+                          :hover_colour: *2
+                          :relative_position: !ruby/object:Wx::RealPoint
+                            :x: 5.0
+                            :y: 1.0
+                          :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                            :value: 1
+                          :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                            :value: 1
+                          :h_border: 5.0
+                          :v_border: 1.0
+                          :custom_dock_point: -3
+                          :connection_points: []
+                          :user_data: 
+                          :child_shapes: !ruby/object:Wx::SF::ShapeList
+                            :list: !ruby/object:Set
+                              hash: {}
+                        : true
+                : true
+                ? !ruby/object:Wx::SF::EditTextShape
+                  :force_multiline: false
+                  :edit_type: !ruby/object:Wx::SF::EditTextShape::EDITTYPE
+                    :value: 0
+                  :font: !ruby/object:Wx::Font
+                    :font_info: Sans 12
+                  :text_colour: !ruby/object:Wx::Colour
+                    :colour:
+                    - 0
+                    - 0
+                    - 0
+                    - 255
+                  :text: Teachers
+                  :rect_size: !ruby/object:Wx::RealPoint
+                    :x: 68.0
+                    :y: 19.0
+                  :fill: !ruby/object:Wx::Brush
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :style: *15
+                  :border: !ruby/object:Wx::Pen
+                    :colour: !ruby/object:Wx::Colour
+                      :colour:
+                      - 0
+                      - 0
+                      - 0
+                      - 255
+                    :width: 1
+                    :style: *22
+                  :active: true
+                  :visibility: true
+                  :style: !ruby/object:Wx::SF::Shape::STYLE
+                    :value: 319
+                  :accepted_children: !ruby/object:Set
+                    hash: {}
+                  :accepted_connections: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_src_neighbours: !ruby/object:Set
+                    hash:
+                      NilClass: true
+                  :accepted_trg_neighbours: !ruby/object:Set
+                    hash:
+                      Wx::SF::TextShape: true
+                      Wx::SF::EditTextShape: true
+                  :hover_colour: *2
+                  :relative_position: !ruby/object:Wx::RealPoint
+                    :x: 41.0
+                    :y: 10.0
+                  :h_align: !ruby/object:Wx::SF::Shape::HALIGN
+                    :value: 2
+                  :v_align: !ruby/object:Wx::SF::Shape::VALIGN
+                    :value: 1
+                  :h_border: 0.0
+                  :v_border: 10.0
+                  :custom_dock_point: -3
+                  :connection_points: []
+                  :user_data: 
+                  :child_shapes: !ruby/object:Wx::SF::ShapeList
+                    :list: !ruby/object:Set
+                      hash: {}
+                : true
+        : true
+  :accepted_shapes: !ruby/object:Set
+    hash:
+      NilClass: true
+  :accepted_top_shapes: !ruby/object:Set
+    hash:
+      NilClass: true

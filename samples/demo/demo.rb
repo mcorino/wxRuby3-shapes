@@ -392,7 +392,7 @@ class MainFrame < Wx::Frame
   end
 
   def on_save(_event)
-    Wx.FileDialog(self, 'Save canvas to file...', Dir.getwd, '', FILE_MASK, Wx::FD_SAVE) do |dlg|
+    Wx.FileDialog(self, 'Save canvas to file...', __dir__, '', FILE_MASK, Wx::FD_SAVE) do |dlg|
       dlg_hook = DiagramFileDialog.new(dlg, compact: true)
       if dlg.show_modal == Wx::ID_OK
         begin
@@ -425,7 +425,7 @@ class MainFrame < Wx::Frame
   end
 
   def on_load(_event)
-    Wx.FileDialog(self, 'Load canvas from file...', Dir.getwd, '', FILE_MASK, Wx::FD_OPEN | Wx::FD_FILE_MUST_EXIST) do |dlg|
+    Wx.FileDialog(self, 'Load canvas from file...', __dir__, '', FILE_MASK, Wx::FD_OPEN | Wx::FD_FILE_MUST_EXIST) do |dlg|
       dlg_hook = DiagramFileDialog.new(dlg)
       if dlg.show_modal == Wx::ID_OK
         begin
