@@ -339,10 +339,10 @@ module Wx::SF
 
       if @child_shapes.empty?
         # do not let the empty grid shape 'disappear' due to zero sizes...
-        ch_bb.size = GridShape.min_size
+        ch_bb.size = GridShape.min_size - @cell_space
       end
 
-      @rect_size = Wx::RealPoint.new(ch_bb.width + 2*@cell_space, ch_bb.height + 2*@cell_space)
+      @rect_size = Wx::RealPoint.new(ch_bb.width + @cell_space, ch_bb.height + @cell_space)
     end
 
     # Event handler called when any shape is dropped above this shape (and the dropped

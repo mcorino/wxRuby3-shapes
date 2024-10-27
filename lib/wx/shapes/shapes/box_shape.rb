@@ -227,11 +227,11 @@ module Wx::SF
 
       if @child_shapes.empty?
         # do not let the empty box shape 'disappear' due to zero sizes...
-        ch_bb.width = get_h_align == HALIGN::EXPAND ? @rect_size.x.to_i-2*@spacing : GridShape.min_size.width
-        ch_bb.height = get_v_align == VALIGN::EXPAND ? @rect_size.y.to_i-2*@spacing : GridShape.min_size.height
+        ch_bb.width = get_h_align == HALIGN::EXPAND ? @rect_size.x.to_i-@spacing : GridShape.min_size.width
+        ch_bb.height = get_v_align == VALIGN::EXPAND ? @rect_size.y.to_i-@spacing : GridShape.min_size.height
       end
 
-      @rect_size = Wx::RealPoint.new(ch_bb.width + 2*@spacing, ch_bb.height + 2*@spacing)
+      @rect_size = Wx::RealPoint.new(ch_bb.width + @spacing, ch_bb.height + @spacing)
     end
 
     # Event handler called when any shape is dropped above this shape (and the dropped
