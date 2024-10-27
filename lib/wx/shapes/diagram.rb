@@ -129,7 +129,7 @@ module Wx::SF
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new shape. the object is added to the shape canvas automatically.
     # @overload insert_shape(shape, pos, save_state = true)
     #   @param [Wx::SF::Shape] shape new shape
-    #   @param [Wx::Point] pos shape position
+    #   @param [Wx::Point] pos shape position (device coordinates)
     #   @param [Boolean] save_state Set the parameter true if you wish to save canvas state after the operation
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new shape. the object is added to the shape canvas automatically.
     def insert_shape(shape, *rest)
@@ -146,8 +146,7 @@ module Wx::SF
       if shape && is_shape_accepted(shape.class)
         parent_shape = nil
         # update given position
-        lpos = pos
-        lpos = @shape_canvas.fit_position_to_grid(@shape_canvas.dp2lp(pos)) if @shape_canvas
+        lpos = @shape_canvas ? @shape_canvas.dp2lp(pos) : pos
         # line shapes can be assigned to root only
         parent_shape = get_shape_at_position(lpos) unless shape.is_a?(LineShape)
         # In case the matching shape does not accept ANY children see if this shape has a
@@ -178,7 +177,7 @@ module Wx::SF
     # Add an existing shape to the canvas.
     # @param [Wx::SF::Shape] shape new shape
     # @param [Wx::SF::Shape] parent the parent shape
-    # @param [Wx::Point] pos shape position
+    # @param [Wx::Point] pos shape position (device coordinates)
     # @param [Boolean] initialize true if the shape should be reinitialized, otherwise false
     # @param [Boolean] save_state true if the canvas state should be saved
     # @return [Wx::SF::ERRCODE] operation result
