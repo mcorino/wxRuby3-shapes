@@ -254,8 +254,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         shape.set_fill(Wx::TRANSPARENT_BRUSH)
         shape.set_border(Wx::Pen.new(Wx::BLACK, 1, Wx::PenStyle::PENSTYLE_DOT))
 
-        # number of rows and columns cas be set here (default grid dimension is 3x3) ...
-        # shape.set_dimensions(2, 2)
+        # number of rows and columns cas be set here (default grid dimension is 3x1) ...
+        shape.set_dimensions(2, @parent_frame.grid_columns)
 
         # ... as well as the cell spaces (default grid cellspace is 5).
         # shape.set_cell_space(0)

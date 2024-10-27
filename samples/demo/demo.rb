@@ -55,6 +55,15 @@ class MainFrame < Wx::Frame
     # menu IDs
     #---------------------------------------------------------------#
     M_SAVEASBITMAP = self.next_id
+    M_SHAPE_LIST =  self.next_id
+    M_GRID_COLUMNS =  self.next_id
+    M_GRIDCOLS_1 = self.next_id
+    M_GRIDCOLS_2 = self.next_id
+    M_GRIDCOLS_3 = self.next_id
+    M_GRIDCOLS_4 = self.next_id
+    M_GRIDCOLS_5 = self.next_id
+    M_GRIDCOLS_CUSTOM = self.next_id
+    M_GRIDCOLS_NR = self.next_id
 
     # tool IDs
     #---------------------------------------------------------------#
@@ -172,6 +181,42 @@ class MainFrame < Wx::Frame
     @edit_menu.append(Wx::ID_CUT, "Cu&t\tCtrl+X", "Cut shapes to the clipboard", Wx::ITEM_NORMAL)
     @edit_menu.append(Wx::ID_PASTE, "&Paste\tCtrl+V", "Paste shapes to the canvas", Wx::ITEM_NORMAL)
 
+    submenu = Wx::Menu.new
+    submenu.append_radio_item(ID::T_TOOL, 'Design tool', 'Design tool')
+    submenu.append_radio_item(ID::T_RECTSHP, 'Rectangle', 'Rectangle')
+    submenu.append_radio_item(ID::T_SQUARESHP, 'Square', 'Square')
+    submenu.append_radio_item(ID::T_RNDRECTSHP, 'RoundRect', 'Rounded ractangle')
+    submenu.append_radio_item(ID::T_ELLIPSESHP, 'Ellipse', 'Ellipse')
+    submenu.append_radio_item(ID::T_CIRCLESHP, 'Circle', 'Circle')
+    submenu.append_radio_item(ID::T_DIAMONDSHP, 'Diamond', 'Diamond')
+    submenu.append_radio_item(ID::T_TEXTSHP, 'Text', 'Text')
+    submenu.append_radio_item(ID::T_EDITTEXTSHP, 'Editable Text', 'Editable Text')
+    submenu.append_radio_item(ID::T_BITMAPSHP, 'Bitmap', 'Bitmap')
+    submenu.append_radio_item(ID::T_GRIDSHP, 'Grid', 'Grid')
+    submenu.append_radio_item(ID::T_FLEXGRIDSHP, 'Flexible Grid', 'Flexible Grid')
+    submenu.append_radio_item(ID::T_VBOXSHP, 'Vertical Box', 'Vertical Box')
+    submenu.append_radio_item(ID::T_HBOXSHP, 'Horizontal Box', 'Horizontal Box')
+    submenu.append_radio_item(ID::T_LINESHP, 'Line', 'Connector Line')
+    submenu.append_radio_item(ID::T_CURVESHP, 'Curved Line', 'Curved Connector Line')
+    submenu.append_radio_item(ID::T_ORTHOSHP, 'Orthogonal Line', 'Orthogonal Connector Line')
+    submenu.append_radio_item(ID::T_RNDORTHOSHP, 'Rounded Orthogonal Line', 'Rounded Orthogonal Connector Line')
+    submenu.append_radio_item(ID::T_STANDALONELINESHP, 'Standalone Line', 'Standalone Line')
+    mi = Wx::MenuItem.new(@shape_menu, ID::M_SHAPE_LIST, 'Select shape', 'Select shape', Wx::ITEM_NORMAL, submenu)
+    @shape_menu.append(mi)
+    @shape_menu.append_separator
+    submenu = Wx::Menu.new
+    submenu.append_radio_item(ID::M_GRIDCOLS_1, '1 column', '1 column')
+    submenu.append_radio_item(ID::M_GRIDCOLS_2, '2 columns', '2 columns')
+    mi = submenu.append_radio_item(ID::M_GRIDCOLS_3, '3 columns', '3 columns')
+    mi.check(true)
+    submenu.append_radio_item(ID::M_GRIDCOLS_4, '4 columns', '4 columns')
+    submenu.append_radio_item(ID::M_GRIDCOLS_5, '5 columns', '5 columns')
+    @mi_gridcols_custom = submenu.append_radio_item(ID::M_GRIDCOLS_CUSTOM, 'Custom', 'Enter custom column number')
+    @mi_gridcol_nr = submenu.append(ID::M_GRIDCOLS_NR, 'Number of grid columns (3)', 'Select to change nr. of grid columns')
+    @mi_gridcol_nr.enable(false)
+    mi = Wx::MenuItem.new(@shape_menu, ID::M_GRID_COLUMNS, 'Set grid columns', 'Select number of grid columns', Wx::ITEM_NORMAL, submenu)
+    @shape_menu.append(mi)
+
     Wx::SF::AutoLayout.layout_algorithms.each_with_index do |la_name, i|
       @auto_layout_menu.append(ID::M_AUTOLAYOUT_FIRST + i, la_name)
     end
@@ -222,7 +267,7 @@ class MainFrame < Wx::Frame
     @tool_bar.add_separator
     @tool_bar.add_radio_tool(ID::T_TOOL, 'Tool', Wx::Bitmap(:Tool), Wx::NULL_BITMAP, 'Design tool')
     @tool_bar.add_radio_tool(ID::T_RECTSHP, 'Rectangle', Wx::Bitmap(:Rect), Wx::NULL_BITMAP, 'Rectangle')
-    @tool_bar.add_radio_tool(ID::T_SQUARESHP, 'Fixed rectangle', Wx::Bitmap(:FixedRect), Wx::NULL_BITMAP, 'Fixed rectangle')
+    @tool_bar.add_radio_tool(ID::T_SQUARESHP, 'Square', Wx::Bitmap(:FixedRect), Wx::NULL_BITMAP, 'Square')
     @tool_bar.add_radio_tool(ID::T_RNDRECTSHP, 'RoundRect', Wx::Bitmap(:RoundRect), Wx::NULL_BITMAP, 'Rounded rectangle')
     @tool_bar.add_radio_tool(ID::T_ELLIPSESHP, 'Ellipse', Wx::Bitmap(:Ellipse), Wx::NULL_BITMAP, 'Ellipse')
     @tool_bar.add_radio_tool(ID::T_CIRCLESHP, 'Circle', Wx::Bitmap(:Circle), Wx::NULL_BITMAP, 'Circle')
@@ -254,6 +299,7 @@ class MainFrame < Wx::Frame
 
     # initialize data members
     @tool_mode = MODE::DESIGN
+    @grid_columns = 3
     @show_grid = true
     @show_shadows = false
 
@@ -279,6 +325,7 @@ class MainFrame < Wx::Frame
     evt_menu_range(ID::M_AUTOLAYOUT_FIRST, ID::M_AUTOLAYOUT_LAST, :on_auto_layout)
     evt_command_scroll(Wx::ID_ZOOM_FIT, :on_slider)
     evt_tool_range(ID::T_FIRST_TOOLMARKER, ID::T_LAST_TOOLMARKER, :on_tool)
+    evt_menu_range(ID::M_GRIDCOLS_1, ID::M_GRIDCOLS_NR, :on_grid_columns)
     evt_colourpicker_changed(ID::T_COLORPICKER, :on_hover_color)
     evt_update_ui(Wx::ID_COPY, :on_update_copy)
     evt_update_ui(Wx::ID_CUT, :on_update_cut)
@@ -287,12 +334,13 @@ class MainFrame < Wx::Frame
     evt_update_ui(Wx::ID_REDO, :on_update_redo)
     evt_update_ui_range(ID::T_FIRST_TOOLMARKER, ID::T_LAST_TOOLMARKER, :on_update_tool)
     evt_update_ui_range(ID::M_AUTOLAYOUT_FIRST, ID::M_AUTOLAYOUT_LAST, :on_update_auto_layout)
+    evt_update_ui(@mi_gridcol_nr, :on_update_gridcol_nr)
     evt_idle(:on_idle)
   end
 
   attr_accessor :tool_mode, :show_grid, :show_shadows
 
-  attr_reader :zoom_slider
+  attr_reader :grid_columns, :zoom_slider
 
   def setup_frame
     if Wx::PLATFORM == 'WXMSW'
@@ -307,7 +355,10 @@ class MainFrame < Wx::Frame
     
     @edit_menu = Wx::Menu.new
     @menu_bar.append(@edit_menu, "&Edit")  
-    
+
+    @shape_menu = Wx::Menu.new
+    @menu_bar.append(@shape_menu, "&Shapes")
+
     @auto_layout_menu = Wx::Menu.new
     @menu_bar.append(@auto_layout_menu, "&AutoLayout")  
     
@@ -639,6 +690,16 @@ class MainFrame < Wx::Frame
     end
   end
 
+  def on_grid_columns(event)
+    if event.get_id == ID::M_GRIDCOLS_CUSTOM || event.get_id == ID::M_GRIDCOLS_NR
+      n = Wx.get_number_from_user('Enter custom grid column number.', 'Nr. of columns:',
+                                  'Grid columns', @grid_columns, 1, 100, self)
+      @grid_columns = n unless n <= 0
+    else
+      @grid_columns = 1 + event.get_id-ID::M_GRIDCOLS_1
+    end
+  end
+
   def on_hover_color(event)
     @shape_canvas.set_hover_colour(event.get_colour)
   end
@@ -744,6 +805,12 @@ class MainFrame < Wx::Frame
   def on_update_auto_layout(event)
     event.enable(!@diagram.empty?)
   end
+
+  def on_update_gridcol_nr(_event)
+    @mi_gridcol_nr.enable(@mi_gridcols_custom.checked?)
+    @mi_gridcol_nr.set_item_label("Number of grid columns (#{@grid_columns})")
+  end
+
 end
 
 Wx::App.run do
