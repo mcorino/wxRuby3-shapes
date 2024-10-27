@@ -612,7 +612,7 @@ module Wx::SF
     end
 
 	  # Get shape's bounding box which includes also associated child shapes and connections.
-	  # @param [Wx::Rect] rct bounding rectangle
+	  # @param [Wx::Rect, nil] rct bounding rectangle
 	  # @param [BBMODE] mask Bit mask of object types which should be included into calculation
     # @return [Wx::Rect] returned bounding box
 	  # @see BBMODE
@@ -1752,7 +1752,7 @@ module Wx::SF
     end
 
     # Auxiliary function called by GetCompleteBoundingBox function.
-	  # @param [Wx::Rect] rct bounding rectangle to update
+	  # @param [Wx::Rect, nil] rct bounding rectangle to update
 	  # @param [BBMODE] mask Bit mask of object types which should be included into calculation
     # @param [Set<Wx::SF::Shape] processed set to keep track of processed shapes
     # @return [Wx::Rect] bounding rectangle
@@ -1765,10 +1765,14 @@ module Wx::SF
 
       # first, get bounding box of the current shape
       if mask.allbits?(BBMODE::SELF)
-        if rct.is_empty
-          rct.assign(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
+        if rct.nil?
+          rct = get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i)
         else
-          rct.union!(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
+          if rct.empty?
+            rct += get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i)
+          else
+            rct.union!(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
+          end
 
           # add also shadow offset if necessary
           if mask.allbits?(BBMODE::SHADOW) && has_style?(STYLE::SHOW_SHADOW) && !has_style(STYLE::NOT_DRAWN) && get_parent_canvas
@@ -1813,10 +1817,10 @@ module Wx::SF
 
         # now, call this function for all children recursively...
         lst_children.each do |child|
-          child.send(:_get_complete_bounding_box, rct, mask, processed)
+          rct = child.send(:_get_complete_bounding_box, rct, mask, processed)
         end
       end
-      rct
+      rct || Wx::Rect.new
     end
 
     # Original protected event handler called when the mouse pointer is moving around the shape canvas.
@@ -1928,7 +1932,7 @@ module Wx::SF
         end
 
         # get shape BB BEFORE movement and combine it with BB of assigned lines
-        prev_bb = get_complete_bounding_box(Wx::Rect.new, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
+        prev_bb = get_complete_bounding_box(nil, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
 
         move_to(pos.x - @mouse_offset.x, pos.y - @mouse_offset.y)
         on_dragging(pos)
@@ -1938,7 +1942,7 @@ module Wx::SF
         lst_child_ctrls.each { |ctrl| ctrl.update_control }
 
         # get shape BB AFTER movement and combine it with BB of assigned lines
-        curr_bb = get_complete_bounding_box(Wx::Rect.new, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
+        curr_bb = get_complete_bounding_box(nil, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
 
         # update canvas
         refresh_rect(prev_bb.union!(curr_bb), DELAYED)
@@ -1992,7 +1996,7 @@ module Wx::SF
           f_refresh_all = true
         end
 
-        prev_bb = Wx::Rect.new
+        prev_bb = nil
         unless f_refresh_all
           prev_bb = get_complete_bounding_box(prev_bb, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
         end
@@ -2014,10 +2018,9 @@ module Wx::SF
         end
 
         if !f_refresh_all
-          curr_bb = get_complete_bounding_box(Wx::Rect.new, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
+          curr_bb = get_complete_bounding_box(prev_bb, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
 
-          prev_bb.union!(curr_bb)
-          refresh_rect(prev_bb, DELAYED)
+          refresh_rect(curr_bb, DELAYED)
         else
           canvas.refresh(false)
         end
@@ -2032,9 +2035,9 @@ module Wx::SF
       return unless @diagram
 
       if @parent_shape
-        prev_bb = get_grand_parent_shape.get_complete_bounding_box(Wx::Rect.new)
+        prev_bb = get_grand_parent_shape.get_complete_bounding_box(nil)
       else
-        prev_bb = get_complete_bounding_box(Wx::Rect.new)
+        prev_bb = get_complete_bounding_box(nil)
       end
 
       # call appropriate user-defined handler
@@ -2051,9 +2054,9 @@ module Wx::SF
       update
 
       if @parent_shape
-        curr_bb = get_grand_parent_shape.get_complete_bounding_box(Wx::Rect.new)
+        curr_bb = get_grand_parent_shape.get_complete_bounding_box(nil)
       else
-        curr_bb = get_complete_bounding_box(Wx::Rect.new)
+        curr_bb = get_complete_bounding_box(nil)
       end
 
       # refresh shape

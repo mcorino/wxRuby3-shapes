@@ -174,12 +174,12 @@ module Wx::SF
       @cells[index]
     end
 
-    # Clear information about managed shapes and set number of rows and columns to zero.
+    # Clear information about managed shapes and set number of rows to 1 (number of columns does not change).
     #
     # Note that this function doesn't remove managed (child) shapes from the parent grid shape
     # (they are still its child shapes but aren't managed anymore).
     def clear_grid
-      @rows = @cols = 0
+      @rows = 1
       @cells = []
     end
 
@@ -242,10 +242,8 @@ module Wx::SF
             @cells[index] = shape
           end
 
-          # adjust row count if necessary
-          if @cells.size > cell_count
-            update_rows
-          end
+          # adjust row count
+          update_rows
 
           return true
         end
@@ -277,10 +275,8 @@ module Wx::SF
             @cells[index] = shape
           end
 
-          # adjust row count if necessary
-          if @cells.size > cell_count
-            update_rows
-          end
+          # adjust row count
+          update_rows
 
           return true
         end
@@ -338,13 +334,12 @@ module Wx::SF
       ch_bb = Wx::Rect.new(abs_pos.to_point, [0, 0])
   
       @child_shapes.each do |child|
-        child.get_complete_bounding_box(ch_bb, BBMODE::SELF | BBMODE::CHILDREN) if child.has_style?(STYLE::ALWAYS_INSIDE)
+        ch_bb = child.get_complete_bounding_box(ch_bb, BBMODE::SELF | BBMODE::CHILDREN) if child.has_style?(STYLE::ALWAYS_INSIDE)
       end
 
       if @child_shapes.empty?
         # do not let the empty grid shape 'disappear' due to zero sizes...
-        ch_bb.set_width(GridShape.min_size.width) if (ch_bb.width + 2*@cell_space) <= GridShape.min_size.width
-        ch_bb.set_height(GridShape.min_size.height) if (ch_bb.height + 2*@cell_space) <= GridShape.min_size.height
+        ch_bb.size = GridShape.min_size
       end
 
       @rect_size = Wx::RealPoint.new(ch_bb.width + 2*@cell_space, ch_bb.height + 2*@cell_space)
@@ -396,6 +391,8 @@ module Wx::SF
 
     # update row count
     def update_rows
+      # remove trailing empty cells (if any)
+      @cells.pop until @cells.last
       @rows = @cells.size / @cols
       @rows += 1 if (@cells.size % @cols) > 0
     end
@@ -431,6 +428,8 @@ module Wx::SF
 
     def position_child_cell(child)
       crct = child.get_bounding_box
+      # see if the child already had a cell in this grid (moving a child)
+      child_index = @cells.index(child)
       # if the child intersects this box shape we look
       # for the cell it should go into (if any)
       if @cells.size>0 && intersects?(crct)
@@ -438,37 +437,40 @@ module Wx::SF
         index = find_cell(crct)
         # now see where to put the new/moved child
         if index    # found a matching cell?
-          target_cell = @cells[index]
-          # if the child being inserted already had a slot (moving a child)
-          if (child_index = @cells.index(child))
+          # if the child being inserted already had a slot
+          if child_index
             # if the newly found index equals the existing index there is nothing to do
             return if child_index == index
-            # else remove the child from it's current position; this provides support for reordering child shapes by dragging
-            remove_from_grid(child)
+            # else clear the child's current cell; this provides support for reordering child shapes by dragging
+            @cells[child_index] = nil
           end
           # insert/move the child
-          if target_cell # is cell occupied?
-            # if the child being moved was positioned before the new position we need to adjust the new position
-            index -= 1 if child_index && child_index < index
-          # else
-          #   # move to empty cell
-          #   @cells[index] = child
-          end
-          # insert
           unless insert_to_grid(index, child)
-            # if failed to insert (max rows exceeded?) make the child a toplevel shape
-            diagram.reparent_shape(child, nil)
+            # if failed to insert (max rows exceeded?) restore the child to it's previous cell
+            if child_index
+              @cells[child_index] = child
+            else # or make the child a toplevel shape
+              # move relative to current parent (if any)
+              child.move_by(child.get_parent_shape.get_absolute_position) if child.get_parent_shape
+              diagram.reparent_shape(child, nil)
+            end
           end
           return # done
         end
       end
       # otherwise append
-      # remove child from current position if already part of grid
-      remove_from_grid(child) if @cells.index(child)
+      # clear the child's current cell if already part of grid
+      @cells[child_index] = nil if child_index
       # append
       unless append_to_grid(child)
-        # if failed to insert (max rows exceeded?) make the child a toplevel shape
-        diagram.reparent_shape(child, nil)
+        # if failed to append (max rows exceeded?) restore the child to it's previous cell
+        if child_index
+          @cells[child_index] = child
+        else # or make the child a toplevel shape
+          # move relative to current parent (if any)
+          child.move_by(child.get_parent_shape.get_absolute_position) if child.get_parent_shape
+          diagram.reparent_shape(child, nil)
+        end
       end
     end
 

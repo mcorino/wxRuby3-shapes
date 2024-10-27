@@ -222,13 +222,13 @@ module Wx::SF
       ch_bb = Wx::Rect.new(abs_pos.to_point, [0, 0])
 
       @child_shapes.each do |child|
-        child.get_complete_bounding_box(ch_bb, BBMODE::SELF | BBMODE::CHILDREN) if child.has_style?(STYLE::ALWAYS_INSIDE)
+        ch_bb = child.get_complete_bounding_box(ch_bb, BBMODE::SELF | BBMODE::CHILDREN) if child.has_style?(STYLE::ALWAYS_INSIDE)
       end
 
       if @child_shapes.empty?
         # do not let the empty box shape 'disappear' due to zero sizes...
-        ch_bb.set_width(BoxShape.min_size.width) if (ch_bb.width + 2*@spacing) <= BoxShape.min_size.width && get_h_align != HALIGN::EXPAND
-        ch_bb.set_height(BoxShape.min_size.height) if (ch_bb.height + 2*@spacing) <= BoxShape.min_size.height && get_v_align != VALIGN::EXPAND
+        ch_bb.width = get_h_align == HALIGN::EXPAND ? @rect_size.x.to_i-2*@spacing : GridShape.min_size.width
+        ch_bb.height = get_v_align == VALIGN::EXPAND ? @rect_size.y.to_i-2*@spacing : GridShape.min_size.height
       end
 
       @rect_size = Wx::RealPoint.new(ch_bb.width + 2*@spacing, ch_bb.height + 2*@spacing)

@@ -156,7 +156,7 @@ module Wx::SF
     def fit_to_children
       # HINT: overload it for custom actions...
   
-      # get bounding box of the shape and children set be inside it
+      # get bounding box of the shape and children set to be inside it
       ch_bb = get_bounding_box
       shp_bb = ch_bb.dup
     

@@ -1457,14 +1457,14 @@ module Wx::SF
     # Get bounding box of all selected shapes.
     # @return [Wx::Rect] Selection bounding box
     def get_selection_bb
-      bb_rct = Wx::Rect.new
+      bb_rct = nil
       # get selected shapes
       get_selected_shapes.each do |shape|
-        shape.get_complete_bounding_box(
-          bb_rct,
-          Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN | Shape::BBMODE::CONNECTIONS | Shape::BBMODE::SHADOW)
+        bb_rct = shape.get_complete_bounding_box(bb_rct,
+                                                 Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN |
+                                                   Shape::BBMODE::CONNECTIONS | Shape::BBMODE::SHADOW)
       end
-      bb_rct
+      bb_rct || Wx::Rect.new
     end
 
     # Align selected shapes in given directions.
@@ -2006,9 +2006,9 @@ module Wx::SF
       end
 
       # ... and draw connections
-      bb_rct = Wx::Rect.new
+      bb_rct = nil
       lst_lines_to_draw.each do |line|
-        line.get_complete_bounding_box(bb_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN | Shape::BBMODE::SHADOW)
+        bb_rct = line.get_complete_bounding_box(bb_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN | Shape::BBMODE::SHADOW)
         line.draw(dc, line.get_line_mode == LineShape::LINEMODE::READY) if bb_rct.intersects(upd_rct)
       end
       lst_selected
@@ -2567,16 +2567,12 @@ module Wx::SF
 
           # update unfinished line if any
           if @new_line_shape
-            line_rct = Wx::Rect.new
-            upd_line_rct = Wx::Rect.new
-            @new_line_shape.get_complete_bounding_box(line_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
+            line_rct = @new_line_shape.get_complete_bounding_box(nil, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
 
             @new_line_shape.send(:set_unfinished_point, fit_position_to_grid(lpos))
             @new_line_shape.update
 
-            @new_line_shape.get_complete_bounding_box(upd_line_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
-
-            line_rct.union!(upd_line_rct)
+            line_rct = @new_line_shape.get_complete_bounding_box(line_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
 
             invalidate_rect(line_rct)
           end
@@ -3015,7 +3011,7 @@ module Wx::SF
         end
     
         prev_parent.update if prev_parent
-        parent_shape.update if parent_shape
+        parent_shape.update if parent_shape && parent_shape != prev_parent
       end
     end
 
