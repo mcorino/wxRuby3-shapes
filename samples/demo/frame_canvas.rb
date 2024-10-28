@@ -547,38 +547,38 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
   class << self
     def get_enum_choices(enum, exclude: nil)
-      enumerators = enum.enumerators.values
-      enumerators.reject!.each { |e| exclude && exclude.call(enum[e]) }
-      enumerators.collect { |id| id.to_s }
+      enumerators = enum.enumerators.sort_by(&:first)
+      enumerators.reject! { |e, _| exclude && exclude.call(e) }
+      enumerators.collect { |_, esym| esym.to_s }
     end
 
     def get_enum_index(enumerator, exclude: nil)
       enum = enumerator.class
-      enumerators = enum.enumerators.keys
-      enumerators.reject!.each { |e| exclude && exclude.call(e) }
-      enumerators.index(enumerator.to_i)
+      enumerators = enum.enumerators.sort_by(&:first)
+      enumerators.reject! { |e, _| exclude && exclude.call(e) }
+      enumerators.index { |e, _| enumerator == e }
     end
 
     def index_to_enum(enum, index, exclude: nil)
-      enumerators = enum.enumerators.values
-      enumerators.reject!.each { |e| exclude && exclude.call(enum[e]) }
-      enum[enumerators[index]]
+      enumerators = enum.enumerators.sort_by(&:first)
+      enumerators.reject! { |e, _| exclude && exclude.call(e) }
+      enum[enumerators[index].last]
     end
 
     def selections_to_enum(enum, selections, exclude: nil)
-      enumerators = enum.enumerators.keys
-      enumerators.reject!.each { |e| exclude && exclude.call(e) }
+      enumerators = enum.enumerators.sort_by(&:first)
+      enumerators.reject! { |e, _| exclude && exclude.call(e) }
       selections.inject(enum.new(0)) do |mask, ix|
-        mask | enumerators[ix]
+        mask | enumerators[ix].first
       end
     end
 
     def enum_to_selections(enum, style, exclude: nil)
       sel = []
-      enumerators = enum.enumerators.keys
-      enumerators.reject!.each { |e| exclude && exclude.call(e) }
-      enumerators.each_with_index do |eval, ix|
-        sel << ix if style.allbits?(eval)
+      enumerators = enum.enumerators.sort_by(&:first)
+      enumerators.reject!.each { |e, _| exclude && exclude.call(e) }
+      enumerators.each_with_index do |(e, _), ix|
+        sel << ix if style.allbits?(e)
       end
       sel
     end
@@ -728,7 +728,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     private :on_del_cpt_update
 
     def on_chg_cpt_update(_evt)
-      @chg_btn.enable(@lst_view.get_selected_item_count > 0)
+      @chg_btn.enable(@lst_view.get_selected_item_count == 1)
     end
     private :on_chg_cpt_update
 
@@ -743,7 +743,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     private :on_list_item_selected
 
     def on_delete_cpt(_evt)
-      unless (sel = @lst_view.get_first_selected) == -1
+      @lst_view.each_selected.reverse_each do |sel|
         @lst_view.delete_item(sel)
         @cpts.delete_at(sel)
       end
