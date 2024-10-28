@@ -39,67 +39,39 @@ jobs:
         include:
           - os: ubuntu-22.04
             gtk_version: 3
-            CC: gcc
-            CXX: g++
-            ruby: '3.0'
-            swig: '4'
-            configure_flags:
-            use_xvfb: true
-          - os: ubuntu-22.04
+            arch: x86_64
+            ruby: 'system'
+          - os: ubuntu-24.04
             gtk_version: 3
-            CC: gcc
-            CXX: g++
-            ruby: 'ruby'
-            swig: '4'
-            configure_flags:
-            use_xvfb: true
+            arch: x86_64
+            ruby: 'system'
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} GTK${{ matrix.gtk_version }} ${{ matrix.CXX }} ruby-${{ matrix.ruby }}
-    env:
-      wxGTK_VERSION: ${{ matrix.gtk_version && matrix.gtk_version || 3 }}
-      wxCONFIGURE_FLAGS: ${{ matrix.configure_flags }}
-      wxUSE_ASAN: ${{ matrix.use_asan && 1 || 0 }}
-      wxUSE_XVFB: ${{ matrix.use_xvfb && 1 || 0 }}
-      WX_EXTRA_PACKAGES: doxygen patchelf
-      CC: ${{ matrix.CC }}
-      CXX: ${{ matrix.CXX }}
+    name: ${{ matrix.os }} GTK${{ matrix.gtk_version }} ${{ matrix.arch}} ruby-${{ matrix.ruby }}
     steps:
     - name: Checkout wxRuby3/Shapes
       uses: actions/checkout@v4
-
-    - name: checkout wxWidgets
-      uses: actions/checkout@v4
-      with:
-        repository: wxWidgets/wxWidgets
-        path: ${{ env.WXWIDGETS_ROOT }}
 
     - name: Prepare package repos
       run: |
         sudo apt-get update
 
-    - name: Set up build environment
+    - name: Install packages
       run: |
-        # Install locales used by our tests to run all the tests instead of
-        # skipping them.
-        sudo locale-gen de_DE.utf8 de_CH.utf8 en_US.utf8 fr_FR.utf8 sv_SE.utf8
-        
-        $WXWIDGETS_ROOT/build/tools/before_install.sh
+        sudo apt-get install -y xvfb xfonts-75dpi ruby-bundler
+        case ${{ matrix.os }} in
+        ubuntu-24.04)
+          sudo apt-get install -y 'libgtk-3-[0-9]+' 'libwebkit2gtk-4.1-[0-9]+' 'libgspell-1-[0-9]+' libnotify4 'libsecret-1-[0-9]+'
+          ;;
+        *)
+          sudo apt-get install -y 'libgtk-3-[0-9]+' 'libwebkit2gtk-4.0-[0-9]+' 'libgspell-1-[0-9]+' libnotify4 'libsecret-1-[0-9]+'
+          ;;
+        esac
 
     - name: Display build environment
       run: |
         echo $PATH
+        uname -a
         ruby -v
-        doxygen -v
-        gcc -v
-        g++ -v
-
-    - name: Remove wxWidgets
-      run: |
-        rm -rf $WXWIDGETS_ROOT
-
-    - name: Install Ruby packages
-      run: |
-        sudo apt-get install -y ruby-bundler
 
     - name: Setup Ruby gems
       run: |

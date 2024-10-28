@@ -1,5 +1,4 @@
-# CI workflow building wxRuby3 under Windows.
-name: Windows wxMSW builds
+name: MacOS wxOSX builds
 
 on:
   push:
@@ -23,11 +22,14 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
+
+env:
+  WXWIDGETS_ROOT: ${{ github.workspace }}/ext/wxWidgets
 
 jobs:
   build:
@@ -35,16 +37,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2022
-            platform: 'x64'
+          - name: wxMac macOS 13
+            runner: macos-13
+            arch: x86_64
             ruby: 'ruby'
-            wxr_type: local
-          - os: windows-2022
-            platform: 'x64'
+          - name: wxMac macOS 14
+            runner: macos-14
+            arch: aarch64
             ruby: 'ruby'
-            wxr_type: remote
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} wxMSW ${{ matrix.platform }} ruby-${{ matrix.ruby }} wxruby-${{ matrix.wxr_type }}
+    name: ${{ matrix.os }} ${{ matrix.arch}} ruby-${{ matrix.ruby }}
     steps:
       - name: Checkout wxRuby3/Shapes
         uses: actions/checkout@v4
@@ -54,13 +56,15 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
 
+      - name: Display runtime environment
+        run: |
+          echo $PATH
+          uname -a
+          ruby -v
+
       - name: Setup Ruby gems
         run: |
-          If ("${{ matrix.wxr_type }}" -eq "local") {
-            gem install wxruby3 -- prebuilt=none
-            wxruby setup --autoinstall
-          } 
-          bundle install 
+          bundle install
 
       - name: Run wxRuby3/Shapes regression tests
         run: |
