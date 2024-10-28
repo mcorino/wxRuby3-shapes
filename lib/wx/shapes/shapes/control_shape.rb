@@ -124,8 +124,8 @@ module Wx::SF
       CONTROLOFFSET = 0
       PROCESSEVENTS = EVTPROCESSING::KEY2CANVAS | EVTPROCESSING::MOUSE2CANVAS
       class << self
-        def mod_fill; Wx::Brush.new(Wx::BLUE, Wx::BrushStyle::BRUSHSTYLE_BDIAGONAL_HATCH); end
-        def mod_border; Wx::Pen.new(Wx::BLUE, 1, Wx::PenStyle::PENSTYLE_SOLID); end
+        def mod_fill; @mod_fill ||= Wx::Brush.new(Wx::BLUE, Wx::BrushStyle::BRUSHSTYLE_BDIAGONAL_HATCH); end
+        def mod_border; @mod_border ||= Wx::Pen.new(Wx::BLUE, 1, Wx::PenStyle::PENSTYLE_SOLID); end
       end
     end
 
@@ -152,8 +152,8 @@ module Wx::SF
       @prev_fill = nil
       @prev_border = nil
 
-      @fill = Wx::TRANSPARENT_BRUSH
-      @border = Wx::TRANSPARENT_PEN
+      @fill = Wx::TRANSPARENT_BRUSH.dup
+      @border = Wx::TRANSPARENT_PEN.dup
     end
 
     # Set managed GUI control.
@@ -328,7 +328,7 @@ module Wx::SF
     end
 	
 	  # Update shape (align all child shapes an resize it to fit them)
-    def update
+    def update(recurse = true)
       super
       update_control
     end

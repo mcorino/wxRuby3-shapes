@@ -50,7 +50,7 @@ module Wx::SF
     # Recursively collects shapes and returns collection.
     # @param [Array<Shape>] collection container to return collected shapes in
     def all(collection = [])
-      @list.inject(collection) { |list, shape| shape.instance_variable_get('@child_shapes').all(list << shape) }
+      @list.inject(collection.concat(@list.to_a)) { |list, shape| shape.instance_variable_get('@child_shapes').all(list) }
     end
 
     # Returns true if no shapes are contained, false otherwise.
@@ -119,7 +119,7 @@ module Wx::SF
     # @param [Shape] shape intended list item
     # @return [Shape] checked shape
     def check_elem(shape)
-      ::Kernel.raise TypeError, 'Expected a Wx::SF::Shape' unless shape.is_a?(Wx::SF::Shape)
+      ::Kernel.raise TypeError, "Expected a Wx::SF::Shape, got #{shape}" unless shape.is_a?(Wx::SF::Shape)
       shape
     end
 

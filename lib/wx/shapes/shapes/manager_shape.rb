@@ -13,7 +13,19 @@ module Wx::SF
     end
     alias :manager? :is_manager
 
+    # Update the shape's position in order to its alignment
+    def do_alignment
+      super
+
+      # do alignment of shape's children
+      do_children_layout
+    end
+
     protected
+
+    def do_children_layout
+      raise NotImplementedError, 'Manager shapes need override'
+    end
 
     # Move and resize given shape so it will fit the given bounding rectangle.
     #
@@ -36,10 +48,8 @@ module Wx::SF
       when Shape::VALIGN::BOTTOM
         shape.set_relative_position(prev_pos.x, rct.bottom - shape_bb.height - shape.get_v_border)
       when Shape::VALIGN::EXPAND
-        if shape.has_style?(Shape::STYLE::SIZE_CHANGE)
-          shape.set_relative_position(prev_pos.x, rct.top + shape.get_v_border)
-          shape.scale(1.0, (rct.height - 2*shape.get_v_border).to_f/shape_bb.height)
-        end
+        shape.set_relative_position(prev_pos.x, rct.top + shape.get_v_border)
+        shape.scale(1.0, (rct.height - 2*shape.get_v_border).to_f/shape_bb.height)
       else
         shape.set_relative_position(prev_pos.x, rct.top)
       end
@@ -55,10 +65,8 @@ module Wx::SF
       when Shape::HALIGN::RIGHT
         shape.set_relative_position(rct.right - shape_bb.width - shape.get_h_border, prev_pos.y)
       when Shape::HALIGN::EXPAND
-        if shape.has_style?(Shape::STYLE::SIZE_CHANGE)
-          shape.set_relative_position(rct.left + shape.get_h_border, prev_pos.y)
-          shape.scale((rct.width - 2*shape.get_h_border).to_f/shape_bb.width, 1.0)
-        end
+        shape.set_relative_position(rct.left + shape.get_h_border, prev_pos.y)
+        shape.scale((rct.width - 2*shape.get_h_border).to_f/shape_bb.width, 1.0)
       else
         shape.set_relative_position(rct.left, prev_pos.y)
       end

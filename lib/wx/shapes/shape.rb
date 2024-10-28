@@ -103,8 +103,10 @@ module Wx::SF
       HIGHLIGHTING = self.new(16)
       # Shape is always inside its parent
       ALWAYS_INSIDE = self.new(32)
-      # available
-      # XXX = self.new(64)
+      # Shape is not drawn. Does not apply to children.
+      # Should be combined with PROPAGATE_DRAGGING | PROPAGATE_SELECTION | PROPAGATE_INTERACTIVE_CONNECTION | PROPAGATE_HOVERING | PROPAGATE_HIGHLIGHTING | PROPAGATE_DROPPING
+      # in most cases.
+      NOT_DRAWN = self.new(64)
       # The DEL key is processed by the shape (not by the shape canvas)
       PROCESS_DEL = self.new(128)
       # Show handles if the shape is selected
@@ -125,10 +127,14 @@ module Wx::SF
       NO_FIT_TO_CHILDREN = self.new(32768)
       # Propagate hovering to parent.
       PROPAGATE_HOVERING = self.new(65536)
-      # Propagate hovering to parent.
+      # Propagate highlighting to parent.
       PROPAGATE_HIGHLIGHTING = self.new(131072)
+      # Propagate dropping to parent.
+      PROPAGATE_DROPPING = self.new(262144)
       # Default shape style
       DEFAULT_SHAPE_STYLE = PARENT_CHANGE | POSITION_CHANGE | SIZE_CHANGE | HOVERING | HIGHLIGHTING | SHOW_HANDLES | ALWAYS_INSIDE
+      # Shortcut for all propagation options
+      PROPAGATE_ALL = PROPAGATE_DRAGGING | PROPAGATE_SELECTION | PROPAGATE_INTERACTIVE_CONNECTION | PROPAGATE_HOVERING | PROPAGATE_HIGHLIGHTING | PROPAGATE_DROPPING
     end
 
     # Default values
@@ -323,9 +329,10 @@ module Wx::SF
     # @param [Wx::SF::Shape] child child shape to add
     # @return [Wx::SF::Shape,nil] added child shape or nil if not accepted
     def add_child_shape(child)
+      raise SFException, 'Illegal attempt to add self as Shape child' if child == self
       if is_child_accepted(child.class)
         if child.get_diagram
-          child.get_diagram.reparent_shape(child, shape)
+          child.get_diagram.reparent_shape(child, self)
         else
           child.set_parent_shape(self)
         end
@@ -351,6 +358,8 @@ module Wx::SF
     # @note Note that this does not add (if parent == nil) or remove (if parent != nil) the shape from the diagram's
     # toplevel shapes. Use Diagram#reparent_shape when that is needed.
     def set_parent_shape(parent)
+      raise SFException, 'Illegal to set Shape parent to self' if parent == self
+      raise SFException, 'Illegal to set Shape parent to (grand-)child of self' if parent && include_child_shape?(parent, true)
       @parent_shape.send(:remove_child, self) if @parent_shape
       parent.send(:add_child, self) if parent
       set_diagram(parent.get_diagram) if parent
@@ -390,25 +399,29 @@ module Wx::SF
       return unless @diagram && @diagram.shape_canvas
       return unless @visible
 
-      # draw the shape shadow if required
-      draw_shadow(dc) if !@selected && has_style?(STYLE::SHOW_SHADOW)
+      unless has_style?(STYLE::NOT_DRAWN)
 
-      # first, draw itself
-      if @mouse_over && (@highlight_parent || has_style?(STYLE::HOVERING))
-        if @highlight_parent
-          draw_highlighted(dc)
-          @highlight_parent = false
+        # draw the shape shadow if required
+        draw_shadow(dc) if !@selected && has_style?(STYLE::SHOW_SHADOW)
+
+        # first, draw itself
+        if @mouse_over && (@highlight_parent || has_style?(STYLE::HOVERING))
+          if @highlight_parent
+            draw_highlighted(dc)
+            @highlight_parent = false
+          else
+            draw_hover(dc)
+          end
         else
-          draw_hover(dc)
+          draw_normal(dc)
         end
-      else
-        draw_normal(dc)
+
+        draw_selected(dc) if @selected
+
+        # ... then draw connection points ...
+        @connection_pts.each { |cpt| cpt.draw(dc) } unless has_style?(STYLE::PROPAGATE_INTERACTIVE_CONNECTION)
+
       end
-
-      draw_selected(dc) if @selected
-
-      # ... then draw connection points ...
-      @connection_pts.each { |cpt| cpt.draw(dc) }
 
       # ... then draw child shapes
       if children
@@ -512,7 +525,7 @@ module Wx::SF
       @style &= ~style
     end
     def contains_style(style)
-      (@style & style) != 0
+      @style.allbits?(style)
     end
     alias :contains_style? :contains_style
     alias :has_style? :contains_style
@@ -599,7 +612,7 @@ module Wx::SF
     end
 
 	  # Get shape's bounding box which includes also associated child shapes and connections.
-	  # @param [Wx::Rect] rct bounding rectangle
+	  # @param [Wx::Rect, nil] rct bounding rectangle
 	  # @param [BBMODE] mask Bit mask of object types which should be included into calculation
     # @return [Wx::Rect] returned bounding box
 	  # @see BBMODE
@@ -791,7 +804,7 @@ module Wx::SF
     end
 
     # Update shape (align all child shapes and resize it to fit them)
-    def update
+    def update(recurse = true)
       # do self-alignment
       do_alignment
 
@@ -802,8 +815,8 @@ module Wx::SF
       fit_to_children unless has_style?(STYLE::NO_FIT_TO_CHILDREN)
 
       # do it recursively on all parent shapes
-      if (parent = get_parent_shape)
-        parent.update
+      if recurse && (parent = get_parent_shape)
+        parent.update(recurse)
       end
     end
 
@@ -817,11 +830,17 @@ module Wx::SF
       @selected
     end
 
+    # Returns true if any (grand-)parent is selected?
+    def has_selected_parent?
+      @parent_shape&.selected? || @parent_shape&.has_selected_parent?
+    end
+    alias :selected_parent? :has_selected_parent?
+
     # Set the shape as a selected/deselected one
     # @param [Boolean] state Selection state (true is selected, false is deselected)
     def select(state)
       @selected = state
-      show_handles(state && (@style & STYLE::SHOW_HANDLES) != 0)
+      show_handles(state && has_style?(STYLE::SHOW_HANDLES))
     end
 
     # Set shape's relative position. Absolute shape's position is then calculated
@@ -1033,10 +1052,10 @@ module Wx::SF
     def accept_currently_dragged_shapes
       return false unless get_shape_canvas
 
-      unless is_child_accepted(ACCEPT_ALL)
+      unless @accepted_children.include?(ACCEPT_ALL)
         lst_selection = get_shape_canvas.get_selected_shapes
 
-        return false if lst_selection.any? { |shape| !@accepted_children.include?(shape.class.name) }
+        return false if lst_selection.any? { |shape| !@accepted_children.include?(shape.class) }
       end
       true
     end
@@ -1225,10 +1244,10 @@ module Wx::SF
 
     # Get connection point of given type assigned to the shape.
 	  # @param [Wx::SF::ConnectionPoint::CPTYPE] type Connection point type
-	  # @param [Integer] id Optional connection point ID
+	  # @param [Integer, nil] id Optional connection point ID
 	  # @return [Wx::SF::ConnectionPoint,nil] connection point if exists, otherwise nil
 	  # @see Wx::SF::ConnectionPoint::CPTYPE
-    def get_connection_point(type, id = -1)
+    def get_connection_point(type, id = nil)
       @connection_pts.find { |cp| cp.type == type && cp.id == id }
     end
     alias :connection_point :get_connection_point
@@ -1733,7 +1752,7 @@ module Wx::SF
     end
 
     # Auxiliary function called by GetCompleteBoundingBox function.
-	  # @param [Wx::Rect] rct bounding rectangle to update
+	  # @param [Wx::Rect, nil] rct bounding rectangle to update
 	  # @param [BBMODE] mask Bit mask of object types which should be included into calculation
     # @param [Set<Wx::SF::Shape] processed set to keep track of processed shapes
     # @return [Wx::Rect] bounding rectangle
@@ -1746,13 +1765,17 @@ module Wx::SF
 
       # first, get bounding box of the current shape
       if mask.allbits?(BBMODE::SELF)
-        if rct.is_empty
-          rct.assign(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
+        if rct.nil?
+          rct = get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i)
         else
-          rct.union!(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
+          if rct.empty?
+            rct += get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i)
+          else
+            rct.union!(get_bounding_box.inflate!(@h_border.abs.to_i, @v_border.abs.to_i))
+          end
 
           # add also shadow offset if necessary
-          if mask.allbits?(BBMODE::SHADOW) && has_style?(STYLE::SHOW_SHADOW) && get_parent_canvas
+          if mask.allbits?(BBMODE::SHADOW) && has_style?(STYLE::SHOW_SHADOW) && !has_style(STYLE::NOT_DRAWN) && get_parent_canvas
             n_offset = get_parent_canvas.get_shadow_offset
 
             if n_offset.x < 0
@@ -1794,10 +1817,10 @@ module Wx::SF
 
         # now, call this function for all children recursively...
         lst_children.each do |child|
-          child.send(:_get_complete_bounding_box, rct, mask, processed)
+          rct = child.send(:_get_complete_bounding_box, rct, mask, processed)
         end
       end
-      rct
+      rct || Wx::Rect.new
     end
 
     # Original protected event handler called when the mouse pointer is moving around the shape canvas.
@@ -1818,7 +1841,7 @@ module Wx::SF
         @handles.each { |h| h.__send__(:_on_mouse_move, pos) }
 
         # send the event to the connection points too...
-        @connection_pts.each { |cp| cp.__send__(:_on_mouse_move, pos) }
+        @connection_pts.each { |cp| cp.__send__(:_on_mouse_move, pos) } unless has_style?(STYLE::PROPAGATE_INTERACTIVE_CONNECTION)
 
         # determine, whether the shape should be highlighted for any reason
         if canvas
@@ -1909,7 +1932,7 @@ module Wx::SF
         end
 
         # get shape BB BEFORE movement and combine it with BB of assigned lines
-        prev_bb = get_complete_bounding_box(Wx::Rect.new, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
+        prev_bb = get_complete_bounding_box(nil, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
 
         move_to(pos.x - @mouse_offset.x, pos.y - @mouse_offset.y)
         on_dragging(pos)
@@ -1919,7 +1942,7 @@ module Wx::SF
         lst_child_ctrls.each { |ctrl| ctrl.update_control }
 
         # get shape BB AFTER movement and combine it with BB of assigned lines
-        curr_bb = get_complete_bounding_box(Wx::Rect.new, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
+        curr_bb = get_complete_bounding_box(nil, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
 
         # update canvas
         refresh_rect(prev_bb.union!(curr_bb), DELAYED)
@@ -1973,7 +1996,7 @@ module Wx::SF
           f_refresh_all = true
         end
 
-        prev_bb = Wx::Rect.new
+        prev_bb = nil
         unless f_refresh_all
           prev_bb = get_complete_bounding_box(prev_bb, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
         end
@@ -1995,10 +2018,9 @@ module Wx::SF
         end
 
         if !f_refresh_all
-          curr_bb = get_complete_bounding_box(Wx::Rect.new, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
+          curr_bb = get_complete_bounding_box(prev_bb, BBMODE::SELF | BBMODE::CONNECTIONS | BBMODE::CHILDREN | BBMODE::SHADOW)
 
-          prev_bb.union!(curr_bb)
-          refresh_rect(prev_bb, DELAYED)
+          refresh_rect(curr_bb, DELAYED)
         else
           canvas.refresh(false)
         end
@@ -2013,9 +2035,9 @@ module Wx::SF
       return unless @diagram
 
       if @parent_shape
-        prev_bb = get_grand_parent_shape.get_complete_bounding_box(Wx::Rect.new)
+        prev_bb = get_grand_parent_shape.get_complete_bounding_box(nil)
       else
-        prev_bb = get_complete_bounding_box(Wx::Rect.new)
+        prev_bb = get_complete_bounding_box(nil)
       end
 
       # call appropriate user-defined handler
@@ -2032,9 +2054,9 @@ module Wx::SF
       update
 
       if @parent_shape
-        curr_bb = get_grand_parent_shape.get_complete_bounding_box(Wx::Rect.new)
+        curr_bb = get_grand_parent_shape.get_complete_bounding_box(nil)
       else
-        curr_bb = get_complete_bounding_box(Wx::Rect.new)
+        curr_bb = get_complete_bounding_box(nil)
       end
 
       # refresh shape

@@ -73,12 +73,21 @@ module Wx::SF
       end
     end
 
+    attr_accessor :id
+
     #  Get connection point type.
 	  # @return [CPTYPE] Connection point type
     def get_type
       @type
     end
     alias :type :get_type
+
+    # Set connection point type.
+    # @param [CPTYPE] type
+    def set_type(type)
+      @type = type
+    end
+    alias :type= :set_type
 
     #  Set direction of orthogonal line's connection.
 	  # @param [CPORTHODIR] dir Required direction
@@ -211,11 +220,6 @@ module Wx::SF
     end
 
     private
-
-    # For deserialization
-    def set_type(type)
-      @type = type
-    end
 
     #  Event handler called when the mouse pointer is moving above shape canvas.
     # @param [Wx::Point] pos Current mouse position

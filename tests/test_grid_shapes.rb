@@ -18,7 +18,7 @@ class GridShapeTests < Test::Unit::TestCase
     assert_instance_of(Wx::SF::RectShape, obj.get_managed_shape(1, 0))
     assert_nil(obj.get_managed_shape(1, 1))
     assert_nil(obj.get_managed_shape(1, 2))
-    assert_nothing_raised { obj.do_children_layout }
+    assert_nothing_raised { obj.update }
   end
 
   def test_flex_grid_shape
@@ -35,7 +35,7 @@ class GridShapeTests < Test::Unit::TestCase
     assert_instance_of(Wx::SF::RectShape, obj.get_managed_shape(1, 0))
     assert_nil(obj.get_managed_shape(1, 1))
     assert_nil(obj.get_managed_shape(1, 2))
-    assert_nothing_raised { obj.do_children_layout }
+    assert_nothing_raised { obj.update }
   end
 
 

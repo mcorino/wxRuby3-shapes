@@ -33,6 +33,32 @@ module Wx::SF
       SPACING  = 3
     end
 
+    class << self
+
+      # Returns the minimum size for *empty* boxes
+      # @return [Wx::Size]
+      def get_min_size
+        @min_size ||= Wx::Size.new(20, 20)
+      end
+      alias :min_size :get_min_size
+
+      # Sets the minimum size for *empty* boxes
+      # @overload set_min_size(sz)
+      #   @param [Wx::Size] sz
+      # @overload set_min_size(w, h)
+      #   @param [Integer] w
+      #   @param [Integer] h
+      def set_min_size(arg1, arg2 = nil)
+        @min_size = if arg2.nil?
+                      raise ArgumentError, 'Expected Wx::Size' unless Wx::Size === arg1
+                      arg1
+                    else
+                      Wx::Size.new(arg1, arg2)
+                    end
+      end
+      alias :min_size= :set_min_size
+
+    end
 
     property :spacing, :orientation, :slots
 
@@ -162,7 +188,7 @@ module Wx::SF
     end
 
     # Update shape (align all child shapes and resize it to fit them)
-    def update
+    def update(recurse = true)
       # check for stale links to of de-assigned shapes
       @slots.delete_if do |shape|
         !@child_shapes.include?(shape)
@@ -180,15 +206,12 @@ module Wx::SF
       # do self-alignment
       do_alignment
 
-      # do alignment of shape's children
-      do_children_layout
-
       # fit the shape to its children
       fit_to_children unless has_style?(STYLE::NO_FIT_TO_CHILDREN)
 
       # do it recursively on all parent shapes
-      if (parent = get_parent_shape)
-        parent.update
+      if recurse && (parent = get_parent_shape)
+        parent.update(recurse)
       end
     end
 
@@ -199,51 +222,16 @@ module Wx::SF
       ch_bb = Wx::Rect.new(abs_pos.to_point, [0, 0])
 
       @child_shapes.each do |child|
-        child.get_complete_bounding_box(ch_bb, BBMODE::SELF | BBMODE::CHILDREN) if child.has_style?(STYLE::ALWAYS_INSIDE)
+        ch_bb = child.get_complete_bounding_box(ch_bb, BBMODE::SELF | BBMODE::CHILDREN) if child.has_style?(STYLE::ALWAYS_INSIDE)
       end
 
-      # do not let the grid shape 'disappear' due to zero sizes...
-      if (ch_bb.width == 0 || ch_bb.height == 0) && @spacing == 0
-        ch_bb.set_width(10)
-        ch_bb.set_height(10)
+      if @child_shapes.empty?
+        # do not let the empty box shape 'disappear' due to zero sizes...
+        ch_bb.width = get_h_align == HALIGN::EXPAND ? @rect_size.x.to_i-@spacing : GridShape.min_size.width
+        ch_bb.height = get_v_align == VALIGN::EXPAND ? @rect_size.y.to_i-@spacing : GridShape.min_size.height
       end
 
-      @rect_size = Wx::RealPoint.new(ch_bb.width + 2*@spacing, ch_bb.height + 2*@spacing)
-    end
-
-    # Do layout of assigned child shapes
-    def do_children_layout
-      return if @slots.empty?
-
-      max_size = Wx::Size.new(0,0)
-
-      # get maximum size of all managed (child) shapes
-      @child_shapes.each do |shape|
-        curr_rect = shape.get_bounding_box
-
-        if @orientation == ORIENTATION::VERTICAL
-          max_size.set_width(curr_rect.width) if shape.get_h_align != HALIGN::EXPAND && curr_rect.width > max_size.width
-        else
-          max_size.set_height(curr_rect.height) if shape.get_v_align != VALIGN::EXPAND && curr_rect.height > max_size.height
-        end
-      end
-
-      offset = Wx::Point.new(@spacing,@spacing)
-      @slots.each do |shape|
-        if @orientation == ORIENTATION::VERTICAL
-          shape_h = shape.get_bounding_box.height + (2*shape.get_v_border).to_i
-          fit_shape_to_rect(shape, Wx::Rect.new(@spacing,
-                                                offset.y,
-                                                max_size.width, shape_h))
-          offset.y += shape_h+@spacing
-        else
-          shape_w = shape.get_bounding_box.width + (2*shape.get_h_border).to_i
-          fit_shape_to_rect(shape, Wx::Rect.new(offset.x,
-                                                @spacing,
-                                                shape_w, max_size.height))
-          offset.x += shape_w+@spacing
-        end
-      end
+      @rect_size = Wx::RealPoint.new(ch_bb.width + @spacing, ch_bb.height + @spacing)
     end
 
     # Event handler called when any shape is dropped above this shape (and the dropped
@@ -268,6 +256,53 @@ module Wx::SF
     end
 
     protected
+
+    # Do layout of assigned child shapes
+    def do_children_layout
+      return if @slots.empty?
+
+      max_size = 0
+
+      # get maximum size of all managed (child) shapes
+      @child_shapes.each do |shape|
+        curr_rect = shape.get_bounding_box
+        curr_rect.inflate!(shape.h_border.abs.to_i, shape.v_border.abs.to_i)
+
+        if @orientation == ORIENTATION::VERTICAL
+          max_size = curr_rect.width if shape.get_h_align != HALIGN::EXPAND && curr_rect.width > max_size
+        else
+          max_size = curr_rect.height if shape.get_v_align != VALIGN::EXPAND && curr_rect.height > max_size
+        end
+      end
+
+      # if this box itself is expanded for the appropriate dimension check the max child size against the box size
+      if @orientation == ORIENTATION::VERTICAL && get_h_align == HALIGN::EXPAND
+        box_rect = get_bounding_box
+        # if this box is horizontally expanded use it's width if larger
+        max_size = box_rect.width - 2*@spacing if (box_rect.width-2*@spacing) > max_size
+      elsif @orientation == ORIENTATION::HORIZONTAL && get_v_align == VALIGN::EXPAND
+        box_rect = get_bounding_box
+        # if this box is vertically expanded use it's height if larger
+        max_size = box_rect.height - 2*@spacing if (box_rect.height-2*@spacing) > max_size
+      end
+
+      offset = @spacing
+      @slots.each do |shape|
+        if @orientation == ORIENTATION::VERTICAL
+          shape_h = shape.get_bounding_box.height + (2*shape.get_v_border).to_i
+          fit_shape_to_rect(shape, Wx::Rect.new(@spacing,
+                                                offset,
+                                                max_size, shape_h))
+          offset += shape_h+@spacing
+        else
+          shape_w = shape.get_bounding_box.width + (2*shape.get_h_border).to_i
+          fit_shape_to_rect(shape, Wx::Rect.new(offset,
+                                                @spacing,
+                                                shape_w, max_size))
+          offset += shape_w+@spacing
+        end
+      end
+    end
 
     # called after the shape has been newly imported/pasted/dropped
     # checks the slots for stale links

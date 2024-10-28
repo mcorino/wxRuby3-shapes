@@ -194,19 +194,19 @@ module Wx::SF
     module DEFAULT
       class << self
         # Default value of Wx::SF::CanvasSettings @background_color data member
-        def background_color; Wx::Colour.new(240, 240, 240); end
+        def background_color; @bgcolor ||= Wx::Colour.new(240, 240, 240); end
         # Default value of Wx::SF::CanvasSettings @common_hover_color data member
-        def hover_color; Wx::Colour.new(120, 120, 255); end
+        def hover_color; @hvrcolor ||= Wx::Colour.new(120, 120, 255); end
         # Default value of Wx::SF::CanvasSettings @grid_color data member
-        def grid_color; Wx::Colour.new(200, 200, 200); end
+        def grid_color; @gridcolor ||= Wx::Colour.new(200, 200, 200); end
         # Default value of Wx::SF::CanvasSettings @gradient_from data member
-        def gradient_from; Wx::Colour.new(240, 240, 240); end
+        def gradient_from; @gradcolor_from ||= Wx::Colour.new(240, 240, 240); end
         # Default value of Wx::SF::CanvasSettings @gradient_to data member
-        def gradient_to; Wx::Colour.new(200, 200, 255); end
+        def gradient_to; @gradcolor_to ||= Wx::Colour.new(200, 200, 255); end
         # Default shadow colour
-        def shadow_color; Wx::Colour.new(150, 150, 150, 128); end
+        def shadow_color; @shadowcolor ||= Wx::Colour.new(150, 150, 150, 128); end
         # Default value of Wx::SF::CanvasSettings @shadow_fill data member
-        def shadow_brush; Wx::Brush.new(shadow_color, Wx::BrushStyle::BRUSHSTYLE_SOLID); end
+        def shadow_brush; @shadowbrush ||= Wx::Brush.new(shadow_color, Wx::BrushStyle::BRUSHSTYLE_SOLID); end
       end
       # Default value of Wx::SF::CanvasSettings @grid_size data member
       GRIDSIZE = Wx::Size.new(10, 10)
@@ -770,7 +770,7 @@ module Wx::SF
       case args.first
       when Wx::SF::LineShape
         shape = args.shift
-        shape_klass = shape.class.name
+        shape_klass = shape.class
         if args.first.is_a?(Wx::SF::ConnectionPoint)
           connection_point = args.shift
         end
@@ -778,7 +778,7 @@ module Wx::SF
       when ::Class
         shape_info = args.shift
         pos = args.shift.to_point
-        shape_klass = shape_info.name
+        shape_klass = shape_info
       end
       ::Kernel.raise ArgumentError, "Invalid arguments #{args}" unless args.empty?
       return ERRCODE::INVALID_INPUT unless pos
@@ -1056,8 +1056,9 @@ module Wx::SF
         data_obj = Wx::SF::ShapeDataObject.new
         if clipboard.fetch(data_obj)
 
+          sdata = data_obj.get_data_here
           # deserialize shapes
-          new_shapes = FIRM.deserialize(data_obj.get_data_here)
+          new_shapes = FIRM.deserialize(sdata)
           # add new shapes to diagram and remove those that are not accepted
           new_shapes.select! do |shape|
             ERRCODE::OK == @diagram.add_shape(shape, nil, shape.get_relative_position, INITIALIZE, DONT_SAVE_STATE)
@@ -1172,6 +1173,17 @@ module Wx::SF
       refresh(false)
     end
     protected :restore_canvas_state
+
+    # Restores current last saved canvas state.
+    def restore_current_state
+      return unless has_style?(STYLE::UNDOREDO)
+
+      clear_temporaries
+
+      restore_canvas_state(@canvas_history.current_state)
+      @shp_multi_edit.show(false)
+    end
+    protected :restore_current_state
 
     # @!group Print methods
 
@@ -1319,7 +1331,7 @@ module Wx::SF
             top_shape ||= shape
             if shape.selected?
               sel_shape ||= shape
-            else
+            elsif !shape.has_selected_parent?
               unsel_shape ||= shape
             end
           end
@@ -1445,14 +1457,14 @@ module Wx::SF
     # Get bounding box of all selected shapes.
     # @return [Wx::Rect] Selection bounding box
     def get_selection_bb
-      bb_rct = Wx::Rect.new
+      bb_rct = nil
       # get selected shapes
       get_selected_shapes.each do |shape|
-        shape.get_complete_bounding_box(
-          bb_rct,
-          Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN | Shape::BBMODE::CONNECTIONS | Shape::BBMODE::SHADOW)
+        bb_rct = shape.get_complete_bounding_box(bb_rct,
+                                                 Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN |
+                                                   Shape::BBMODE::CONNECTIONS | Shape::BBMODE::SHADOW)
       end
-      bb_rct
+      bb_rct || Wx::Rect.new
     end
 
     # Align selected shapes in given directions.
@@ -1969,6 +1981,40 @@ module Wx::SF
       end
     end
 
+    # Draws shapes intersecting the update region
+    def draw_shape_updates(dc, upd_rct, lst_to_draw, exclude_selected = false)
+      lst_selected = exclude_selected ? [] : nil
+      lst_lines_to_draw = []
+      # draw unselected non line-based shapes first...
+      lst_to_draw.each do |shape|
+        if exclude_selected && (shape.selected? || shape.has_selected_parent?)
+          lst_selected << shape
+        else
+          if !shape.is_a?(LineShape) || shape.stand_alone?
+            if shape.intersects?(upd_rct)
+              parent_shape = shape.get_parent_shape
+              if parent_shape
+                shape.draw(dc, WITHOUTCHILDREN) if !parent_shape.is_a?(LineShape) || parent_shape.stand_alone?
+              else
+                shape.draw(dc, WITHOUTCHILDREN)
+              end
+            end
+          else
+            lst_lines_to_draw << shape
+          end
+        end
+      end
+
+      # ... and draw connections
+      bb_rct = nil
+      lst_lines_to_draw.each do |line|
+        bb_rct = line.get_complete_bounding_box(bb_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN | Shape::BBMODE::SHADOW)
+        line.draw(dc, line.get_line_mode == LineShape::LINEMODE::READY) if bb_rct.intersects(upd_rct)
+      end
+      lst_selected
+    end
+    private :draw_shape_updates
+
 	  # Function responsible for drawing of the canvas's content to given DC. The default
     # implementation draws actual objects managed by assigned diagram manager.
     # @param [Wx::DC] dc device context where the shapes will be drawn to
@@ -1978,12 +2024,6 @@ module Wx::SF
       return unless @diagram
 
       if from_paint
-        # wxRect updRct
-        bb_rct = Wx::Rect.new
-        #
-        # ShapeList m_lstToDraw
-        lst_lines_to_draw = []
-
         # get all existing shapes
         lst_to_draw = @diagram.get_shapes(Shape, Shape::SEARCHMODE::DFS)
 
@@ -2002,51 +2042,13 @@ module Wx::SF
         upd_rct ||= Wx::Rect.new
 
         if @working_mode == MODE::SHAPEMOVE
-          # draw unselected non line-based shapes first...
-          lst_to_draw.each do |shape|
-            parent_shape = shape.get_parent_shape
+          # draw unselected shapes first and filter and return selected shapes
+          lst_selected = draw_shape_updates(dc, upd_rct, lst_to_draw, true)
 
-            if !shape.is_a?(LineShape) || shape.stand_alone?
-              if shape.intersects?(upd_rct)
-                if parent_shape
-                  shape.draw(dc, WITHOUTCHILDREN) if !parent_shape.is_a?(LineShape) || parent_shape.stand_alone?
-                else
-                  shape.draw(dc, WITHOUTCHILDREN)
-                end
-              end
-            else
-              lst_lines_to_draw << shape
-            end
-          end
-
-          # ... and draw connections
-          lst_lines_to_draw.each do |line|
-            line.get_complete_bounding_box(bb_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN | Shape::BBMODE::SHADOW)
-            line.draw(dc, line.get_line_mode == LineShape::LINEMODE::READY) if bb_rct.intersects(upd_rct)
-          end
+          # ... and now draw the selected shapes being moved
+          draw_shape_updates(dc, upd_rct, lst_selected)
         else
-          # draw parent shapes (children are processed by parent objects)
-          lst_to_draw.each do |shape|
-            parent_shape = shape.get_parent_shape
-
-            if !shape.is_a?(LineShape) || shape.stand_alone?
-              if shape.intersects?(upd_rct)
-                if parent_shape
-                  shape.draw(dc, WITHOUTCHILDREN) if !parent_shape.is_a?(LineShape) || shape.stand_alone?
-                else
-                  shape.draw(dc, WITHOUTCHILDREN)
-                end
-              end
-            else
-              lst_lines_to_draw << shape
-            end
-          end
-
-          # draw connections
-          lst_lines_to_draw.each do |line|
-            line.get_complete_bounding_box(bb_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
-            line.draw(dc, line.get_line_mode == LineShape::LINEMODE::READY) if bb_rct.intersects(upd_rct)
-          end
+          draw_shape_updates(dc, upd_rct, lst_to_draw)
         end
 
         # draw multiselection if necessary
@@ -2167,6 +2169,10 @@ module Wx::SF
             # perform selection
             lst_selection = get_selected_shapes
 
+            if @selection_mode == SELECTIONMODE::NORMAL
+              save_canvas_state if @canvas_history.empty?
+            end
+
             # cancel previous selections if necessary...
             if @selection_mode == SELECTIONMODE::NORMAL && (selected_top_shape.nil? || !lst_selection.include?(selected_top_shape))
               deselect_all
@@ -2234,6 +2240,7 @@ module Wx::SF
           # update canvas
           invalidate_visible_rect
         else
+          save_canvas_state if @canvas_history.empty?
           if @selected_handle.get_parent_shape == @shp_multi_edit
             if has_style?(STYLE::MULTI_SIZE_CHANGE)
               @working_mode = MODE::MULTIHANDLEMOVE
@@ -2560,16 +2567,12 @@ module Wx::SF
 
           # update unfinished line if any
           if @new_line_shape
-            line_rct = Wx::Rect.new
-            upd_line_rct = Wx::Rect.new
-            @new_line_shape.get_complete_bounding_box(line_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
+            line_rct = @new_line_shape.get_complete_bounding_box(nil, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
 
             @new_line_shape.send(:set_unfinished_point, fit_position_to_grid(lpos))
             @new_line_shape.update
 
-            @new_line_shape.get_complete_bounding_box(upd_line_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
-
-            line_rct.union!(upd_line_rct)
+            line_rct = @new_line_shape.get_complete_bounding_box(line_rct, Shape::BBMODE::SELF | Shape::BBMODE::CHILDREN)
 
             invalidate_rect(line_rct)
           end
@@ -2722,6 +2725,13 @@ module Wx::SF
             line.send(:set_line_mode, LineShape::LINEMODE::READY)
             @selected_handle = nil
           end
+          restore_current_state
+
+        when MODE::MULTIHANDLEMOVE
+          restore_current_state
+
+        when MODE::SHAPEMOVE
+          restore_current_state
 
         else
           # send event to selected shapes
@@ -2953,21 +2963,36 @@ module Wx::SF
       # set new parent if possible
       if shape.has_style?(Shape::STYLE::PARENT_CHANGE) && !shape.is_a?(LineShape)
         # is shape dropped into accepting shape?
-        parent_shape = get_shape_at_position(parentpos, 1, SEARCHMODE::UNSELECTED)
-        # In case the matching shape does not accept ANY children see if this shape has a
-        # parent that does also match the position and DOES accept children.
+
+        # get all shapes at drop position in reversed z-order
+        shapes_at_pos = get_shapes_at_position(parentpos).reverse
+        # see if we can find a non-LineShape drop target
+        parent_shape = shapes_at_pos.find do |s|
+          # consider non-LineShapes that are unselected and not the dropped shape itself or one of it's (grand-)children
+          !s.is_a?(Wx::SF::LineShape) && !s.selected? && shape != s && !shape.include_child_shape?(s)
+        end
+        # if none found consider line shapes
+        parent_shape = shapes_at_pos.find do |s|
+          # consider LineShapes that are unselected and not the dropped shape itself or one of it's (grand-)children
+          s.is_a?(Wx::SF::LineShape) && !s.selected? && shape != s && !shape.include_child_shape?(s)
+        end unless parent_shape
+        # In case the matching shape does not accept the dropped child and has style PROPAGATE_DROPPING
+        # see if this shape has a parent that does also matches the position and DOES accept the child.
         # This allows dropping shapes onto child shapes inside a (container) shapes like
         # grids and/or boxes.
-        while parent_shape&.does_not_accept_children? && parent_shape.parent_shape
-          parent_shape = parent_shape.parent_shape
-          parent_shape = nil unless parent_shape.get_bounding_box.contains?(parentpos)
+        while parent_shape && !parent_shape.is_child_accepted(shape.class)
+          parent_shape = parent_shape.has_style?(Shape::STYLE::PROPAGATE_DROPPING) ? parent_shape.parent_shape : nil
+          parent_shape = nil if parent_shape && !parent_shape.get_bounding_box.contains?(parentpos)
         end
-        parent_shape = nil if parent_shape && !parent_shape.is_child_accepted(shape.class)
+        # parent_shape = nil if parent_shape && !parent_shape.is_child_accepted(shape.class)
 
         prev_parent = shape.get_parent_shape
-    
+
         if parent_shape
-          if parent_shape.get_parent_shape != shape
+          # in rare cases (where childs are expanded to fill a parent and have PROPAGATE_SELECTION)
+          # the matched drop parent may actually a child of the shape being dropped
+          # guard against that (since that would lead to illegal circular references)
+          if parent_shape != shape && !shape.include_child_shape?(parent_shape, true)
             # update relative position to new parent
             apos = shape.get_absolute_position - parent_shape.get_absolute_position
             shape.set_relative_position(apos)
@@ -2986,7 +3011,7 @@ module Wx::SF
         end
     
         prev_parent.update if prev_parent
-        parent_shape.update if parent_shape
+        parent_shape.update if parent_shape && parent_shape != prev_parent
       end
     end
 
@@ -3263,13 +3288,13 @@ module Wx::SF
           end
 
           parent = @diagram.get_shape_at_position(lpos, 1, SEARCHMODE::UNSELECTED)
-          # In case the located shape does not accept ANY children see if this shape has a
-          # parent that does also match the position and DOES accept children.
+          # In case the located shape does not accept ANY children and has style PROPAGATE_DROPPING
+          # see if this shape has a parent that does also match the position and DOES accept children.
           # This allows dropping shapes onto child shapes inside a (container) shapes like
           # grids and/or boxes.
-          while parent&.does_not_accept_children? && parent.parent_shape && !parent.selected?
-            parent = parent.parent_shape
-            parent = nil unless parent.get_bounding_box.contains?(lpos)
+          while parent&.does_not_accept_children?
+            parent = parent.has_style?(Shape::STYLE::PROPAGATE_DROPPING) ? parent.parent_shape : nil
+            parent = nil if parent && !parent.get_bounding_box.contains?(lpos)
           end
 
           # add each shape to diagram keeping only those that are accepted

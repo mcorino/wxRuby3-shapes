@@ -18,6 +18,19 @@ module Wx::SF
     end
 
     attr_accessor :max_states
+    attr_reader :current_state
+
+    # Returns true if no state has been saved yet.
+    # @return [Boolean]
+    def empty?
+      @current_state.nil?
+    end
+
+    # Returns true if the current state is the newest state saved.
+    # @return [Boolean]
+    def at_latest?
+      @current_state && @current_state_index == (@canvas_states.size-1)
+    end
 
     # Save current canvas state.
     # @param [String] state serialized diagram state
@@ -56,6 +69,13 @@ module Wx::SF
       # move to next canvas state and restore
       @current_state_index += 1
       @current_state = @canvas_states[@current_state_index]
+    end
+
+    def clear_current_state
+      restore_older_state
+      if @current_state
+        @canvas_states.slice!(@current_state_index+1, @canvas_states.size)
+      end
     end
 
     # Clear all canvas history. 

@@ -115,6 +115,24 @@ module Wx::SF
     #   @param [Boolean] save_state Set the parameter true if you wish to save canvas state after the operation
     #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new shape. the object is added to the shape canvas automatically.
     def create_shape(shape_info, *rest)
+      if shape_info && is_shape_accepted(shape_info)
+        insert_shape(shape_info.new, *rest)
+      else
+        [ERRCODE::NOT_ACCEPTED, nil]
+      end
+    end
+
+    # Insert new shape to the shape canvas.
+    # @overload insert_shape(shape, save_state = true)
+    #   @param [Wx::SF::Shape] shape new shape
+    #   @param [Boolean] save_state Set the parameter true if you wish to save canvas state after the operation
+    #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new shape. the object is added to the shape canvas automatically.
+    # @overload insert_shape(shape, pos, save_state = true)
+    #   @param [Wx::SF::Shape] shape new shape
+    #   @param [Wx::Point] pos shape position (device coordinates)
+    #   @param [Boolean] save_state Set the parameter true if you wish to save canvas state after the operation
+    #   @return [Array(Wx::SF::ERRCODE, Wx::SF::Shape)] operation result and new shape. the object is added to the shape canvas automatically.
+    def insert_shape(shape, *rest)
       pos = if rest.first.respond_to?(:to_point)
               rest.shift.to_point
             elsif @shape_canvas
@@ -125,14 +143,10 @@ module Wx::SF
               Wx::Point.new
             end
       save_state = rest.empty? ? true : rest.shift
-      if shape_info && is_shape_accepted(shape_info)
-        # create shape object from class info
-        shape = shape_info.new
-
+      if shape && is_shape_accepted(shape.class)
         parent_shape = nil
         # update given position
-        lpos = pos
-        lpos = @shape_canvas.fit_position_to_grid(@shape_canvas.dp2lp(pos)) if @shape_canvas
+        lpos = @shape_canvas ? @shape_canvas.dp2lp(pos) : pos
         # line shapes can be assigned to root only
         parent_shape = get_shape_at_position(lpos) unless shape.is_a?(LineShape)
         # In case the matching shape does not accept ANY children see if this shape has a
@@ -144,7 +158,7 @@ module Wx::SF
           parent_shape = nil unless parent_shape.get_bounding_box.contains?(lpos)
         end
         # see if the located parent (if any) accepts this particular type of child
-        if parent_shape && parent_shape.is_child_accepted(shape_info)
+        if parent_shape && parent_shape.is_child_accepted(shape.class)
           # add shape as child of located parent
           err = add_shape(shape, parent_shape, pos - parent_shape.get_absolute_position.to_point, INITIALIZE, save_state)
         else
@@ -163,7 +177,7 @@ module Wx::SF
     # Add an existing shape to the canvas.
     # @param [Wx::SF::Shape] shape new shape
     # @param [Wx::SF::Shape] parent the parent shape
-    # @param [Wx::Point] pos shape position
+    # @param [Wx::Point] pos shape position (device coordinates)
     # @param [Boolean] initialize true if the shape should be reinitialized, otherwise false
     # @param [Boolean] save_state true if the canvas state should be saved
     # @return [Wx::SF::ERRCODE] operation result
@@ -202,11 +216,13 @@ module Wx::SF
                 # initialize shape's children
                 lst_children.each do |child|
                   child.create_handles
-                  child.update
+                  child.update(false)
 
                   child.set_hover_colour(@shape_canvas.get_hover_colour) if @shape_canvas
                 end
             end
+
+            shape.update
           end
 
           # reset scale of assigned shape canvas (if exists and it is necessary...)
@@ -454,6 +470,9 @@ module Wx::SF
       @shapes
     end
 
+    # Get all shapes recursively.
+    # This is an optimized convenience method which returns all shapes the same as if #get_shapes() was called with
+    # default arguments.
     def get_all_shapes
       @shapes.all
     end
@@ -529,7 +548,7 @@ module Wx::SF
     # @see Wx::SF::ShapeCanvas::dp2lp
     def get_shapes_at_position(pos, shapes = [])
       pos = pos.to_point
-      get_shapes.each do |shape|
+      get_all_shapes.each do |shape|
         shapes << shape if shape.visible? && shape.active? && shape.contains?(pos)
       end
     end
@@ -539,7 +558,7 @@ module Wx::SF
     # @param [Array<Wx::SF::Shape>] shapes shape list where all found shapes will be stored
     # @return [Array<Wx::SF::Shape>] shape list
     def get_shapes_inside(rct, shapes = [])
-      get_shapes.each do |shape|
+      get_all_shapes.each do |shape|
         shapes << shape if shape.visible? && shape.active? && shape.intersects?(rct)
       end
     end

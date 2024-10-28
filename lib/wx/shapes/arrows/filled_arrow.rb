@@ -11,7 +11,7 @@ module Wx::SF
 
     module DEFAULT
       class << self
-        def fill; Wx::Brush.new(Wx::WHITE); end
+        def fill; @fill ||= Wx::WHITE_BRUSH.dup; end
       end
     end
 

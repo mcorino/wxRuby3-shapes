@@ -23,6 +23,8 @@ module Wx::SF
       super
     end
 
+    protected
+
     # Do layout of assigned child shapes
     def do_children_layout
       return if @cols == 0 || @rows == 0
@@ -50,8 +52,6 @@ module Wx::SF
         end
       end
     end
-
-    protected
 
     def get_max_child_sizes
       # initialize size arrays

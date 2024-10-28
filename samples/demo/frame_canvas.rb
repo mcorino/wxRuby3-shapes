@@ -15,6 +15,12 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     VALIGN = self.next_id
     HBORDER = self.next_id
     VBORDER = self.next_id
+    ACCEPTED = self.next_id
+    ACC_CHILDREN = self.next_id
+    ACC_CONNECTIONS = self.next_id
+    ACC_CONNECTION_FROM = self.next_id
+    ACC_CONNECTION_TO = self.next_id
+    CONNECTION_POINTS = self.next_id
 
     # rect
     FILL_BRUSH = self.next_id
@@ -25,6 +31,18 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     LINE_ARROWS = self.next_id
     SRC_ARROW = self.next_id
     TRG_ARROW = self.next_id
+
+    # text
+    TEXT_FONT = self.next_id
+    TEXT_COLOR = self.next_id
+
+    # box
+    BOX_SPACING = self.next_id
+
+    # grid
+    GRID_SETTINGS = self.next_id
+    GRID_SPACING = self.next_id
+    GRID_MAXROWS = self.next_id
 
     DUMP = self.next_id
   end
@@ -185,6 +203,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         # set shape policy
         shape.accept_child(Wx::SF::TextShape)
         shape.accept_child(Wx::SF::EditTextShape)
+        shape.accept_child(Wx::SF::RectShape)
+        shape.accept_child(Wx::SF::VBoxShape)
 
         shape.accept_connection(Wx::SF::ACCEPT_ALL)
         shape.accept_src_neighbour(Wx::SF::ACCEPT_ALL)
@@ -234,8 +254,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         shape.set_fill(Wx::TRANSPARENT_BRUSH)
         shape.set_border(Wx::Pen.new(Wx::BLACK, 1, Wx::PenStyle::PENSTYLE_DOT))
 
-        # number of rows and columns cas be set here (default grid dimension is 3x3) ...
-        # shape.set_dimensions(2, 2)
+        # number of rows and columns cas be set here (default grid dimension is 3x1) ...
+        shape.set_dimensions(2, @parent_frame.grid_columns)
 
         # ... as well as the cell spaces (default grid cellspace is 5).
         # shape.set_cell_space(0)
@@ -382,14 +402,11 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         end
 
     when MainFrame::MODE::STANDALONELINE
-      _, shape = get_diagram.create_shape(Wx::SF::LineShape, event.get_position, Wx::SF::DONT_SAVE_STATE)
+      _, shape = get_diagram.insert_shape(Wx::SF::LineShape.new((event.get_position - [50, 0]).to_real,
+                                                                (event.get_position + [50, 0]).to_real),
+                                          event.get_position,
+                                          Wx::SF::DONT_SAVE_STATE)
       if shape
-        # set the line to be stand-alone
-        shape.set_stand_alone(true)
-
-        shape.set_src_point((event.get_position - [50, 0]).to_real_point)
-        shape.set_trg_point((event.get_position + [50, 0]).to_real_point)
-
         # line's ending style can be set as follows:
         # shape.set_src_arrow(Wx::SF::CircleArrow)
         # shape.set_trg_arrow(Wx::SF::CircleArrow)
@@ -415,7 +432,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
   end
 
   class FloatDialog < Wx::Dialog
-    def initialize(parent, title, label: 'Value:', value: 0.0, min: 0.0, max: 100.0, inc: 0.1)
+    def initialize(parent, title, label: 'Value:', value: 0.0, min: 0.0, max: 100.0, inc: 1.0)
       super(parent, Wx::ID_ANY, title, size: [400, -1])
       sizer_top = Wx::VBoxSizer.new
       sizer = Wx::HBoxSizer.new
@@ -448,6 +465,13 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     menu.append(POPUP_ID::VALIGN, 'Change vertical alignment', 'Change vertical alignment')
     menu.append(POPUP_ID::HBORDER, 'Change horizontal margin', 'Change horizontal margin')
     menu.append(POPUP_ID::VBORDER, 'Change vertical margin', 'Change vertical margin')
+    submenu = Wx::Menu.new
+    submenu.append(POPUP_ID::ACC_CHILDREN, 'Child shapes', 'Change accepted child shapes')
+    submenu.append(POPUP_ID::ACC_CONNECTIONS, 'Connections', 'Change accepted connections')
+    submenu.append(POPUP_ID::ACC_CONNECTION_FROM, 'Connection sources', 'Change accepted connection sources')
+    submenu.append(POPUP_ID::ACC_CONNECTION_TO, 'Connection targets', 'Change accepted connection targets')
+    menu.append(Wx::MenuItem.new(submenu, POPUP_ID::ACCEPTED, 'Change accepted', '', Wx::ItemKind::ITEM_NORMAL, submenu))
+    menu.append(POPUP_ID::CONNECTION_POINTS, 'Change connection points', 'Change connection points')
 
     @rect_mi = []
     @rect_mi << Wx::MenuItem.new(menu, POPUP_ID::FILL_BRUSH, 'Change fill', 'Change fill brush')
@@ -460,67 +484,99 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     submenu.append(POPUP_ID::TRG_ARROW, 'Change target arrow', 'Change target arrow')
     @line_mi << Wx::MenuItem.new(menu, POPUP_ID::LINE_ARROWS, 'Change arrows', '', Wx::ItemKind::ITEM_NORMAL, submenu)
 
+    @text_mi = []
+    @text_mi << Wx::MenuItem.new(menu, POPUP_ID::TEXT_FONT, 'Change text font', 'Change text font')
+    @text_mi << Wx::MenuItem.new(menu, POPUP_ID::TEXT_COLOR, 'Change text colour', 'Change text colour')
+
+    @box_mi = Wx::MenuItem.new(menu, POPUP_ID::BOX_SPACING, 'Change slot spacing', 'Change slot spacing')
+
+    submenu = Wx::Menu.new
+    submenu.append(POPUP_ID::GRID_SPACING, 'Change cell spacing', 'Change cell spacing')
+    submenu.append(POPUP_ID::GRID_MAXROWS, 'Change row maximum', 'Change row maximum')
+    @grid_mi = Wx::MenuItem.new(menu, POPUP_ID::GRID_SETTINGS, 'Change grid settings', 'Change grid settings', Wx::ItemKind::ITEM_NORMAL, submenu)
+
     menu.append_separator
     menu.append(POPUP_ID::DUMP, 'Show serialized state', 'Show serialized state')
     menu
   end
   private :create_shape_popup
 
+  def remove_popup_items(*item_ids)
+    item_ids.flatten.each { |id| @popup.remove(id) if @popup.find_item(id) }
+  end
+  private :remove_popup_items
+
   def get_shape_popup(shape)
     @popup ||= create_shape_popup
     case shape
     when Wx::SF::RectShape
-      @popup.remove(POPUP_ID::LINE_PEN) if @popup.find_item(POPUP_ID::LINE_PEN)
-      @popup.remove(POPUP_ID::LINE_ARROWS) if @popup.find_item(POPUP_ID::LINE_ARROWS)
-      n = @popup.get_menu_item_count
-      @rect_mi.reverse.each { |mi| @popup.insert(n-2, mi) unless  @popup.find_item(mi.id) }
+      remove_popup_items(POPUP_ID::LINE_PEN, POPUP_ID::LINE_ARROWS)
+      n = @popup.get_menu_item_count-2
+      @rect_mi.reverse.each { |mi| @popup.insert(n, mi) unless  @popup.find_item(mi.id) }
+      case shape
+      when Wx::SF::TextShape
+        remove_popup_items(POPUP_ID::BOX_SPACING, POPUP_ID::GRID_SETTINGS)
+        n = @popup.get_menu_item_count-2
+        @text_mi.reverse.each { |mi| @popup.insert(n, mi) unless  @popup.find_item(mi.id) }
+      when Wx::SF::BoxShape
+        remove_popup_items(POPUP_ID::TEXT_FONT, POPUP_ID::TEXT_COLOR, POPUP_ID::GRID_SETTINGS)
+        n = @popup.get_menu_item_count-2
+        @popup.insert(n, @box_mi) unless  @popup.find_item(@box_mi.id)
+      when Wx::SF::GridShape
+        remove_popup_items(POPUP_ID::TEXT_FONT, POPUP_ID::TEXT_COLOR, POPUP_ID::BOX_SPACING)
+        n = @popup.get_menu_item_count-2
+        @popup.insert(n, @grid_mi) unless  @popup.find_item(@grid_mi.id)
+      else
+        remove_popup_items(POPUP_ID::TEXT_FONT, POPUP_ID::TEXT_COLOR, POPUP_ID::BOX_SPACING, POPUP_ID::GRID_SETTINGS)
+      end
     when Wx::SF::LineShape
-      @popup.remove(POPUP_ID::FILL_BRUSH) if @popup.find_item(POPUP_ID::FILL_BRUSH)
-      @popup.remove(POPUP_ID::BORDER_PEN) if @popup.find_item(POPUP_ID::BORDER_PEN)
-      n = @popup.get_menu_item_count
-      @line_mi.reverse.each { |mi| @popup.insert(n-2, mi) unless @popup.find_item(mi.id) }
+      remove_popup_items(POPUP_ID::FILL_BRUSH, POPUP_ID::BORDER_PEN,
+                         POPUP_ID::TEXT_FONT, POPUP_ID::TEXT_COLOR,
+                         POPUP_ID::BOX_SPACING, POPUP_ID::GRID_SETTINGS)
+      n = @popup.get_menu_item_count-2
+      @line_mi.reverse.each { |mi| @popup.insert(n, mi) unless @popup.find_item(mi.id) }
     else
-      @popup.remove(POPUP_ID::LINE_PEN) if @popup.find_item(POPUP_ID::LINE_PEN)
-      @popup.remove(POPUP_ID::LINE_ARROWS) if @popup.find_item(POPUP_ID::LINE_ARROWS)
-      @popup.remove(POPUP_ID::FILL_BRUSH) if @popup.find_item(POPUP_ID::FILL_BRUSH)
-      @popup.remove(POPUP_ID::BORDER_PEN) if @popup.find_item(POPUP_ID::BORDER_PEN)
+      remove_popup_items(POPUP_ID::FILL_BRUSH, POPUP_ID::BORDER_PEN,
+                         POPUP_ID::LINE_PEN, POPUP_ID::LINE_ARROWS,
+                         POPUP_ID::TEXT_FONT, POPUP_ID::TEXT_COLOR,
+                         POPUP_ID::BOX_SPACING, POPUP_ID::GRID_SETTINGS)
     end
     @popup
   end
   private :get_shape_popup
 
   class << self
-    def get_style_choices(enum, exclude: nil)
+    def get_enum_choices(enum, exclude: nil)
       enumerators = enum.enumerators.values
-      enumerators.reject!.each { |e| exclude ? exclude.call(enum[e]) : true }
+      enumerators.reject!.each { |e| exclude && exclude.call(enum[e]) }
       enumerators.collect { |id| id.to_s }
     end
 
-    def get_style_index(enumerator, exclude: nil)
+    def get_enum_index(enumerator, exclude: nil)
       enum = enumerator.class
       enumerators = enum.enumerators.keys
-      enumerators.reject!.each { |e| exclude ? exclude.call(e) : true }
+      enumerators.reject!.each { |e| exclude && exclude.call(e) }
       enumerators.index(enumerator.to_i)
     end
 
-    def index_to_style(enum, index, exclude: nil)
+    def index_to_enum(enum, index, exclude: nil)
       enumerators = enum.enumerators.values
-      enumerators.reject!.each { |e| exclude ? exclude.call(enum[e]) : true }
+      enumerators.reject!.each { |e| exclude && exclude.call(enum[e]) }
       enum[enumerators[index]]
     end
 
-    def selections_to_style(enum, selections, exclude: nil)
+    def selections_to_enum(enum, selections, exclude: nil)
       enumerators = enum.enumerators.keys
-      enumerators.reject!.each { |e| exclude ? exclude.call(e) : true }
+      enumerators.reject!.each { |e| exclude && exclude.call(e) }
       selections.inject(enum.new(0)) do |mask, ix|
         mask | enumerators[ix]
       end
     end
 
-    def style_to_selections(enum, style, exclude: nil)
+    def enum_to_selections(enum, style, exclude: nil)
       sel = []
       enumerators = enum.enumerators.keys
-      enumerators.reject!.each { |e| exclude ? exclude.call(e) : true }
+      enumerators.reject!.each { |e| exclude && exclude.call(e) }
       enumerators.each_with_index do |eval, ix|
         sel << ix if style.allbits?(eval)
       end
@@ -528,24 +584,225 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     end
   end
 
-  def get_style_choices(enum, exclude: nil)
-    self.class.get_style_choices(enum, exclude: exclude)
+  def get_enum_choices(enum, exclude: nil)
+    self.class.get_enum_choices(enum, exclude: exclude)
   end
 
-  def get_style_index(enumerator, exclude: nil)
-    self.class.get_style_index(enumerator, exclude: exclude)
+  def get_enum_index(enumerator, exclude: nil)
+    self.class.get_enum_index(enumerator, exclude: exclude)
   end
 
-  def index_to_style(enum, index, exclude: nil)
-    self.class.index_to_style(enum, index, exclude: exclude)
+  def index_to_enum(enum, index, exclude: nil)
+    self.class.index_to_enum(enum, index, exclude: exclude)
   end
 
-  def selections_to_style(enum, selections, exclude: nil)
-    self.class.selections_to_style(enum, selections, exclude: exclude)
+  def selections_to_enum(enum, selections, exclude: nil)
+    self.class.selections_to_enum(enum, selections, exclude: exclude)
   end
 
-  def style_to_selections(enum, style, exclude: nil)
-    self.class.style_to_selections(enum, style, exclude: exclude)
+  def enum_to_selections(enum, style, exclude: nil)
+    self.class.enum_to_selections(enum, style, exclude: exclude)
+  end
+
+  class ConnectionPointDialog < Wx::Dialog
+
+    def initialize(parent, conn_pts)
+      super(parent, Wx::ID_ANY, 'Change connection points')
+      sizer_top = Wx::VBoxSizer.new
+
+      sizer = Wx::HBoxSizer.new
+      vszr = Wx::VBoxSizer.new
+      vszr.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Connection points:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @lst_view = Wx::ListView.new(self)
+      @lst_view.append_column("Connection type",Wx::LIST_FORMAT_LEFT, Wx::LIST_AUTOSIZE_USEHEADER)
+      @lst_view.append_column("Id",Wx::LIST_FORMAT_LEFT, Wx::LIST_AUTOSIZE_USEHEADER)
+      @lst_view.append_column("Otho direction",Wx::LIST_FORMAT_LEFT, Wx::LIST_AUTOSIZE_USEHEADER)
+      @lst_view.append_column("Rel position",Wx::LIST_FORMAT_LEFT, Wx::LIST_AUTOSIZE_USEHEADER)
+
+      cptypes = Wx::SF::ConnectionPoint::CPTYPE.enumerators
+      cpodirs = Wx::SF::ConnectionPoint::CPORTHODIR.enumerators
+      (@cpts = conn_pts.dup).each do |cpt|
+        add_list_item(cpt)
+      end
+
+      vszr.add(@lst_view, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(vszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      vszr = Wx::VBoxSizer.new
+      @cpt_szr = Wx::StaticBoxSizer.new(Wx::Orientation::VERTICAL, self, 'Connection point')
+      hszr = Wx::HBoxSizer.new
+      hszr.add(Wx::StaticText.new(@cpt_szr.static_box, Wx::ID_ANY, 'Type:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_type = Wx::ComboBox.new(@cpt_szr.static_box, Wx::ID_ANY,
+                                     choices: get_enum_choices(Wx::SF::ConnectionPoint::CPTYPE))
+      hszr.add(@cpt_type, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_szr.add(hszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      hszr = Wx::HBoxSizer.new
+      hszr.add(Wx::StaticText.new(@cpt_szr.static_box, Wx::ID_ANY, 'Id:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_id = Wx::TextCtrl.new(@cpt_szr.static_box, validator: Wx::TextValidator.new(Wx::TextValidatorStyle::FILTER_DIGITS))
+      @cpt_id.enable(false)
+      hszr.add(@cpt_id, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_szr.add(hszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      hszr = Wx::HBoxSizer.new
+      hszr.add(Wx::StaticText.new(@cpt_szr.static_box, Wx::ID_ANY, 'Orthogonal direction:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_odir = Wx::ComboBox.new(@cpt_szr.static_box, Wx::ID_ANY,
+                                   choices: get_enum_choices(Wx::SF::ConnectionPoint::CPORTHODIR))
+      hszr.add(@cpt_odir, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_szr.add(hszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      hszr = Wx::HBoxSizer.new
+      hszr.add(Wx::StaticText.new(@cpt_szr.static_box, Wx::ID_ANY, 'Relative position x:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @rpos_x = Wx::SpinCtrlDouble.new(@cpt_szr.static_box, Wx::ID_ANY, min: 0.0, inc: 1.0)
+      hszr.add(@rpos_x, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      hszr.add(Wx::StaticText.new(@cpt_szr.static_box, Wx::ID_ANY, 'y:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @rpos_y = Wx::SpinCtrlDouble.new(@cpt_szr.static_box, Wx::ID_ANY, min: 0.0, inc: 1.0)
+      hszr.add(@rpos_y, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @cpt_szr.add(hszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      hszr = Wx::HBoxSizer.new
+      @add_btn = Wx::Button.new(@cpt_szr.static_box, Wx::ID_ANY, 'Add')
+      @add_btn.enable(false)
+      hszr.add(@add_btn, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @chg_btn = Wx::Button.new(@cpt_szr.static_box, Wx::ID_ANY, 'Change selected')
+      hszr.add(@chg_btn, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @chg_btn.enable(false)
+      @cpt_szr.add(hszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      vszr.add(@cpt_szr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      hszr = Wx::HBoxSizer.new
+      @del_btn = Wx::Button.new(self, Wx::ID_ANY, 'Delete selected')
+      @del_btn.enable(false)
+      hszr.add(@del_btn, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @clear_btn = Wx::Button.new(self, Wx::ID_ANY, 'Delete all')
+      @clear_btn.enable(!@cpts.empty?)
+      hszr.add(@clear_btn, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      vszr.add(hszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      sizer.add(vszr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_CENTRE_HORIZONTAL).border(Wx::ALL, 5))
+
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::Button.new(self, Wx::ID_CANCEL, "&Cancel"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::RIGHT, 80))
+
+      set_auto_layout(true)
+      set_sizer(sizer_top)
+
+      sizer_top.set_size_hints(self)
+      sizer_top.fit(self)
+
+      evt_update_ui @cpt_type, :on_cpt_type_update
+      evt_update_ui @add_btn, :on_add_cpt_update
+      evt_update_ui @del_btn, :on_del_cpt_update
+      evt_update_ui @chg_btn, :on_chg_cpt_update
+      evt_update_ui(@clear_btn) { @clear_btn.enable(!@cpts.empty?) }
+      evt_list_item_selected @lst_view, :on_list_item_selected
+      evt_button @del_btn, :on_delete_cpt
+      evt_button @chg_btn, :on_change_cpt
+      evt_button @add_btn, :on_add_cpt
+      evt_button(@clear_btn) { @lst_view.delete_all_items; @cpts.clear }
+    end
+
+    def set_shape_connection_points(shape)
+      @cpts.each { |cpt| cpt.set_parent_shape(shape) }
+      shape.connection_points.replace(@cpts)
+    end
+
+    def on_cpt_type_update(_evt)
+      @cpt_id.enable(@cpt_type.string_selection == 'CUSTOM')
+    end
+    private :on_cpt_type_update
+
+    def on_add_cpt_update(_evt)
+      @add_btn.enable(@cpt_type.selection != -1 && @cpt_odir.selection != -1)
+    end
+    private :on_add_cpt_update
+
+    def on_del_cpt_update(_evt)
+      @del_btn.enable(@lst_view.get_selected_item_count > 0)
+    end
+    private :on_del_cpt_update
+
+    def on_chg_cpt_update(_evt)
+      @chg_btn.enable(@lst_view.get_selected_item_count > 0)
+    end
+    private :on_chg_cpt_update
+
+    def on_list_item_selected(evt)
+      sel_cpt = @cpts[evt.index]
+      @cpt_type.set_selection(Wx::SF::ConnectionPoint::CPTYPE.enumerators.keys.index(sel_cpt.type.to_i))
+      @cpt_id.value = sel_cpt.id.to_s
+      @cpt_odir.set_selection(Wx::SF::ConnectionPoint::CPORTHODIR.enumerators.keys.index(sel_cpt.ortho_direction.to_i))
+      @rpos_x.value = sel_cpt.relative_position.x
+      @rpos_y.value = sel_cpt.relative_position.y
+    end
+    private :on_list_item_selected
+
+    def on_delete_cpt(_evt)
+      unless (sel = @lst_view.get_first_selected) == -1
+        @lst_view.delete_item(sel)
+        @cpts.delete_at(sel)
+      end
+    end
+    private :on_delete_cpt
+
+    def update_connection_point(cpt)
+      cpt.type = index_to_enum(Wx::SF::ConnectionPoint::CPTYPE, @cpt_type.selection)
+      cpt.id = (@cpt_type.string_selection == 'CUSTOM' && !@cpt_id.value.empty?) ? @cpt_id.value.to_i : nil
+      cpt.ortho_direction = index_to_enum(Wx::SF::ConnectionPoint::CPORTHODIR, @cpt_odir.selection)
+      cpt.relative_position = Wx::RealPoint.new(@rpos_x.value, @rpos_y.value)
+    end
+    private :update_connection_point
+
+    def update_list_item(item)
+      @lst_view.set_item(item, 0, Wx::SF::ConnectionPoint::CPTYPE.enumerators[@cpts[item].type.to_i].to_s)
+      @lst_view.set_item(item, 1, @cpts[item].id.to_s)
+      @lst_view.set_item(item, 2, Wx::SF::ConnectionPoint::CPORTHODIR.enumerators[@cpts[item].ortho_direction.to_i].to_s)
+      @lst_view.set_item(item, 3, '%.2f x %.2f' % @cpts[item].relative_position.to_ary)
+    end
+    private :update_list_item
+    
+    def on_change_cpt(_evt)
+      unless (sel = @lst_view.get_first_selected) == -1
+        update_connection_point(@cpts[sel])
+        update_list_item(sel)
+      end
+    end
+    private :on_change_cpt
+
+    def add_list_item(cpt)
+      item = @lst_view.insert_item(@lst_view.item_count, Wx::SF::ConnectionPoint::CPTYPE.enumerators[cpt.type.to_i].to_s)
+      @lst_view.set_item(item, 1, cpt.id.to_s)
+      @lst_view.set_item(item, 2, Wx::SF::ConnectionPoint::CPORTHODIR.enumerators[cpt.ortho_direction.to_i].to_s)
+      @lst_view.set_item(item, 3, '%.2f x %.2f' % cpt.relative_position.to_ary)
+    end
+    private :add_list_item
+
+    def on_add_cpt(_evt)
+      @cpts << Wx::SF::ConnectionPoint.new
+      update_connection_point(@cpts.last)
+      add_list_item(@cpts.last)
+    end
+
+    def get_enum_choices(enum, exclude: nil)
+      FrameCanvas.get_enum_choices(enum, exclude: exclude)
+    end
+    private :get_enum_choices
+
+    def get_enum_index(enumerator, exclude: nil)
+      FrameCanvas.get_enum_index(enumerator, exclude: exclude)
+    end
+    private :get_enum_index
+
+    def index_to_enum(enum, index, exclude: nil)
+      FrameCanvas.index_to_enum(enum, index, exclude: exclude)
+    end
+    private :index_to_enum
+
   end
 
   EXCL_BRUSH_STYLES = [
@@ -554,6 +811,105 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     Wx::BrushStyle::BRUSHSTYLE_STIPPLE_MASK,
     Wx::BrushStyle::BRUSHSTYLE_STIPPLE_MASK_OPAQUE
   ]
+
+  SHAPES = [
+    Wx::SF::RectShape,
+    Wx::SF::BitmapShape,
+    Wx::SF::SquareShape,
+    Wx::SF::CircleShape,
+    Wx::SF::PolygonShape,
+    Wx::SF::TextShape,
+    Wx::SF::RoundRectShape,
+    Wx::SF::GridShape,
+    Wx::SF::FlexGridShape,
+    Wx::SF::EllipseShape,
+    Wx::SF::ControlShape,
+    Wx::SF::BoxShape,
+    Wx::SF::VBoxShape,
+    Wx::SF::HBoxShape,
+    Wx::SF::DiamondShape,
+    Wx::SF::EditTextShape
+  ]
+
+  CONNECTION_SHAPES = [
+    Wx::SF::LineShape,
+    Wx::SF::CurveShape,
+    Wx::SF::OrthoLineShape,
+    Wx::SF::RoundOrthoLineShape
+  ]
+
+  class AcceptedShapesDialog < Wx::Dialog
+
+    def initialize(parent, message, selectable_shapes, accepted_shapes)
+      super(parent, Wx::ID_ANY, 'Select shapes')
+      sizer_top = Wx::VBoxSizer.new
+
+      sizer_top.add(Wx::StaticText.new(self, Wx::ID_ANY, message), Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      sizer = Wx::HBoxSizer.new
+      @none_rb = Wx::RadioButton.new(self, Wx::ID_ANY, 'Accept NONE', style: Wx::RB_GROUP)
+      sizer.add(@none_rb, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @all_rb = Wx::RadioButton.new(self, Wx::ID_ANY, 'Accept ALL')
+      sizer.add(@all_rb, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @some_rb = Wx::RadioButton.new(self, Wx::ID_ANY, 'Accept selection')
+      sizer.add(@some_rb, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.border(Wx::ALL, 5))
+
+      sizer = Wx::HBoxSizer.new
+      @lbox = Wx::CheckListBox.new(self, Wx::ID_ANY, choices: get_shape_choices(selectable_shapes))
+      sizer.add(@lbox, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_CENTRE_HORIZONTAL).border(Wx::ALL, 5))
+
+      if accepted_shapes.empty?
+        @none_rb.value = true
+        @lbox.enable(false)
+      elsif accepted_shapes.include?(Wx::SF::ACCEPT_ALL)
+        @all_rb.value = true
+        @lbox.enable(false)
+      else
+        @some_rb.value = true
+        get_shape_selections(selectable_shapes, accepted_shapes).each { |ix| @lbox.check(ix, true) }
+      end
+
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::Button.new(self, Wx::ID_CANCEL, "&Cancel"), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::RIGHT, 80))
+
+      set_auto_layout(true)
+      set_sizer(sizer_top)
+
+      sizer_top.set_size_hints(self)
+      sizer_top.fit(self)
+
+      evt_radiobutton Wx::ID_ANY, :on_radiobutton
+    end
+
+    def get_shape_choices(shapes)
+      shapes.collect { |c| c.name }
+    end
+
+    def get_shape_selections(shapes, accepted_shapes)
+      accepted_shapes.collect { |ac| shapes.index(ac) }
+    end
+
+    def get_selected_shapes(selectable_shapes)
+      if @none_rb.value
+        nil
+      elsif @all_rb.value
+        [Wx::SF::ACCEPT_ALL]
+      else
+        sel = @lbox.get_checked_items.collect { |ix| selectable_shapes[ix] }
+        sel.empty? ? nil : sel
+      end
+    end
+
+    def on_radiobutton(_evt)
+      @lbox.enable(@some_rb.value)
+    end
+    private :on_radiobutton
+
+  end
 
   class BrushDialog < Wx::Dialog
 
@@ -567,14 +923,14 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       sizer.add(@fill_clr, Wx::SizerFlags.new.border(Wx::ALL, 5))
       sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @fill_style = Wx::ComboBox.new(self, Wx::ID_ANY,
-                                     choices: get_style_choices(Wx::BrushStyle,
-                                                                exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
+                                     choices: get_enum_choices(Wx::BrushStyle,
+                                                               exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
       sizer.add(@fill_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
       sizer_top.add(sizer, Wx::SizerFlags.new.border(Wx::ALL, 5))
 
       @fill_clr.colour = brush.colour
-      @fill_style.selection = get_style_index(brush.style,
-                                              exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })
+      @fill_style.selection = get_enum_index(brush.style,
+                                             exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })
 
       sizer = Wx::HBoxSizer.new
       sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
@@ -590,24 +946,24 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
     def get_brush
       Wx::Brush.new(@fill_clr.colour,
-                    index_to_style(Wx::BrushStyle, @fill_style.selection,
-                                   exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
+                    index_to_enum(Wx::BrushStyle, @fill_style.selection,
+                                  exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
     end
 
-    def get_style_choices(enum, exclude: nil)
-      FrameCanvas.get_style_choices(enum, exclude: exclude)
+    def get_enum_choices(enum, exclude: nil)
+      FrameCanvas.get_enum_choices(enum, exclude: exclude)
     end
-    private :get_style_choices
+    private :get_enum_choices
 
-    def get_style_index(enumerator, exclude: nil)
-      FrameCanvas.get_style_index(enumerator, exclude: exclude)
+    def get_enum_index(enumerator, exclude: nil)
+      FrameCanvas.get_enum_index(enumerator, exclude: exclude)
     end
-    private :get_style_index
+    private :get_enum_index
 
-    def index_to_style(enum, index, exclude: nil)
-      FrameCanvas.index_to_style(enum, index, exclude: exclude)
+    def index_to_enum(enum, index, exclude: nil)
+      FrameCanvas.index_to_enum(enum, index, exclude: exclude)
     end
-    private :index_to_style
+    private :index_to_enum
 
   end
 
@@ -626,15 +982,15 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       sizer.add(@line_wdt, Wx::SizerFlags.new.border(Wx::ALL, 5))
       sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @line_style = Wx::ComboBox.new(self, Wx::ID_ANY,
-                                     choices: get_style_choices(Wx::PenStyle,
-                                                                exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }))
+                                     choices: get_enum_choices(Wx::PenStyle,
+                                                               exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }))
       sizer.add(@line_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
       sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
 
       @line_clr.colour = pen.colour
       @line_wdt.value = pen.width
-      @line_style.selection = get_style_index(pen.style,
-                                              exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID })
+      @line_style.selection = get_enum_index(pen.style,
+                                             exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID })
 
       sizer = Wx::HBoxSizer.new
       sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
@@ -650,24 +1006,24 @@ class FrameCanvas < Wx::SF::ShapeCanvas
 
     def get_pen
       Wx::Pen.new(@line_clr.colour, @line_wdt.value,
-                  index_to_style(Wx::PenStyle, @line_style.selection,
-                                 exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID }))
+                  index_to_enum(Wx::PenStyle, @line_style.selection,
+                                exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID }))
     end
 
-    def get_style_choices(enum, exclude: nil)
-      FrameCanvas.get_style_choices(enum, exclude: exclude)
+    def get_enum_choices(enum, exclude: nil)
+      FrameCanvas.get_enum_choices(enum, exclude: exclude)
     end
-    private :get_style_choices
+    private :get_enum_choices
 
-    def get_style_index(enumerator, exclude: nil)
-      FrameCanvas.get_style_index(enumerator, exclude: exclude)
+    def get_enum_index(enumerator, exclude: nil)
+      FrameCanvas.get_enum_index(enumerator, exclude: exclude)
     end
-    private :get_style_index
+    private :get_enum_index
 
-    def index_to_style(enum, index, exclude: nil)
-      FrameCanvas.index_to_style(enum, index, exclude: exclude)
+    def index_to_enum(enum, index, exclude: nil)
+      FrameCanvas.index_to_enum(enum, index, exclude: exclude)
     end
-    private :index_to_style
+    private :index_to_enum
 
   end
 
@@ -700,8 +1056,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       sizer.add(@line_wdt, Wx::SizerFlags.new.border(Wx::ALL, 5))
       sizer.add(Wx::StaticText.new(@line_szr.static_box, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @line_style = Wx::ComboBox.new(@line_szr.static_box, Wx::ID_ANY,
-                                     choices: get_style_choices(Wx::PenStyle,
-                                                                exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }))
+                                     choices: get_enum_choices(Wx::PenStyle,
+                                                               exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }))
       sizer.add(@line_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
       @line_szr.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
       sizer_top.add(@line_szr, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
@@ -710,8 +1066,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         @line_pen_rb.value = true
         @line_clr.colour = arrow.pen.colour
         @line_wdt.value = arrow.pen.width
-        @line_style.selection = get_style_index(arrow.pen.style,
-                                                exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID })
+        @line_style.selection = get_enum_index(arrow.pen.style,
+                                               exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID })
         @line_clr.enable(false)
         @line_wdt.enable(false)
         @line_style.enable(false)
@@ -719,21 +1075,32 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         @line_szr.static_box.enable(false)
       end
 
-      @fill_szr = Wx::StaticBoxSizer.new(Wx::Orientation::HORIZONTAL, self, 'Fill')
-      @fill_szr.add(Wx::StaticText.new(@fill_szr.static_box, Wx::ID_ANY, 'Colour:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_szr = Wx::StaticBoxSizer.new(Wx::Orientation::VERTICAL, self, 'Fill')
+      sizer = Wx::HBoxSizer.new
+      @def_brush_rb = Wx::RadioButton.new(@fill_szr.static_box, Wx::ID_ANY, 'Use default brush', style: Wx::RB_GROUP)
+      sizer.add(@def_brush_rb, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @custom_brush_rb = Wx::RadioButton.new(@fill_szr.static_box, Wx::ID_ANY, 'Use custom brush')
+      sizer.add(@custom_brush_rb, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_szr.add(sizer, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer = Wx::HBoxSizer.new
+      sizer.add(Wx::StaticText.new(@fill_szr.static_box, Wx::ID_ANY, 'Colour:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @fill_clr = Wx::ColourPickerCtrl.new(@fill_szr.static_box, Wx::ID_ANY)
-      @fill_szr.add(@fill_clr, Wx::SizerFlags.new.border(Wx::ALL, 5))
-      @fill_szr.add(Wx::StaticText.new(@fill_szr.static_box, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(@fill_clr, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer.add(Wx::StaticText.new(@fill_szr.static_box, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @fill_style = Wx::ComboBox.new(@fill_szr.static_box, Wx::ID_ANY,
-                                     choices: get_style_choices(Wx::BrushStyle,
-                                                                exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
-      @fill_szr.add(@fill_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
-      sizer_top.add(@fill_szr, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
+                                     choices: get_enum_choices(Wx::BrushStyle,
+                                                               exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
+      sizer.add(@fill_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      @fill_szr.add(sizer, Wx::SizerFlags.new.border(Wx::ALL, 5))
+      sizer_top.add(@fill_szr, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).expand.border(Wx::ALL, 5))
 
       if Wx::SF::FilledArrow === arrow
+        @def_brush_rb.value = true
         @fill_clr.colour = arrow.fill.colour
-        @fill_style.selection = get_style_index(arrow.fill.style,
-                                                exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })
+        @fill_style.selection = get_enum_index(arrow.fill.style,
+                                               exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })
+        @fill_clr.enable(false)
+        @fill_style.enable(false)
       else
         @fill_szr.static_box.enable(false)
       end
@@ -768,8 +1135,8 @@ class FrameCanvas < Wx::SF::ShapeCanvas
                 end
         if @custom_pen_rb.value
           arrow.set_pen(Wx::Pen.new(@line_clr.colour, @line_wdt.value,
-                                    index_to_style(Wx::PenStyle, @line_style.selection,
-                                                   exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID })))
+                                    index_to_enum(Wx::PenStyle, @line_style.selection,
+                                                  exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID })))
         end
         arrow
       else
@@ -784,18 +1151,21 @@ class FrameCanvas < Wx::SF::ShapeCanvas
                 end
         if @custom_pen_rb.value
           arrow.set_pen(Wx::Pen.new(@line_clr.colour, @line_wdt.value,
-                                    index_to_style(Wx::PenStyle, @line_style.selection,
-                                                   exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID })))
+                                    index_to_enum(Wx::PenStyle, @line_style.selection,
+                                                  exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID })))
         end
-        arrow.set_fill(Wx::Brush.new(@fill_clr.colour,
-                                     index_to_style(Wx::BrushStyle, @fill_style.selection,
-                                                    exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })))
+        if @custom_brush_rb.value
+          arrow.set_fill(Wx::Brush.new(@fill_clr.colour,
+                                       index_to_enum(Wx::BrushStyle, @fill_style.selection,
+                                                     exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })))
+        end
         arrow
       end
     end
 
     def arrow_type(arrow)
       case arrow
+      when Wx::SF::CrossBarProngArrow then 'CrossBarProng'
       when Wx::SF::ProngArrow then 'Prong'
       when Wx::SF::OpenArrow then 'Open'
       when Wx::SF::CupArrow then 'Cup'
@@ -806,29 +1176,28 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       when Wx::SF::SolidArrow then 'Solid'
       when Wx::SF::CrossedCircleArrow then 'CrossedCircle'
       when Wx::SF::CircleProngArrow then 'CircleProng'
-      when Wx::SF::CircleArrow then 'Circle'
       when Wx::SF::CrossBarCircleArrow then 'CrossBarCircle'
-      when Wx::SF::CrossBarProngArrow then 'CrossBarProng'
+      when Wx::SF::CircleArrow then 'Circle'
       else
         'None'
       end
     end
     private :arrow_type
 
-    def get_style_choices(enum, exclude: nil)
-      FrameCanvas.get_style_choices(enum, exclude: exclude)
+    def get_enum_choices(enum, exclude: nil)
+      FrameCanvas.get_enum_choices(enum, exclude: exclude)
     end
-    private :get_style_choices
+    private :get_enum_choices
 
-    def get_style_index(enumerator, exclude: nil)
-      FrameCanvas.get_style_index(enumerator, exclude: exclude)
+    def get_enum_index(enumerator, exclude: nil)
+      FrameCanvas.get_enum_index(enumerator, exclude: exclude)
     end
-    private :get_style_index
+    private :get_enum_index
 
-    def index_to_style(enum, index, exclude: nil)
-      FrameCanvas.index_to_style(enum, index, exclude: exclude)
+    def index_to_enum(enum, index, exclude: nil)
+      FrameCanvas.index_to_enum(enum, index, exclude: exclude)
     end
-    private :index_to_style
+    private :index_to_enum
 
     def on_radiobutton(_evt)
       if @line_pen_rb.value
@@ -839,6 +1208,13 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         @line_clr.enable(true)
         @line_wdt.enable(true)
         @line_style.enable(true)
+      end
+      if @def_brush_rb.value
+        @fill_clr.enable(false)
+        @fill_style.enable(false)
+      else
+        @fill_clr.enable(true)
+        @fill_style.enable(true)
       end
     end
     private :on_radiobutton
@@ -862,7 +1238,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         end
       end
     end
-    protected :get_style_choices
+    protected :get_enum_choices
 
   end
 
@@ -904,18 +1280,20 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     if shape
       case self.get_popup_menu_selection_from_user(get_shape_popup(shape))
       when POPUP_ID::STYLE
-        choices = get_style_choices(Wx::SF::Shape::STYLE,
-                                    exclude: ->(e) { e ==  Wx::SF::Shape::STYLE::DEFAULT_SHAPE_STYLE })
-        choices.pop # remove default style mask
+        choices = get_enum_choices(Wx::SF::Shape::STYLE,
+                                   exclude: ->(e) { e ==  Wx::SF::Shape::STYLE::DEFAULT_SHAPE_STYLE ||
+                                                     e ==  Wx::SF::Shape::STYLE::PROPAGATE_ALL })
         sel = Wx.get_selected_choices('Select styles',
                                       'Select multiple',
                                       choices,
                                       self,
-                                      initial_selections: style_to_selections(Wx::SF::Shape::STYLE, shape.get_style,
-                                                                              exclude: ->(e) { e ==  Wx::SF::Shape::STYLE::DEFAULT_SHAPE_STYLE }))
+                                      initial_selections: enum_to_selections(Wx::SF::Shape::STYLE, shape.get_style,
+                                                                             exclude: ->(e) { e ==  Wx::SF::Shape::STYLE::DEFAULT_SHAPE_STYLE ||
+                                                                                               e ==  Wx::SF::Shape::STYLE::PROPAGATE_ALL}))
         if sel
-          shape.set_style(selections_to_style(Wx::SF::Shape::STYLE, sel,
-                                              exclude: ->(e) { e ==  Wx::SF::Shape::STYLE::DEFAULT_SHAPE_STYLE }))
+          shape.set_style(selections_to_enum(Wx::SF::Shape::STYLE, sel,
+                                             exclude: ->(e) { e ==  Wx::SF::Shape::STYLE::DEFAULT_SHAPE_STYLE ||
+                                                               e ==  Wx::SF::Shape::STYLE::PROPAGATE_ALL }))
           shape.update
         end
       when POPUP_ID::HOVER_COLOR
@@ -936,6 +1314,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         when 'RIGHT' then shape.set_h_align(Wx::SF::Shape::HALIGN::RIGHT)
         when 'EXPAND' then shape.set_h_align(Wx::SF::Shape::HALIGN::EXPAND)
         end
+        shape.update
       when POPUP_ID::VALIGN
         case Wx.get_single_choice('Select vertical alignment',
                                   'Select',
@@ -963,6 +1342,51 @@ class FrameCanvas < Wx::SF::ShapeCanvas
             shape.update
           end
         end
+      when POPUP_ID::ACC_CHILDREN
+        FrameCanvas.AcceptedShapesDialog(self, 'Select acceptable child shapes.', SHAPES, shape.accepted_children) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.accepted_children.clear
+            if (ss = dlg.get_selected_shapes(SHAPES))
+              shape.accepted_children.merge(ss)
+            end
+          end
+        end
+      when POPUP_ID::ACC_CONNECTIONS
+        FrameCanvas.AcceptedShapesDialog(self, 'Select acceptable connection shapes.', CONNECTION_SHAPES, shape.accepted_connections) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.accepted_connections.clear
+            if (ss = dlg.get_selected_shapes(CONNECTION_SHAPES))
+              shape.accepted_connections.merge(ss)
+            end
+          end
+        end
+      when POPUP_ID::ACC_CONNECTION_FROM
+        shape_options =  SHAPES - [shape.class]
+        FrameCanvas.AcceptedShapesDialog(self, 'Select acceptable connection source shapes.', shape_options, shape.accepted_src_neighbours) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.accepted_src_neighbours.clear
+            if (ss = dlg.get_selected_shapes(shape_options))
+              shape.accepted_src_neighbours.merge(ss)
+            end
+          end
+        end
+      when POPUP_ID::ACC_CONNECTION_TO
+        shape_options =  SHAPES - [shape.class]
+        FrameCanvas.AcceptedShapesDialog(self, 'Select acceptable connection target shapes.', shape_options, shape.accepted_trg_neighbours) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            shape.accepted_trg_neighbours.clear
+            if (ss = dlg.get_selected_shapes(shape_options))
+              shape.accepted_trg_neighbours.merge(ss)
+            end
+          end
+        end
+      when POPUP_ID::CONNECTION_POINTS
+        FrameCanvas.ConnectionPointDialog(self, shape.connection_points) do |dlg|
+          if dlg.show_modal == Wx::ID_OK
+            dlg.set_shape_connection_points(shape)
+            shape.update
+          end
+        end
       when POPUP_ID::FILL_BRUSH
         FrameCanvas.BrushDialog(self, 'Fill brush', shape.fill) do |dlg|
           if dlg.show_modal == Wx::ID_OK
@@ -976,6 +1400,39 @@ class FrameCanvas < Wx::SF::ShapeCanvas
             shape.set_border(dlg.get_pen)
             shape.update
           end
+        end
+      when POPUP_ID::TEXT_FONT
+        new_font = Wx.get_font_from_user(self, shape.font, 'Select text font')
+        if new_font.ok?
+          shape.font = new_font
+          shape.update
+        end
+      when POPUP_ID::TEXT_COLOR
+        color = Wx.get_colour_from_user(self, shape.text_colour, 'Select text colour')
+        if color.ok?
+          shape.text_colour(color)
+          shape.update
+        end
+      when POPUP_ID::BOX_SPACING
+        spc = Wx.get_number_from_user('Enter BoxShape slot spacing.', 'Value:', 'Slot spacing',
+                                shape.spacing, 0, 100, self)
+        if spc >= 0
+          shape.spacing = spc
+          shape.update
+        end
+      when POPUP_ID::GRID_SPACING
+        spc = Wx.get_number_from_user('Enter GridShape cell spacing.', 'Value:', 'Cell spacing',
+                                      shape.cell_space, 0, 100, self)
+        if spc >= 0
+          shape.cell_space = spc
+          shape.update
+        end
+      when POPUP_ID::GRID_MAXROWS
+        spc = Wx.get_number_from_user('Enter GridShape maximum rows.', 'Value:', 'Maximum rows',
+                                      shape.max_rows, 0, 100, self)
+        if spc >= 0
+          shape.max_rows = spc
+          shape.update
         end
       when POPUP_ID::LINE_PEN
         FrameCanvas.PenDialog(self, 'Line pen', shape.line_pen) do |dlg|
