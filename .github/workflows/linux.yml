@@ -73,6 +73,12 @@ jobs:
         uname -a
         ruby -v
 
+    - name: Set Ruby Bundler path
+      if: matrix.ruby == 'system'
+      run: |
+        mkdir -p ${{ github.workspace }}/.bundler
+        bundle config path ${{ github.workspace }}/.bundler
+
     - name: Setup Ruby gems
       run: |
         BUILD_CMD="bundle install"
