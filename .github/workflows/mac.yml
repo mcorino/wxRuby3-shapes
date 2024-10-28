@@ -37,11 +37,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: wxMac macOS 13
+          - os: wxMac macOS 13
             runner: macos-13
             arch: x86_64
             ruby: 'ruby'
-          - name: wxMac macOS 14
+          - os: wxMac macOS 14
             runner: macos-14
             arch: aarch64
             ruby: 'ruby'
