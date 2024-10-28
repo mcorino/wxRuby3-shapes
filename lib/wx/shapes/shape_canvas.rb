@@ -2388,6 +2388,10 @@ module Wx::SF
           line.send(:set_line_mode, LineShape::LINEMODE::READY)
 
           parent_shape = get_shape_under_cursor
+          # propagate request for interactive connection if requested
+          while parent_shape && parent_shape.has_style?(Shape::STYLE::PROPAGATE_INTERACTIVE_CONNECTION)
+            parent_shape = parent_shape.get_parent_shape
+          end
 
           if parent_shape && (parent_shape != line) && (parent_shape.is_connection_accepted(line.class))
             if @selected_handle.get_type == Shape::Handle::TYPE::LINESTART
