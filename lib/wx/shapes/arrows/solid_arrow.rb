@@ -43,7 +43,7 @@ module Wx::SF
       rarrow = translate_arrow(vertices, from, to)
       cp = rarrow.pop # get connection point
       dc.with_pen(pen) do |dc|
-        dc.with_brush(@fill) do |dc|
+        dc.with_brush(fill) do |dc|
           dc.draw_polygon(rarrow)
         end
       end

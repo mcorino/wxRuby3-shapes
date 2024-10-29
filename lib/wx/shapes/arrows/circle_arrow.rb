@@ -38,7 +38,7 @@ module Wx::SF
       r = radius
       centre, cp = translate_arrow([Wx::RealPoint.new(r, 0), Wx::RealPoint.new(2*r, 0)], from, to)
       dc.with_pen(pen) do |dc|
-        dc.with_brush(@fill) do |dc|
+        dc.with_brush(fill) do |dc|
           dc.draw_circle(centre, r)
         end
       end

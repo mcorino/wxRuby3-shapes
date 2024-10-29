@@ -69,8 +69,8 @@ module Wx::SF
       # HINT: overload it for custom actions...
       pos = get_absolute_position
 
-      dc.with_pen(@border) do
-        dc.with_brush(@fill) do
+      dc.with_pen(border) do
+        dc.with_brush(fill) do
           dc.draw_circle((pos.x + @rect_size.x/2).to_i,
                          (pos.y + @rect_size.y/2).to_i,
                          (@rect_size.x/2).to_i)
@@ -85,8 +85,8 @@ module Wx::SF
       # HINT: overload it for custom actions...
       pos = get_absolute_position
 
-      dc.with_pen(Wx::Pen.new(@hover_color, 1)) do
-        dc.with_brush(@fill) do
+      dc.with_pen(Wx::Pen.new(hover_colour, 1)) do
+        dc.with_brush(fill) do
           dc.draw_circle((pos.x + @rect_size.x/2).to_i,
                          (pos.y + @rect_size.y/2).to_i,
                          (@rect_size.x/2).to_i)
@@ -102,8 +102,8 @@ module Wx::SF
       # HINT: overload it for custom actions...
       pos = get_absolute_position
 
-      dc.with_pen(Wx::Pen.new(@hover_color, 2)) do
-        dc.with_brush(@fill) do
+      dc.with_pen(Wx::Pen.new(hover_colour, 2)) do
+        dc.with_brush(fill) do
           dc.draw_circle((pos.x + @rect_size.x/2).to_i,
                          (pos.y + @rect_size.y/2).to_i,
                          (@rect_size.x/2).to_i)
@@ -117,7 +117,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
       pos = get_absolute_position
 
-      if @fill.style != Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT
+      if fill.style != Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT
         dc.with_pen(Wx::TRANSPARENT_PEN) do
           dc.with_brush(get_parent_canvas.get_shadow_fill) do
             dc.draw_circle((pos.x + @rect_size.x/2 + get_parent_canvas.get_shadow_offset.x).to_i,

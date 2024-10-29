@@ -126,10 +126,13 @@ module Wx::SF
       class << self
         def mod_fill; @mod_fill ||= Wx::Brush.new(Wx::BLUE, Wx::BrushStyle::BRUSHSTYLE_BDIAGONAL_HATCH); end
         def mod_border; @mod_border ||= Wx::Pen.new(Wx::BLUE, 1, Wx::PenStyle::PENSTYLE_SOLID); end
+        def ctrl_fill; @ctrl_fill ||= Wx::TRANSPARENT_BRUSH.dup; end
+        def ctrl_border; @ctrl_border ||= Wx::TRANSPARENT_PEN.dup; end
       end
     end
 
-    property :event_processing, :control_offset, :mod_fill, :mod_border
+    property :event_processing, :control_offset
+    property mod_fill: :serialize_mod_fill, mod_border: :serialize_mod_border
 
     # Constructor.
     # @param [Wx::RealPoint] pos Initial position
@@ -141,8 +144,8 @@ module Wx::SF
       set_control(control)
       add_style(Shape::STYLE::PROCESS_DEL)
       @process_events = DEFAULT::PROCESSEVENTS
-      @mod_fill = DEFAULT.mod_fill
-      @mod_border = DEFAULT.mod_border
+      @mod_fill = nil
+      @mod_border = nil
       @control_offset = DEFAULT::CONTROLOFFSET
 
       @event_sink = EventSink.new(self)
@@ -151,9 +154,6 @@ module Wx::SF
       @prev_style = 0
       @prev_fill = nil
       @prev_border = nil
-
-      @fill = Wx::TRANSPARENT_BRUSH.dup
-      @border = Wx::TRANSPARENT_PEN.dup
     end
 
     # Set managed GUI control.
@@ -202,6 +202,20 @@ module Wx::SF
       end
     end
 
+    # Get current fill style.
+    # @return [Wx::Brush] Current brush
+    def get_fill
+      @fill || (@diagram&.shape_canvas ? @diagram.shape_canvas.control_fill : DEFAULT.ctrl_fill)
+    end
+    alias :fill :get_fill
+
+    # Get current border style.
+    # @return [Wx::Pen] Current pen
+    def get_border
+      @border || (@diagram&.shape_canvas ? @diagram.shape_canvas.control_border : DEFAULT.ctrl_border)
+    end
+    alias :border :get_border
+
     # Get managed GUI control.
     # @return [Wx::Window] the GUI control
     def get_control
@@ -223,27 +237,46 @@ module Wx::SF
     end
 
     # Set control shape's background style used during its modification.
-    # @param [Wx::Brush] brush Reference to used brush
-    def set_mod_fill(brush)
-      @mod_fill = brush
+    # @overload set_mod_fill(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_mod_fill(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_mod_fill(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_mod_fill(*args)
+      @mod_fill = if args.size == 1 && Wx::Brush === args.first
+                    args.first
+                  else
+                    Wx::Brush.new(*args)
+                  end
     end
 
     # Get control shape's background style used during its modification.
     # @return [Wx::Brush] Used brush
     def get_mod_fill
-      @mod_fill
+      @mod_fill || (@diagram&.shape_canvas ? @diagram.shape_canvas.control_mod_fill : DEFAULT.mod_fill)
     end
 
     # Set control shape's border style used during its modification.
-    # @param [Wx::Pen] pen Reference to used pen
+    # @overload set_mod_border(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_mod_border(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
     def set_mod_border(pen)
-      @mod_border = pen
+      @mod_border = if args.size == 1 && Wx::Pen === args.first
+                      args.first
+                    else
+                      Wx::Pen.new(*args)
+                    end
     end
 
     # Get control shape's border style used during its modification.
     # @return [Wx::Pen] Used pen
     def get_mod_border
-      @mod_border
+      @mod_border || (@diagram&.shape_canvas ? @diagram.shape_canvas.control_mod_border : DEFAULT.mod_border)
     end
 
     # Set control shape's offset (a gap between the shape's border and managed GUI control).
@@ -355,8 +388,8 @@ module Wx::SF
     # @param [Wx::Point] pos Current mouse position
 	  # @see ShapeCanvas
     def on_begin_drag(pos)
-      @prev_fill = @fill
-      @fill = @mod_fill
+      @prev_fill = fill
+      fill = @mod_fill
       canvas = get_parent_canvas
       if canvas
         @prev_style = canvas.get_style
@@ -377,7 +410,7 @@ module Wx::SF
 	  # @param [Wx::Point] pos Current mouse position
 	  # @see ShapeCanvas
     def on_end_drag(pos)
-      @fill = @prev_fill
+      fill = @prev_fill
       canvas = get_parent_canvas
       canvas.set_style(@prev_style) if canvas
       update_control
@@ -467,6 +500,18 @@ module Wx::SF
           @diagram.remove_shape(self, false)
         end
       end
+    end
+
+    # (de-)serialize mod_fill; allows for nil values
+    def serialize_mod_fill(*val)
+      @mod_fill = val.first unless val.empty?
+      @mod_fill
+    end
+
+    # (de-)serialize mod_fill; allows for nil values
+    def serialize_mod_border(*val)
+      @mod_border = val.first unless val.empty?
+      @mod_border
     end
 
   end

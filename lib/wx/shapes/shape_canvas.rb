@@ -197,6 +197,28 @@ module Wx::SF
         def background_color; @bgcolor ||= Wx::Colour.new(240, 240, 240); end
         # Default value of Wx::SF::CanvasSettings @common_hover_color data member
         def hover_color; @hvrcolor ||= Wx::Colour.new(120, 120, 255); end
+        # Default value of Wx::SF::CanvasSettings @common_border_pen data member
+        def border_pen; @border_pen ||= Wx::BLACK_PEN.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_fill_brush data member
+        def fill_brush; @fill_brush ||= Wx::WHITE_BRUSH.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_line_pen data member
+        def line_pen; @line_pen ||= border_pen; end
+        # Default value of Wx::SF::CanvasSettings @common_arrow_fill data member
+        def arrow_fill; @arrow_fill ||= fill_brush; end
+        # Default value of Wx::SF::CanvasSettings @common_text_color data member
+        def text_color; @text_color ||= Wx::BLACK.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_text_fill data member
+        def text_fill; @text_fill ||= Wx::TRANSPARENT_BRUSH.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_text_border data member
+        def text_border; @text_border ||= Wx::TRANSPARENT_PEN.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_control_fill data member
+        def control_fill; @ctrl_fill ||= Wx::TRANSPARENT_BRUSH.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_control_border data member
+        def control_border; @ctrl_border ||= Wx::TRANSPARENT_PEN.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_control_mod_fill data member
+        def control_mod_fill; @ctrl_mod_fill ||= Wx::Brush.new(Wx::BLUE, Wx::BrushStyle::BRUSHSTYLE_BDIAGONAL_HATCH); end
+        # Default value of Wx::SF::CanvasSettings @common_control_mod_border data member
+        def control_mod_border; @ctrl_mod_border ||= Wx::Pen.new(Wx::BLUE, 1, Wx::PenStyle::PENSTYLE_SOLID); end
         # Default value of Wx::SF::CanvasSettings @grid_color data member
         def grid_color; @gridcolor ||= Wx::Colour.new(200, 200, 200); end
         # Default value of Wx::SF::CanvasSettings @gradient_from data member
@@ -349,7 +371,10 @@ module Wx::SF
 
       include DEFAULT
 
-      property :scale, :min_scale, :max_scale, :background_color, :common_hover_color,
+      property :scale, :min_scale, :max_scale, :background_color,
+               :common_hover_color, :common_border_pen, :common_fill_brush, :common_line_pen,
+               :common_arrow_fill, :common_text_color, :common_text_fill, :common_text_border,
+               :common_control_fill, :common_control_border, :common_control_mod_fill, :common_control_mod_border,
                :grid_size, :grid_line_mult, :grid_color, :grid_style,
                :gradient_from, :gradient_to, :style, :shadow_offset, :shadow_fill,
                :print_h_align, :print_v_align, :print_mode
@@ -359,7 +384,26 @@ module Wx::SF
         @min_scale = SCALE_MIN
         @max_scale = SCALE_MAX
         @background_color = DEFAULT.background_color
+
+        # common shape property
         @common_hover_color = DEFAULT.hover_color
+        # common rect shape properties
+        @common_border_pen = DEFAULT.border_pen
+        @common_fill_brush = DEFAULT.fill_brush
+        # common line shape property
+        @common_line_pen = DEFAULT.line_pen
+        # common arrow property
+        @common_arrow_fill = DEFAULT.arrow_fill
+        # common text shape properties (fill and border overrule common rect properties)
+        @common_text_color = DEFAULT.text_color
+        @common_text_fill = DEFAULT.text_fill
+        @common_text_border = DEFAULT.text_border
+        # common control shape properties
+        @common_control_fill = DEFAULT.control_fill
+        @common_control_border = DEFAULT.control_border
+        @common_control_mod_fill = DEFAULT.control_mod_fill
+        @common_control_mod_border = DEFAULT.control_mod_border
+
         @grid_size = GRIDSIZE.dup
         @grid_line_mult = GRIDLINEMULT
         @grid_color = DEFAULT.grid_color
@@ -374,7 +418,10 @@ module Wx::SF
         @print_mode = PRINT_MODE
       end
 
-      attr_accessor :scale, :min_scale, :max_scale, :background_color, :common_hover_color,
+      attr_accessor :scale, :min_scale, :max_scale, :background_color,
+                    :common_hover_color, :common_border_pen, :common_fill_brush, :common_line_pen,
+                    :common_arrow_fill, :common_text_color, :common_text_fill, :common_text_border,
+                    :common_control_fill, :common_control_border, :common_control_mod_fill, :common_control_mod_border,
                     :grid_size, :grid_line_mult, :grid_color, :grid_style,
                     :gradient_from, :gradient_to, :style, :shadow_offset, :shadow_fill,
                     :print_h_align, :print_v_align, :print_mode
@@ -1861,14 +1908,9 @@ module Wx::SF
     alias :mode :get_mode
 
     # Set default hover color.
-    # @param [Wx::Colour] col Hover color.
+    # @param [Wx::Colour,Symbol,String] col Hover color.
     def set_hover_colour(col)
-      return unless @diagram
-
-      @settings.common_hover_color = col
-
-      # update Hover color in all existing shapes
-      @diagram.get_shapes.each { |shape| shape.set_hover_colour(col) }
+      @settings.common_hover_color = Wx::Colour === col ? col : Wx::Colour.new(col)
     end
     alias :hover_colour= :set_hover_colour
 
@@ -1878,7 +1920,256 @@ module Wx::SF
       @settings.common_hover_color
     end
     alias :hover_colour :get_hover_colour
+    
+    # Set default fill brush.
+    # @overload set_fill_brush(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_fill_brush(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_fill_brush(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_fill_brush(*args)
+      @settings.common_fill_brush = if args.size == 1 && Wx::Brush === args.first
+                                      args.first
+                                    else
+                                      Wx::Brush.new(*args)
+                                    end
+    end
+    alias :fill_brush= :set_fill_brush
 
+    # Get default fill brush.
+    # @return [Wx::Brush] Fill brush
+    def get_fill_brush
+      @settings.common_fill_brush
+    end
+    alias :fill_brush :get_fill_brush
+    
+    # Set default border pen.
+    # @overload set_border_pen(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_border_pen(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
+    def set_border_pen(*args)
+      @settings.common_border_pen = if args.size == 1 && Wx::Pen === args.first
+                                      args.first
+                                    else
+                                      Wx::Pen.new(*args)
+                                    end
+    end
+    alias :border_pen= :set_border_pen
+
+    # Get default border pen.
+    # @return [Wx::Pen]
+    def get_border_pen
+      @settings.common_border_pen
+    end
+    alias :border_pen :get_border_pen
+
+    # Set default line pen.
+    # @overload set_line_pen(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_line_pen(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
+    def set_line_pen(*args)
+      @settings.common_line_pen = if args.size == 1 && Wx::Pen === args.first
+                                      args.first
+                                    else
+                                      Wx::Pen.new(*args)
+                                    end
+    end
+    alias :line_pen= :set_line_pen
+
+    # Get default line pen.
+    # @return [Wx::Pen]
+    def get_line_pen
+      @settings.common_line_pen
+    end
+    alias :line_pen :get_line_pen
+    
+    # Set default arrow fill brush.
+    # @overload set_arrow_fill(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_arrow_fill(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_arrow_fill(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_arrow_fill(*args)
+      @settings.common_arrow_fill = if args.size == 1 && Wx::Brush === args.first
+                                      args.first
+                                    else
+                                      Wx::Brush.new(*args)
+                                    end
+    end
+    alias :arrow_fill= :set_arrow_fill
+
+    # Get default arrow fill brush.
+    # @return [Wx::Brush] Fill brush
+    def get_arrow_fill
+      @settings.common_arrow_fill
+    end
+    alias :arrow_fill :get_arrow_fill
+
+    # Set default text color.
+    # @param [Wx::Colour,Symbol,String] col text color.
+    def set_text_colour(col)
+      @settings.common_text_color = Wx::Colour === col ? col : Wx::Colour.new(col)
+    end
+    alias :text_colour= :set_text_colour
+
+    # Get default text colour.
+    # @return [Wx::Colour] text colour
+    def get_text_colour
+      @settings.common_text_color
+    end
+    alias :text_colour :get_text_colour
+    
+    # Set default text fill brush.
+    # @overload set_text_fill(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_text_fill(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_text_fill(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_text_fill(*args)
+      @settings.common_text_fill = if args.size == 1 && Wx::Brush === args.first
+                                      args.first
+                                    else
+                                      Wx::Brush.new(*args)
+                                    end
+    end
+    alias :text_fill= :set_text_fill
+
+    # Get default text fill brush.
+    # @return [Wx::Brush] Fill brush
+    def get_text_fill
+      @settings.common_text_fill
+    end
+    alias :text_fill :get_text_fill
+
+    # Set default text border.
+    # @overload set_text_border(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_text_border(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
+    def set_text_border(*args)
+      @settings.common_text_border = if args.size == 1 && Wx::Pen === args.first
+                                    args.first
+                                  else
+                                    Wx::Pen.new(*args)
+                                  end
+    end
+    alias :text_border= :set_text_border
+
+    # Get default text border.
+    # @return [Wx::Pen]
+    def get_text_border
+      @settings.common_text_border
+    end
+    alias :text_border :get_text_border
+
+    # Set default control fill brush.
+    # @overload set_control_fill(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_control_fill(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_control_fill(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_control_fill(*args)
+      @settings.common_control_fill = if args.size == 1 && Wx::Brush === args.first
+                                     args.first
+                                   else
+                                     Wx::Brush.new(*args)
+                                   end
+    end
+    alias :control_fill= :set_control_fill
+
+    # Get default control fill brush.
+    # @return [Wx::Brush] Fill brush
+    def get_control_fill
+      @settings.common_control_fill
+    end
+    alias :control_fill :get_control_fill
+
+    # Set default control border.
+    # @overload set_control_border(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_control_border(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
+    def set_control_border(*args)
+      @settings.common_control_border = if args.size == 1 && Wx::Pen === args.first
+                                       args.first
+                                     else
+                                       Wx::Pen.new(*args)
+                                     end
+    end
+    alias :control_border= :set_control_border
+
+    # Get default control border.
+    # @return [Wx::Pen]
+    def get_control_border
+      @settings.common_control_border
+    end
+    alias :control_border :get_control_border
+
+    # Set default control modification fill brush.
+    # @overload set_control_mod_fill(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_control_mod_fill(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_control_mod_fill(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_control_mod_fill(*args)
+      @settings.common_control_mod_fill = if args.size == 1 && Wx::Brush === args.first
+                                        args.first
+                                      else
+                                        Wx::Brush.new(*args)
+                                      end
+    end
+    alias :control_mod_fill= :set_control_mod_fill
+
+    # Get default control modification fill brush.
+    # @return [Wx::Brush] Fill brush
+    def get_control_mod_fill
+      @settings.common_control_mod_fill
+    end
+    alias :control_mod_fill :get_control_mod_fill
+
+    # Set default control modification border.
+    # @overload set_control_mod_border(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_control_mod_border(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
+    def set_control_mod_border(*args)
+      @settings.common_control_mod_border = if args.size == 1 && Wx::Pen === args.first
+                                          args.first
+                                        else
+                                          Wx::Pen.new(*args)
+                                        end
+    end
+    alias :control_mod_border= :set_control_mod_border
+
+    # Get default control modification border.
+    # @return [Wx::Pen]
+    def get_control_mod_border
+      @settings.common_control_mod_border
+    end
+    alias :control_mod_border :get_control_mod_border
+    
     # Get canvas history manager.
     # @return [Wx::SF::CanvasHistory] the canvas history manager
     # @see Wx::SF::CanvasHistory

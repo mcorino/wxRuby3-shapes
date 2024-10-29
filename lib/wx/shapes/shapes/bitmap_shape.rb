@@ -196,7 +196,7 @@ module Wx::SF
       _draw_bitmap(dc, get_absolute_position.to_point)
 
       dc.with_brush(Wx::TRANSPARENT_BRUSH) do
-        dc.with_pen(Wx::Pen.new(@hover_color, 1)) do
+        dc.with_pen(Wx::Pen.new(hover_colour, 1)) do
           dc.draw_rectangle(get_absolute_position.to_point, @rect_size.to_size)
         end
       end
@@ -209,7 +209,7 @@ module Wx::SF
       _draw_bitmap(dc, get_absolute_position.to_point)
 
       dc.with_brush(Wx::TRANSPARENT_BRUSH) do
-        dc.with_pen(Wx::Pen.new(@hover_color, 2)) do
+        dc.with_pen(Wx::Pen.new(hover_colour, 2)) do
           dc.draw_rectangle(get_absolute_position.to_point, @rect_size.to_size)
         end
       end

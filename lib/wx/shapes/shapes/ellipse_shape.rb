@@ -55,8 +55,8 @@ module Wx::SF
     # Draw the shape in the normal way. The function can be overridden if necessary.
     # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_normal(dc)
-      dc.with_pen(@border) do
-        dc.with_brush(@fill) do
+      dc.with_pen(border) do
+        dc.with_brush(fill) do
           dc.draw_ellipse(get_absolute_position.to_point, @rect_size.to_size)
         end
       end
@@ -66,8 +66,8 @@ module Wx::SF
     # The function can be overridden if necessary.
     # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_hover(dc)
-      dc.with_pen(Wx::Pen.new(@hover_color, 1)) do
-        dc.with_brush(@fill) do
+      dc.with_pen(Wx::Pen.new(hover_colour, 1)) do
+        dc.with_brush(fill) do
           dc.draw_ellipse(get_absolute_position.to_point, @rect_size.to_size)
         end
       end
@@ -78,8 +78,8 @@ module Wx::SF
     # The function can be overridden if necessary.
     # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_highlighted(dc)
-      dc.with_pen(Wx::Pen.new(@hover_color, 2)) do
-        dc.with_brush(@fill) do
+      dc.with_pen(Wx::Pen.new(hover_colour, 2)) do
+        dc.with_brush(fill) do
           dc.draw_ellipse(get_absolute_position.to_point, @rect_size.to_size)
         end
       end
@@ -88,7 +88,7 @@ module Wx::SF
     # Draw shadow under the shape. The function can be overridden if necessary.
     # @param [Wx::DC] dc Reference to device context where the shadow will be drawn to
     def draw_shadow(dc)
-      if @fill.style != Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT
+      if fill.style != Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT
         dc.with_pen(Wx::TRANSPARENT_PEN) do
           dc.with_brush(get_parent_canvas.get_shadow_fill) do
             dc.draw_ellipse((get_absolute_position + get_parent_canvas.get_shadow_offset).to_point,

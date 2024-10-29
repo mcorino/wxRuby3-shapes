@@ -14,11 +14,16 @@ module Wx::SF
         def font; @font ||= Wx::SWISS_FONT.dup; end
         # Default value of TextShape @text_color data member.
         def text_color; @txtclr ||= Wx::BLACK.dup; end
+        # Standard value of TextShape @fill data member
+        def text_fill; @text_fill ||= Wx::TRANSPARENT_BRUSH.dup; end
+        # Standard value of TextShape @border data member
+        def text_border; @text_border ||= Wx::TRANSPARENT_PEN.dup; end
       end
       TEXT = 'Text'
     end
 
-    property :font, :text_colour, :text
+    property :font, :text
+    property text_colour: :serialize_text_colour
 
     # Constructor.
     # @param [Wx::RealPoint,Wx::Point] pos Initial position
@@ -31,11 +36,9 @@ module Wx::SF
 
       @line_height = 12
 
-      @text_color = DEFAULT.text_color
+      @text_color = nil
       @text = txt
 
-      @fill = Wx::TRANSPARENT_BRUSH
-      @border = Wx::TRANSPARENT_PEN
       @rect_size = Wx::RealPoint.new
 
       update_rect_size
@@ -71,18 +74,31 @@ module Wx::SF
     end
     alias :text :get_text
 
+    # Get current fill style.
+    # @return [Wx::Brush] Current brush
+    def get_fill
+      @fill || (@diagram&.shape_canvas ? @diagram.shape_canvas.text_fill : DEFAULT.fill)
+    end
+    alias :fill :get_fill
+
+    # Get current border style.
+    # @return [Wx::Pen] Current pen
+    def get_border
+      @border || (@diagram&.shape_canvas ? @diagram.shape_canvas.text_border : DEFAULT.border)
+    end
+    alias :border :get_border
 
     # Set text color.
-    # @param [Wx::Colour] col Text color
+    # @param [Wx::Colour,String,Symbol] col Text color
     def set_text_colour(col)
-      @text_color = col
+      @text_color = Wx::Colour === col ? col : Wx::Colour.new(col)
     end
     alias :text_colour= :set_text_colour
 
     # Get text color.
     # @return [Wx::Colour] Current text color
     def get_text_colour
-      @text_color
+      @text_color || (@diagram&.shape_canvas ? @diagram.shape_canvas.text_colour : DEFAULT.text_color)
     end
     alias :text_colour :get_text_colour
     
@@ -287,7 +303,7 @@ module Wx::SF
 	  # Draw text shape.
 	  # @param [Wx::DC] dc Device context where the text shape will be drawn to
     def draw_text_content(dc)
-      dc.with_brush(@fill) do
+      dc.with_brush(fill) do
         dc.set_background_mode(Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT.to_i)
         dc.set_text_foreground(@text_color)
         dc.with_font(@font) do
@@ -298,6 +314,12 @@ module Wx::SF
           end
         end
       end
+    end
+
+    # (de-)serialize text colour; allows for nil values
+    def serialize_text_colour(*val)
+      @text_color = val.first unless val.empty?
+      @text_color
     end
 
     # Deserialize attributes and recalculate rectangle size afterwards.
