@@ -37,12 +37,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: wxMac macOS 13
-            runner: macos-13
+          - os: macos-13
             arch: x86_64
             ruby: 'ruby'
-          - os: wxMac macOS 14
-            runner: macos-14
+          - os: macos-14
             arch: aarch64
             ruby: 'ruby'
     runs-on: ${{ matrix.os }}
