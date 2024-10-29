@@ -546,37 +546,32 @@ class FrameCanvas < Wx::SF::ShapeCanvas
   private :get_shape_popup
 
   class << self
-    def get_enum_choices(enum, exclude: nil)
-      enumerators = enum.enumerators.sort_by(&:first)
-      enumerators.reject! { |e, _| exclude && exclude.call(e) }
+    def get_enum_choices(enum, excludes: nil)
+      enumerators = enum.enumerators(excludes).sort_by(&:first)
       enumerators.collect { |_, esym| esym.to_s }
     end
 
-    def get_enum_index(enumerator, exclude: nil)
+    def get_enum_index(enumerator, excludes: nil)
       enum = enumerator.class
-      enumerators = enum.enumerators.sort_by(&:first)
-      enumerators.reject! { |e, _| exclude && exclude.call(e) }
+      enumerators = enum.enumerators(excludes).sort_by(&:first)
       enumerators.index { |e, _| enumerator == e }
     end
 
-    def index_to_enum(enum, index, exclude: nil)
-      enumerators = enum.enumerators.sort_by(&:first)
-      enumerators.reject! { |e, _| exclude && exclude.call(e) }
+    def index_to_enum(enum, index, excludes: nil)
+      enumerators = enum.enumerators(excludes).sort_by(&:first)
       enum[enumerators[index].last]
     end
 
-    def selections_to_enum(enum, selections, exclude: nil)
-      enumerators = enum.enumerators.sort_by(&:first)
-      enumerators.reject! { |e, _| exclude && exclude.call(e) }
+    def selections_to_enum(enum, selections, excludes: nil)
+      enumerators = enum.enumerators(excludes).sort_by(&:first)
       selections.inject(enum.new(0)) do |mask, ix|
         mask | enumerators[ix].first
       end
     end
 
-    def enum_to_selections(enum, style, exclude: nil)
+    def enum_to_selections(enum, style, excludes: nil)
       sel = []
-      enumerators = enum.enumerators.sort_by(&:first)
-      enumerators.reject!.each { |e, _| exclude && exclude.call(e) }
+      enumerators = enum.enumerators(excludes).sort_by(&:first)
       enumerators.each_with_index do |(e, _), ix|
         sel << ix if style.allbits?(e)
       end
@@ -584,24 +579,24 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     end
   end
 
-  def get_enum_choices(enum, exclude: nil)
-    self.class.get_enum_choices(enum, exclude: exclude)
+  def get_enum_choices(enum, excludes: nil)
+    self.class.get_enum_choices(enum, excludes: excludes)
   end
 
-  def get_enum_index(enumerator, exclude: nil)
-    self.class.get_enum_index(enumerator, exclude: exclude)
+  def get_enum_index(enumerator, excludes: nil)
+    self.class.get_enum_index(enumerator, excludes: excludes)
   end
 
-  def index_to_enum(enum, index, exclude: nil)
-    self.class.index_to_enum(enum, index, exclude: exclude)
+  def index_to_enum(enum, index, excludes: nil)
+    self.class.index_to_enum(enum, index, excludes: excludes)
   end
 
-  def selections_to_enum(enum, selections, exclude: nil)
-    self.class.selections_to_enum(enum, selections, exclude: exclude)
+  def selections_to_enum(enum, selections, excludes: nil)
+    self.class.selections_to_enum(enum, selections, excludes: excludes)
   end
 
-  def enum_to_selections(enum, style, exclude: nil)
-    self.class.enum_to_selections(enum, style, exclude: exclude)
+  def enum_to_selections(enum, style, excludes: nil)
+    self.class.enum_to_selections(enum, style, excludes: excludes)
   end
 
   class ConnectionPointDialog < Wx::Dialog
@@ -788,28 +783,30 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       add_list_item(@cpts.last)
     end
 
-    def get_enum_choices(enum, exclude: nil)
-      FrameCanvas.get_enum_choices(enum, exclude: exclude)
+    def get_enum_choices(enum, excludes: nil)
+      FrameCanvas.get_enum_choices(enum, excludes: excludes)
     end
     private :get_enum_choices
 
-    def get_enum_index(enumerator, exclude: nil)
-      FrameCanvas.get_enum_index(enumerator, exclude: exclude)
+    def get_enum_index(enumerator, excludes: nil)
+      FrameCanvas.get_enum_index(enumerator, excludes: excludes)
     end
     private :get_enum_index
 
-    def index_to_enum(enum, index, exclude: nil)
-      FrameCanvas.index_to_enum(enum, index, exclude: exclude)
+    def index_to_enum(enum, index, excludes: nil)
+      FrameCanvas.index_to_enum(enum, index, excludes: excludes)
     end
     private :index_to_enum
 
   end
 
   EXCL_BRUSH_STYLES = [
-    Wx::BrushStyle::BRUSHSTYLE_INVALID,
-    Wx::BrushStyle::BRUSHSTYLE_STIPPLE,
-    Wx::BrushStyle::BRUSHSTYLE_STIPPLE_MASK,
-    Wx::BrushStyle::BRUSHSTYLE_STIPPLE_MASK_OPAQUE
+    :BRUSHSTYLE_INVALID,
+    :BRUSHSTYLE_STIPPLE,
+    :BRUSHSTYLE_STIPPLE_MASK,
+    :BRUSHSTYLE_STIPPLE_MASK_OPAQUE,
+    :BRUSHSTYLE_FIRST_HATCH,
+    :BRUSHSTYLE_LAST_HATCH
   ]
 
   SHAPES = [
@@ -924,13 +921,13 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @fill_style = Wx::ComboBox.new(self, Wx::ID_ANY,
                                      choices: get_enum_choices(Wx::BrushStyle,
-                                                               exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
+                                                               excludes: EXCL_BRUSH_STYLES))
       sizer.add(@fill_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
       sizer_top.add(sizer, Wx::SizerFlags.new.border(Wx::ALL, 5))
 
       @fill_clr.colour = brush.colour
       @fill_style.selection = get_enum_index(brush.style,
-                                             exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })
+                                             excludes: EXCL_BRUSH_STYLES)
 
       sizer = Wx::HBoxSizer.new
       sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
@@ -947,21 +944,21 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     def get_brush
       Wx::Brush.new(@fill_clr.colour,
                     index_to_enum(Wx::BrushStyle, @fill_style.selection,
-                                  exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
+                                  excludes: EXCL_BRUSH_STYLES))
     end
 
-    def get_enum_choices(enum, exclude: nil)
-      FrameCanvas.get_enum_choices(enum, exclude: exclude)
+    def get_enum_choices(enum, excludes: nil)
+      FrameCanvas.get_enum_choices(enum, excludes: excludes)
     end
     private :get_enum_choices
 
-    def get_enum_index(enumerator, exclude: nil)
-      FrameCanvas.get_enum_index(enumerator, exclude: exclude)
+    def get_enum_index(enumerator, excludes: nil)
+      FrameCanvas.get_enum_index(enumerator, excludes: excludes)
     end
     private :get_enum_index
 
-    def index_to_enum(enum, index, exclude: nil)
-      FrameCanvas.index_to_enum(enum, index, exclude: exclude)
+    def index_to_enum(enum, index, excludes: nil)
+      FrameCanvas.index_to_enum(enum, index, excludes: excludes)
     end
     private :index_to_enum
 
@@ -983,14 +980,14 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       sizer.add(Wx::StaticText.new(self, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @line_style = Wx::ComboBox.new(self, Wx::ID_ANY,
                                      choices: get_enum_choices(Wx::PenStyle,
-                                                               exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }))
+                                                               excludes: %i[PENSTYLE_INVALID PENSTYLE_FIRST_HATCH PENSTYLE_LAST_HATCH PENSTYLE_STIPPLE]))
       sizer.add(@line_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
       sizer_top.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
 
       @line_clr.colour = pen.colour
       @line_wdt.value = pen.width
       @line_style.selection = get_enum_index(pen.style,
-                                             exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID })
+                                             excludes: %i[PENSTYLE_INVALID PENSTYLE_FIRST_HATCH PENSTYLE_LAST_HATCH PENSTYLE_STIPPLE])
 
       sizer = Wx::HBoxSizer.new
       sizer.add(Wx::Button.new(self, Wx::ID_OK, "&Ok"), Wx::SizerFlags.new.border(Wx::ALL, 5))
@@ -1007,21 +1004,21 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     def get_pen
       Wx::Pen.new(@line_clr.colour, @line_wdt.value,
                   index_to_enum(Wx::PenStyle, @line_style.selection,
-                                exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID }))
+                                excludes: %i[PENSTYLE_INVALID PENSTYLE_FIRST_HATCH PENSTYLE_LAST_HATCH PENSTYLE_STIPPLE]))
     end
 
-    def get_enum_choices(enum, exclude: nil)
-      FrameCanvas.get_enum_choices(enum, exclude: exclude)
+    def get_enum_choices(enum, excludes: nil)
+      FrameCanvas.get_enum_choices(enum, excludes: excludes)
     end
     private :get_enum_choices
 
-    def get_enum_index(enumerator, exclude: nil)
-      FrameCanvas.get_enum_index(enumerator, exclude: exclude)
+    def get_enum_index(enumerator, excludes: nil)
+      FrameCanvas.get_enum_index(enumerator, excludes: excludes)
     end
     private :get_enum_index
 
-    def index_to_enum(enum, index, exclude: nil)
-      FrameCanvas.index_to_enum(enum, index, exclude: exclude)
+    def index_to_enum(enum, index, excludes: nil)
+      FrameCanvas.index_to_enum(enum, index, excludes: excludes)
     end
     private :index_to_enum
 
@@ -1057,7 +1054,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       sizer.add(Wx::StaticText.new(@line_szr.static_box, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @line_style = Wx::ComboBox.new(@line_szr.static_box, Wx::ID_ANY,
                                      choices: get_enum_choices(Wx::PenStyle,
-                                                               exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID }))
+                                                               excludes: %i[PENSTYLE_INVALID PENSTYLE_FIRST_HATCH PENSTYLE_LAST_HATCH PENSTYLE_STIPPLE]))
       sizer.add(@line_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
       @line_szr.add(sizer, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
       sizer_top.add(@line_szr, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).border(Wx::ALL, 5))
@@ -1067,7 +1064,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         @line_clr.colour = arrow.pen.colour
         @line_wdt.value = arrow.pen.width
         @line_style.selection = get_enum_index(arrow.pen.style,
-                                               exclude: ->(e) { e ==  Wx::PenStyle::PENSTYLE_INVALID })
+                                               excludes: %i[PENSTYLE_INVALID PENSTYLE_FIRST_HATCH PENSTYLE_LAST_HATCH PENSTYLE_STIPPLE])
         @line_clr.enable(false)
         @line_wdt.enable(false)
         @line_style.enable(false)
@@ -1089,7 +1086,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       sizer.add(Wx::StaticText.new(@fill_szr.static_box, Wx::ID_ANY, 'Style:'), Wx::SizerFlags.new.border(Wx::ALL, 5))
       @fill_style = Wx::ComboBox.new(@fill_szr.static_box, Wx::ID_ANY,
                                      choices: get_enum_choices(Wx::BrushStyle,
-                                                               exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) }))
+                                                               excludes: EXCL_BRUSH_STYLES))
       sizer.add(@fill_style, Wx::SizerFlags.new.border(Wx::ALL, 5))
       @fill_szr.add(sizer, Wx::SizerFlags.new.border(Wx::ALL, 5))
       sizer_top.add(@fill_szr, Wx::SizerFlags.new.align(Wx::ALIGN_LEFT).expand.border(Wx::ALL, 5))
@@ -1098,7 +1095,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         @def_brush_rb.value = true
         @fill_clr.colour = arrow.fill.colour
         @fill_style.selection = get_enum_index(arrow.fill.style,
-                                               exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })
+                                               excludes: EXCL_BRUSH_STYLES)
         @fill_clr.enable(false)
         @fill_style.enable(false)
       else
@@ -1136,7 +1133,7 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         if @custom_pen_rb.value
           arrow.set_pen(Wx::Pen.new(@line_clr.colour, @line_wdt.value,
                                     index_to_enum(Wx::PenStyle, @line_style.selection,
-                                                  exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID })))
+                                                  excludes: %i[PENSTYLE_INVALID PENSTYLE_FIRST_HATCH PENSTYLE_LAST_HATCH PENSTYLE_STIPPLE])))
         end
         arrow
       else
@@ -1152,12 +1149,12 @@ class FrameCanvas < Wx::SF::ShapeCanvas
         if @custom_pen_rb.value
           arrow.set_pen(Wx::Pen.new(@line_clr.colour, @line_wdt.value,
                                     index_to_enum(Wx::PenStyle, @line_style.selection,
-                                                  exclude: ->(e) { e == Wx::PenStyle::PENSTYLE_INVALID })))
+                                                  excludes: %i[PENSTYLE_INVALID PENSTYLE_FIRST_HATCH PENSTYLE_LAST_HATCH PENSTYLE_STIPPLE])))
         end
         if @custom_brush_rb.value
           arrow.set_fill(Wx::Brush.new(@fill_clr.colour,
                                        index_to_enum(Wx::BrushStyle, @fill_style.selection,
-                                                     exclude: ->(e) { EXCL_BRUSH_STYLES.include?(e) })))
+                                                     excludes: EXCL_BRUSH_STYLES)))
         end
         arrow
       end
@@ -1184,18 +1181,18 @@ class FrameCanvas < Wx::SF::ShapeCanvas
     end
     private :arrow_type
 
-    def get_enum_choices(enum, exclude: nil)
-      FrameCanvas.get_enum_choices(enum, exclude: exclude)
+    def get_enum_choices(enum, excludes: nil)
+      FrameCanvas.get_enum_choices(enum, excludes: excludes)
     end
     private :get_enum_choices
 
-    def get_enum_index(enumerator, exclude: nil)
-      FrameCanvas.get_enum_index(enumerator, exclude: exclude)
+    def get_enum_index(enumerator, excludes: nil)
+      FrameCanvas.get_enum_index(enumerator, excludes: excludes)
     end
     private :get_enum_index
 
-    def index_to_enum(enum, index, exclude: nil)
-      FrameCanvas.index_to_enum(enum, index, exclude: exclude)
+    def index_to_enum(enum, index, excludes: nil)
+      FrameCanvas.index_to_enum(enum, index, excludes: excludes)
     end
     private :index_to_enum
 
@@ -1281,19 +1278,16 @@ class FrameCanvas < Wx::SF::ShapeCanvas
       case self.get_popup_menu_selection_from_user(get_shape_popup(shape))
       when POPUP_ID::STYLE
         choices = get_enum_choices(Wx::SF::Shape::STYLE,
-                                   exclude: ->(e) { e ==  Wx::SF::Shape::STYLE::DEFAULT_SHAPE_STYLE ||
-                                                     e ==  Wx::SF::Shape::STYLE::PROPAGATE_ALL })
+                                   excludes: %i[DEFAULT_SHAPE_STYLE PROPAGATE_ALL])
         sel = Wx.get_selected_choices('Select styles',
                                       'Select multiple',
                                       choices,
                                       self,
                                       initial_selections: enum_to_selections(Wx::SF::Shape::STYLE, shape.get_style,
-                                                                             exclude: ->(e) { e ==  Wx::SF::Shape::STYLE::DEFAULT_SHAPE_STYLE ||
-                                                                                               e ==  Wx::SF::Shape::STYLE::PROPAGATE_ALL}))
+                                                                             excludes: %i[DEFAULT_SHAPE_STYLE PROPAGATE_ALL]))
         if sel
           shape.set_style(selections_to_enum(Wx::SF::Shape::STYLE, sel,
-                                             exclude: ->(e) { e ==  Wx::SF::Shape::STYLE::DEFAULT_SHAPE_STYLE ||
-                                                               e ==  Wx::SF::Shape::STYLE::PROPAGATE_ALL }))
+                                             excludes: %i[DEFAULT_SHAPE_STYLE PROPAGATE_ALL]))
           shape.update
         end
       when POPUP_ID::HOVER_COLOR
