@@ -339,7 +339,7 @@ module Wx::SF
       min_x = min_y = 0.0
     
       # find the maximal negative position value
-      shapes = get_shapes
+      shapes = get_all_shapes
     
       shapes.each_with_index do |shape, ix|
         shape_pos = shape.get_absolute_position
@@ -365,7 +365,7 @@ module Wx::SF
 
     # Update all shapes in the diagram manager
     def update_all
-      get_shapes.each { |shape| shape.update unless shape.has_children? }
+      get_all_shapes.each { |shape| shape.update unless shape.has_children? }
     end
     
     # Add given shape type to an acceptance list. The acceptance list contains class
@@ -507,7 +507,7 @@ module Wx::SF
       # and all non-line shapes get listed in reversed order as returned from get_shapes (for z order)
       ins_pos = 0
       pos = pos.to_point
-      shapes = get_shapes.inject([]) do |list, shape|
+      shapes = get_all_shapes.inject([]) do |list, shape|
         if shape.is_a?(LineShape)
           list.prepend(shape)
           ins_pos += 1

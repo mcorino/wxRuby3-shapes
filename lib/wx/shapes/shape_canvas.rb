@@ -891,7 +891,7 @@ module Wx::SF
     def select_all
       return unless @diagram
 
-      shapes = @diagram.get_shapes
+      shapes = @diagram.get_all_shapes
 
       unless shapes.empty?
         shapes.each { |shape| shape.select(true) }
@@ -911,7 +911,7 @@ module Wx::SF
     def deselect_all
       return unless @diagram
 
-      @diagram.get_shapes.each { |shape| shape.select(false) }
+      @diagram.get_all_shapes.each { |shape| shape.select(false) }
 
       @shp_multi_edit.show(false)
     end
@@ -920,7 +920,7 @@ module Wx::SF
     def hide_all_handles
       return unless @diagram
 
-      @diagram.get_shapes.each { |shape| shape.show_handles(false) }
+      @diagram.get_all_shapes.each { |shape| shape.show_handles(false) }
     end
 
     # Repaint the shape canvas.
@@ -973,7 +973,7 @@ module Wx::SF
     def show_shadows(show, style)
       return unless @diagram
 
-      shapes = @diagram.get_shapes
+      shapes = @diagram.get_all_shapes
 
       shapes.each do |shape|
         shape.remove_style(Shape::STYLE::SHOW_SHADOW) if show
@@ -1439,7 +1439,7 @@ module Wx::SF
       end
 
       # ... then test normal handles
-      @diagram.get_shapes.each do |shape|
+      @diagram.get_all_shapes.each do |shape|
         # iterate through all shape's handles
         if shape.has_style?(Shape::STYLE::SIZE_CHANGE)
           shape.handles.each do |handle|
@@ -1477,7 +1477,7 @@ module Wx::SF
       return selection unless @diagram
 
       selection.clear
-      @diagram.get_shapes.each do |shape|
+      @diagram.get_all_shapes.each do |shape|
         selection << shape if shape.selected?
       end
       selection
@@ -1489,7 +1489,7 @@ module Wx::SF
       virt_rct = nil
       if @diagram
         # calculate total bounding box (includes all shapes)
-        @diagram.get_shapes.each_with_index do |shape, ix|
+        @diagram.get_all_shapes.each_with_index do |shape, ix|
             if ix == 0
               virt_rct = shape.get_bounding_box
             else
