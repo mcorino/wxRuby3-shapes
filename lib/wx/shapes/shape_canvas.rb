@@ -50,7 +50,7 @@ module Wx::SF
   # @see Wx::SF::Diagram
   class ShapeCanvas < Wx::ScrolledWindow
 
-    # Working modes 
+    # Working modes
     class MODE < Wx::Enum
       # The shape canvas is in ready state (no operation is pending)
       READY = self.new(0)
@@ -483,7 +483,7 @@ module Wx::SF
 
         save_canvas_state
       end
-      
+
       # set up event handlers
       evt_paint :_on_paint
       evt_erase_background :_on_erase_background
@@ -1064,6 +1064,7 @@ module Wx::SF
 
         unless lst_selection.empty?
           data_obj = Wx::SF::ShapeDataObject.new(lst_selection)
+
           clipboard.place(data_obj)
 
           restore_prev_positions
@@ -1103,9 +1104,7 @@ module Wx::SF
         data_obj = Wx::SF::ShapeDataObject.new
         if clipboard.fetch(data_obj)
 
-          sdata = data_obj.get_data_here
-          # deserialize shapes
-          new_shapes = FIRM.deserialize(sdata)
+          new_shapes = data_obj.get_as_shapes
           # add new shapes to diagram and remove those that are not accepted
           new_shapes.select! do |shape|
             ERRCODE::OK == @diagram.add_shape(shape, nil, shape.get_relative_position, INITIALIZE, DONT_SAVE_STATE)
@@ -1168,7 +1167,7 @@ module Wx::SF
       return false unless has_style?(STYLE::CLIPBOARD)
 
       Wx::Clipboard.open do |clipboard|
-        return clipboard.supported?(Wx::DataFormat.new(Wx::SF::ShapeDataObject::DataFormatID))
+        return clipboard.supported?(Wx::SF::ShapeDataObject::DataFormatID)
       end rescue false
     end
     alias :can_paste? :can_paste
@@ -1920,7 +1919,7 @@ module Wx::SF
       @settings.common_hover_color
     end
     alias :hover_colour :get_hover_colour
-    
+
     # Set default fill brush.
     # @overload set_fill_brush(brush)
     #   @param [Wx::Brush] brush
@@ -1944,7 +1943,7 @@ module Wx::SF
       @settings.common_fill_brush
     end
     alias :fill_brush :get_fill_brush
-    
+
     # Set default border pen.
     # @overload set_border_pen(pen)
     #   @param [Wx::Pen] pen
@@ -1990,7 +1989,7 @@ module Wx::SF
       @settings.common_line_pen
     end
     alias :line_pen :get_line_pen
-    
+
     # Set default arrow fill brush.
     # @overload set_arrow_fill(brush)
     #   @param [Wx::Brush] brush
@@ -2028,7 +2027,7 @@ module Wx::SF
       @settings.common_text_color
     end
     alias :text_colour :get_text_colour
-    
+
     # Set default text fill brush.
     # @overload set_text_fill(brush)
     #   @param [Wx::Brush] brush
@@ -2169,7 +2168,7 @@ module Wx::SF
       @settings.common_control_mod_border
     end
     alias :control_mod_border :get_control_mod_border
-    
+
     # Get canvas history manager.
     # @return [Wx::SF::CanvasHistory] the canvas history manager
     # @see Wx::SF::CanvasHistory
@@ -2246,7 +2245,7 @@ module Wx::SF
 
       move_shapes_from_negatives
     end
-    
+
     # Validate selection (remove redundantly selected shapes etc...).
     # @param [Array<Wx::SF::Shape>] selection List of selected shapes that should be validated
     def validate_selection(selection)
@@ -2431,11 +2430,11 @@ module Wx::SF
 
       _notify_canvas_change(CHANGE::FOCUS)
       set_focus
-    
+
       lpos = dp2lp(event.get_position)
-    
+
       @can_save_state_on_mouse_up = false
-    
+
       case @working_mode
       when MODE::READY
         @selected_handle = get_topmost_handle_at_position(lpos)
@@ -2494,7 +2493,7 @@ module Wx::SF
 
               # inform also connections assigned to the shape and its children
               lst_connections.clear
-              append_assigned_connections(shape, lst_connections, true)
+              append_assigned_connections(shape, lst_connections)
 
               lst_connections.each do |line|
                 line.send(:_on_begin_drag, fit_pos)
@@ -2616,7 +2615,7 @@ module Wx::SF
       else
         @working_mode = MODE::READY
       end
-    
+
       refresh_invalidated_rect
     end
 
@@ -2663,7 +2662,7 @@ module Wx::SF
     def on_left_up(event)
       # HINT: override it for custom actions...
       lpos = dp2lp(event.get_position)
-    
+
       case @working_mode
       when MODE::MULTIHANDLEMOVE, MODE::HANDLEMOVE
         # resize parent shape to fit all its children if necessary
@@ -2702,29 +2701,29 @@ module Wx::SF
         @selected_handle.send(:_on_end_drag, lpos)
 
         @selected_handle = nil
-        save_canvas_state if @can_save_state_on_mouse_up 
+        save_canvas_state if @can_save_state_on_mouse_up
 
       when MODE::SHAPEMOVE
         lst_selection = get_selected_shapes
-  
+
         lst_selection.each do |shape|
           # notify shape
           shape.send(:_on_end_drag, lpos)
           # reparent based on new position
           reparent_dropped_shape(shape, lpos)
         end
-  
+
         if lst_selection.size>1
           @shp_multi_edit.show(true)
           @shp_multi_edit.show_handles(true)
         else
           @shp_multi_edit.show(false)
         end
-  
+
         move_shapes_from_negatives
 
         save_canvas_state if @can_save_state_on_mouse_up
-    
+
       when MODE::MULTISELECTION
         lst_selection = get_selected_shapes
 
@@ -2756,7 +2755,7 @@ module Wx::SF
 
         @shp_selection.show(false)
       end
-    
+
       if @working_mode != MODE::CREATECONNECTION
         # update canvas
         @working_mode = MODE::READY
@@ -2782,19 +2781,19 @@ module Wx::SF
 
       _notify_canvas_change(CHANGE::FOCUS)
       set_focus
-    
+
       lpos = dp2lp(event.get_position)
-    
+
       if @working_mode == MODE::READY
         deselect_all
-  
+
         shape = get_shape_under_cursor
         if shape
           shape.select(true)
           shape.on_right_click(lpos)
         end
       end
-    
+
       refresh(false)
     end
 
@@ -2812,9 +2811,9 @@ module Wx::SF
 
       _notify_canvas_change(CHANGE::FOCUS)
       set_focus
-    
+
       lpos = dp2lp(event.get_position)
-    
+
       if @working_mode == MODE::READY
         shape = get_shape_under_cursor
         shape.on_right_double_click(lpos) if shape
@@ -2848,9 +2847,9 @@ module Wx::SF
     def on_mouse_move(event)
       # HINT: override it for custom actions...
       return unless @diagram
-    
+
       lpos = dp2lp(event.get_position)
-    
+
       case @working_mode
       when MODE::READY, MODE::CREATECONNECTION
         unless event.dragging
@@ -2908,7 +2907,7 @@ module Wx::SF
                   # move also connections assigned to this shape and its children
                   lst_connections.clear
 
-                  append_assigned_connections(shape, lst_connections,true)
+                  append_assigned_connections(shape, lst_connections)
 
                   lst_connections.each { |line| line.send(:_on_dragging, fit_position_to_grid(lpos)) }
 
@@ -2943,7 +2942,7 @@ module Wx::SF
 
         invalidate_visible_rect
       end
-    
+
       refresh_invalidated_rect
     end
 
@@ -2957,18 +2956,18 @@ module Wx::SF
     # @param [Wx::MouseEvent] event Mouse event
     def on_mouse_wheel(event)
       # HINT: override it for custom actions...
-    
+
       if event.control_down
         scale = get_scale
         scale += (event.get_wheel_rotation/(event.get_wheel_delta*10)).to_f
 
         scale = @settings.min_scale if scale < @settings.min_scale
         scale = @settings.max_scale if scale > @settings.max_scale
-    
+
         set_scale(scale)
         refresh(false)
       end
-    
+
       event.skip
     end
 
@@ -2986,7 +2985,7 @@ module Wx::SF
       return unless @diagram
 
       lst_selection = get_selected_shapes
-    
+
       case event.get_key_code
       when Wx::K_DELETE
         # send event to selected shapes
@@ -3039,16 +3038,16 @@ module Wx::SF
           lst_connections = []
           lst_selection.each do |shape|
             shape.send(:_on_key, event.get_key_code)
-    
+
             # inform also connections assigned to this shape
             lst_connections.clear
-            append_assigned_connections(shape, lst_connections, true)
-    
+            append_assigned_connections(shape, lst_connections)
+
             lst_connections.each do |line|
               line.send(:_on_key, event.get_key_code) unless line.selected?
             end
           end
-    
+
           # send the event to multiedit ctrl if displayed
           @shp_multi_edit.send(:_on_key, event.get_key_code) if @shp_multi_edit.visible?
 
@@ -3070,7 +3069,7 @@ module Wx::SF
     # @see Wx::SF::ShapeTextEvent
     def on_text_change(shape)
       # HINT: override it for custom actions...
-    
+
       # ... standard implementation generates the Wx::SF::EVT_SF_TEXT_CHANGE event.
       id = shape ? shape.object_id : nil
 
@@ -3088,7 +3087,7 @@ module Wx::SF
     # @see Wx::SF::ShapeEvent
     def on_connection_finished(connection)
       # HINT: override to perform user-defined actions...
-    
+
       # ... standard implementation generates the Wx::SF::EVT_SF_LINE_DONE event.
       id = connection ? connection.object_id : -1
 
@@ -3109,10 +3108,10 @@ module Wx::SF
     # @see Wx::SF::ShapeEvent
     def on_pre_connection_finished(connection)
       # HINT: override to perform user-defined actions...
-    
+
       # ... standard implementation generates the Wx::SF::EVT_SF_LINE_DONE event.
       id = connection ? connection.object_id : -1
-    
+
       event = ShapeEvent.new(Wx::SF::EVT_SF_LINE_BEFORE_DONE, id)
       event.set_shape(connection)
       process_event(event)
@@ -3135,10 +3134,10 @@ module Wx::SF
     # @see Wx::SF::ShapeDropEvent
     def on_drop(x, y, deflt, dropped)
       # HINT: override it for custom actions...
-    
+
       # ... standard implementation generates the Wx::SF::EVT_SF_ON_DROP event.
       return unless has_style?(STYLE::DND)
-    
+
       # create the drop event and process it
       event = ShapeDropEvent.new(Wx::SF::EVT_SF_ON_DROP, x, y, self, deflt, Wx::ID_ANY)
       event.set_dropped_shapes(dropped)
@@ -3155,10 +3154,10 @@ module Wx::SF
     # @see Wx::SF::ShapePasteEvent
     def on_paste(pasted)
       # HINT: override it for custom actions...
-    
+
       # ... standard implementation generates the Wx::SF::EVT_SF_ON_PASTE event.
       return unless has_style?(STYLE::CLIPBOARD)
-    
+
       # create the drop event and process it
       event = ShapePasteEvent.new(Wx::SF::EVT_SF_ON_PASTE, self, Wx::ID_ANY)
       event.set_pasted_shapes(pasted)
@@ -3185,12 +3184,14 @@ module Wx::SF
     # @param [Array<Wx::SF::Shape>] selection
     # @param [Boolean] storeprevpos
     def validate_selection_for_clipboard(selection, storeprevpos)
-      selection.dup.each do |shape|
+      # first remove any shapes not eligible for copying
+      selection.reject! do |shape|
+        do_reject = false
         if shape.get_parent_shape
            # remove child shapes without parent in the selection and without STYLE::PARENT_CHANGE style
            # defined from the selection
           if !shape.has_style?(Shape::STYLE::PARENT_CHANGE) && !selection.include?(shape.get_parent_shape)
-            selection.delete(shape)
+            do_reject = true
           else
             # convert relative position to absolute position if the shape is copied
             # without its parent
@@ -3199,32 +3200,49 @@ module Wx::SF
               shape.set_relative_position(shape.get_absolute_position)
             end
           end
+        elsif LineShape === shape && !shape.stand_alone?
+          # remove any stand alone LineShape for which the source or target shape are not included in the selection
+          # (or any of it's child shapes)
+          unless (selection.include?(shape.get_src_shape) ||
+                    selection.any? { |selshp| selshp.include_child_shape?(shape.get_src_shape, true) }) &&
+                 (selection.include?(shape.get_trg_shape) ||
+                   selection.any? { |selshp| selshp.include_child_shape?(shape.get_trg_shape, true) })
+            do_reject = true
+          end
         end
-    
-        append_assigned_connections(shape, selection, false)
+        do_reject
+      end
+
+      # now append all connections for which source AND target are included in the selection
+      selection.each do |shape|
+        append_assigned_connections(shape, selection, children_only: false, complete_only: true)
       end
     end
 
-    #  Append connections assigned to shapes in given list to this list as well
-    # @param [Wx::SF::Shape] shape
-    # @param [Array<Wx::SF::Shape>] selection
-    # @param [Boolean] childrenonly
-    def append_assigned_connections(shape, selection, childrenonly)
+    # Append connections assigned to shapes in given list to this list as well
+    # @param [Wx::SF::Shape] shape shape
+    # @param [Array<Wx::SF::Shape>] selection selected shapes
+    # @param [Boolean] children_only appends connections from child shapes only
+    # @param [Boolean] complete_only append complete (src and trg shapes in selection) only
+    def append_assigned_connections(shape, selection, children_only: true, complete_only: false)
       # add connections assigned to copied topmost shapes and their children to the copy list
       lst_children = shape.get_child_shapes(ANY, RECURSIVE)
-    
+
       # get connections assigned to the parent shape
-      lst_connections = @diagram.get_assigned_connections(shape, LineShape, Shape::CONNECTMODE::BOTH) unless childrenonly
+      lst_connections = @diagram.get_assigned_connections(shape, LineShape, Shape::CONNECTMODE::BOTH) unless children_only
       lst_connections ||= []
-      # get connections assigned to its child shape
+      # get connections assigned to its child shape(s)
       lst_children.each do |child|
-        # get connections assigned to the child shape
+        # get connections assigned to the child shape(s)
         @diagram.get_assigned_connections(child, LineShape, Shape::CONNECTMODE::BOTH, lst_connections)
       end
-    
+
       # insert connections to the copy list
       lst_connections.each do |line|
-        selection << line unless selection.include?(line)
+        selection << line unless selection.include?(line) ||
+                                  (complete_only &&
+                                    !(selection.include?(line.get_src_shape) &&
+                                      selection.include?(line.get_trg_shape)))
       end
     end
 
@@ -3240,7 +3258,7 @@ module Wx::SF
       end
     end
 
-    #  Clear all temporary containers 
+    #  Clear all temporary containers
     def clear_temporaries
       @current_shapes.clear
       @new_line_shape = nil
@@ -3304,7 +3322,7 @@ module Wx::SF
             @diagram.reparent_shape(shape, parent_shape)
           end
         end
-    
+
         prev_parent.update if prev_parent
         parent_shape.update if parent_shape && parent_shape != prev_parent
       end
@@ -3369,7 +3387,7 @@ module Wx::SF
       else
         @working_mode = MODE::READY
       end
-    
+
       event.skip
     end
 
@@ -3377,16 +3395,16 @@ module Wx::SF
 	  # @param [Wx::MouseEvent] event Mouse event
     def _on_enter_window(event)
       @prev_mouse_pos = event.get_position
-    
+
       lpos = dp2lp(event.get_position)
-    
+
       case @working_mode
       when MODE::MULTISELECTION
         unless event.left_is_down
           update_multiedit_size
           @shp_multi_edit.show(false)
           @working_mode = MODE::READY
-    
+
           invalidate_visible_rect
         end
 
@@ -3396,13 +3414,13 @@ module Wx::SF
             if @selected_handle.get_parent_shape.is_a?(LineShape)
               @selected_handle.get_parent_shape.send(:set_line_mode, LineShape::LINEMODE::READY)
             end
-    
+
             @selected_handle.send(:_on_end_drag, lpos)
-    
+
             save_canvas_state
             @working_mode = MODE::READY
             @selected_handle = nil
-    
+
             invalidate_visible_rect
           end
         end
@@ -3411,10 +3429,10 @@ module Wx::SF
         unless event.left_is_down
           if @selected_handle
             @selected_handle.send(:_on_end_drag, lpos)
-    
+
             save_canvas_state
             @working_mode = MODE::READY
-    
+
             invalidate_visible_rect
           end
         end
@@ -3422,26 +3440,26 @@ module Wx::SF
       when MODE::SHAPEMOVE
         unless event.left_is_down
           lst_selection = get_selected_shapes
-    
+
           move_shapes_from_negatives
           update_virtual_size
-    
+
           if lst_selection.size > 1
             update_multiedit_size
             @shp_multi_edit.show(true)
             @shp_multi_edit.show_handles(true)
           end
-    
+
           lst_selection.each { |shape|  shape.send(:_on_end_drag, lpos) }
 
           @working_mode = MODE::READY
-    
+
           invalidate_visible_rect
         end
       end
-    
+
       refresh_invalidated_rect
-    
+
       event.skip
     end
 
@@ -3452,9 +3470,9 @@ module Wx::SF
 
       event.skip
     end
-    
+
     # original private event handlers
-    
+
 	  # Original private event handler called when the canvas is clicked by
 	  # left mouse button. The handler calls user-overridable event handler function
 	  # and skips the event for next possible processing.
@@ -3570,7 +3588,7 @@ module Wx::SF
 	  # @see Wx::SF::CanvasDropTarget
     def _on_drop(x, y, deflt, data)
       if data && Wx::SF::ShapeDataObject === data
-        lst_new_content = FIRM.deserialize(data.get_data_here)
+        lst_new_content = data.get_as_shapes
         if lst_new_content && !lst_new_content.empty?
           lst_parents_to_update = []
           lpos = dp2lp(Wx::Point.new(x, y))
@@ -3640,7 +3658,7 @@ module Wx::SF
         end
       end
     end
-      
+
     end
 
     def _notify_canvas_change(change, *args)
