@@ -1981,8 +1981,8 @@ module Wx::SF
         f_refresh_all = false
 
         if canvas.has_style?(Wx::SF::ShapeCanvas::STYLE::GRID_USE)
-          dx = canvas.get_grid_size.x
-          dy = canvas.get_grid_size.y
+          dx = canvas.get_grid_size
+          dy = canvas.get_grid_size
         end
 
         lst_selection = canvas.get_selected_shapes

@@ -211,6 +211,8 @@ module Wx::SF
         def text_fill; @text_fill ||= Wx::TRANSPARENT_BRUSH.dup; end
         # Default value of Wx::SF::CanvasSettings @common_text_border data member
         def text_border; @text_border ||= Wx::TRANSPARENT_PEN.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_text_font data member
+        def text_font; begin; @text_font = Wx::SWISS_FONT.dup; @text_font.point_size = 12; end unless @text_font; @text_font; end
         # Default value of Wx::SF::CanvasSettings @common_control_fill data member
         def control_fill; @ctrl_fill ||= Wx::TRANSPARENT_BRUSH.dup; end
         # Default value of Wx::SF::CanvasSettings @common_control_border data member
@@ -231,7 +233,7 @@ module Wx::SF
         def shadow_brush; @shadowbrush ||= Wx::Brush.new(shadow_color, Wx::BrushStyle::BRUSHSTYLE_SOLID); end
       end
       # Default value of Wx::SF::CanvasSettings @grid_size data member
-      GRIDSIZE = Wx::Size.new(10, 10)
+      GRIDSIZE = 10
       # Default value of Wx::SF::CanvasSettings @grid_line_mult data member
       GRIDLINEMULT = 1
       # Default value of Wx::SF::CanvasSettings @grid_style data member
@@ -373,11 +375,17 @@ module Wx::SF
 
       property :scale, :min_scale, :max_scale, :background_color,
                :common_hover_color, :common_border_pen, :common_fill_brush, :common_line_pen,
-               :common_arrow_fill, :common_text_color, :common_text_fill, :common_text_border,
+               :common_arrow_fill, :common_text_color, :common_text_fill, :common_text_border, :common_text_font,
                :common_control_fill, :common_control_border, :common_control_mod_fill, :common_control_mod_border,
-               :grid_size, :grid_line_mult, :grid_color, :grid_style,
+               :grid_line_mult, :grid_color, :grid_style,
                :gradient_from, :gradient_to, :style, :shadow_offset, :shadow_fill,
                :print_h_align, :print_v_align, :print_mode
+      property grid_size: ->(obj, *val) {
+        unless val.empty?
+          obj.grid_size = Wx::Size === val.first ? val.first.x : val.first
+        end
+        obj.grid_size
+      }
 
       def initialize
         @scale = 1.0
@@ -398,13 +406,14 @@ module Wx::SF
         @common_text_color = DEFAULT.text_color
         @common_text_fill = DEFAULT.text_fill
         @common_text_border = DEFAULT.text_border
+        @common_text_font = DEFAULT.text_font
         # common control shape properties
         @common_control_fill = DEFAULT.control_fill
         @common_control_border = DEFAULT.control_border
         @common_control_mod_fill = DEFAULT.control_mod_fill
         @common_control_mod_border = DEFAULT.control_mod_border
 
-        @grid_size = GRIDSIZE.dup
+        @grid_size = GRIDSIZE
         @grid_line_mult = GRIDLINEMULT
         @grid_color = DEFAULT.grid_color
         @grid_style = GRIDSTYLE
@@ -420,7 +429,7 @@ module Wx::SF
 
       attr_accessor :scale, :min_scale, :max_scale, :background_color,
                     :common_hover_color, :common_border_pen, :common_fill_brush, :common_line_pen,
-                    :common_arrow_fill, :common_text_color, :common_text_fill, :common_text_border,
+                    :common_arrow_fill, :common_text_color, :common_text_fill, :common_text_border, :common_text_font,
                     :common_control_fill, :common_control_border, :common_control_mod_fill, :common_control_mod_border,
                     :grid_size, :grid_line_mult, :grid_color, :grid_style,
                     :gradient_from, :gradient_to, :style, :shadow_offset, :shadow_fill,
@@ -721,7 +730,7 @@ module Wx::SF
       bmp_bb.width = (bmp_bb.width * scale).to_i
       bmp_bb.height = (bmp_bb.height * scale).to_i
 
-      bmp_bb.inflate!(@settings.grid_size * scale)
+      bmp_bb.inflate!(Wx::Size.new(@settings.grid_size, @settings.grid_size) * scale)
 
       outbmp = Wx::Bitmap.new(bmp_bb.width, bmp_bb.height)
       Wx::MemoryDC.draw_on(outbmp) do |mdc|
@@ -1639,14 +1648,18 @@ module Wx::SF
     def set_canvas_colour(col)
       @settings.background_color = col
     end
+    alias :set_canvas_color :set_canvas_colour
     alias :canvas_colour= :set_canvas_colour
+    alias :canvas_color= :set_canvas_colour
 
     # Get canvas background color.
     # @return [Wx::Colour] Background color
     def get_canvas_colour
       @settings.background_color
     end
+    alias :get_canvas_color :get_canvas_colour
     alias :canvas_colour :get_canvas_colour
+    alias :canvas_color :get_canvas_colour
 
     # Set starting gradient color.
     # @param [Wx::Colour] col Color
@@ -1676,17 +1689,18 @@ module Wx::SF
     end
     alias :gradient_to :get_gradient_to
 
-    # Get grid size.
-    # @return [Wx::Size] Grid size
+    # Get grid size (px).
+    # @return [Integer] Grid size
     def get_grid_size
       @settings.grid_size
     end
     alias :grid_size :get_grid_size
 
-    # Set grid size.
-    # @param [Wx::Size] grid Grid size
-    def set_grid_size(grid)
-      @settings.grid_size = grid.to_size
+    # Set grid size (px).
+    # @param [Integer] sz Grid size
+    def set_grid_size(sz)
+      raise ArgumentError, 'Grid size must be integer > 0' if sz.to_i <= 0
+      @settings.grid_size = sz.to_i
     end
     alias :grid_size= :set_grid_size
 
@@ -1712,14 +1726,18 @@ module Wx::SF
     def set_grid_colour(col)
       @settings.grid_color = col
     end
+    alias :set_grid_color :set_grid_colour
     alias :grid_colour= :set_grid_colour
+    alias :grid_color= :set_grid_colour
 
     # Get grid color.
     # @return [Wx::Colour] Grid color
     def get_grid_colour
       @settings.grid_color
     end
+    alias :get_grid_color :get_grid_colour
     alias :grid_colour :get_grid_colour
+    alias :grid_color :get_grid_colour
 
     # Set grid line style.
     # @param [Wx::PenStyle] style Line style
@@ -1750,9 +1768,19 @@ module Wx::SF
     alias :shadow_offset :get_shadow_offset
 
     # Set shadow fill (used for shadows of non-text shapes only).
-    # @param [Wx::Brush] brush Reference to brush object
-    def set_shadow_fill(brush)
-      @settings.shadow_fill = brush
+    # @overload set_shadow_fill(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_shadow_fill(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_shadow_fill(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_shadow_fill(*args)
+      @settings.shadow_fill = if args.size == 1 && Wx::Brush === args.first
+                                args.first
+                              else
+                                Wx::Brush.new(*args)
+                              end
     end
     alias :shadow_fill= :set_shadow_fill
 
@@ -1911,14 +1939,18 @@ module Wx::SF
     def set_hover_colour(col)
       @settings.common_hover_color = Wx::Colour === col ? col : Wx::Colour.new(col)
     end
+    alias :set_hover_color :set_hover_colour
     alias :hover_colour= :set_hover_colour
+    alias :hover_color= :set_hover_colour
 
     # Get default hover colour.
     # @return [Wx::Colour] Hover colour
     def get_hover_colour
       @settings.common_hover_color
     end
+    alias :get_hover_color :get_hover_colour
     alias :hover_colour :get_hover_colour
+    alias :hover_color :get_hover_colour
 
     # Set default fill brush.
     # @overload set_fill_brush(brush)
@@ -2019,14 +2051,18 @@ module Wx::SF
     def set_text_colour(col)
       @settings.common_text_color = Wx::Colour === col ? col : Wx::Colour.new(col)
     end
+    alias :set_text_color= :set_text_colour
     alias :text_colour= :set_text_colour
+    alias :text_color= :set_text_colour
 
     # Get default text colour.
     # @return [Wx::Colour] text colour
     def get_text_colour
       @settings.common_text_color
     end
+    alias :get_text_color :get_text_colour
     alias :text_colour :get_text_colour
+    alias :text_color :get_text_colour
 
     # Set default text fill brush.
     # @overload set_text_fill(brush)
@@ -2051,7 +2087,7 @@ module Wx::SF
       @settings.common_text_fill
     end
     alias :text_fill :get_text_fill
-
+    
     # Set default text border.
     # @overload set_text_border(pen)
     #   @param [Wx::Pen] pen
@@ -2074,6 +2110,35 @@ module Wx::SF
       @settings.common_text_border
     end
     alias :text_border :get_text_border
+
+    # Set default text font.
+    # @overload set_text_font(font)
+    #   @param [Wx::Font] font
+    # @overload set_text_font(font_info)
+    #   @param [Wx::FontInfo] font_info
+    # @overload set_text_font(pointSize, family, style, weight, underline=false, faceName=(''), encoding=Wx::FontEncoding::FONTENCODING_DEFAULT)
+    #   @param pointSize [Integer]  Size in points. See {Wx::Font#initialize}.
+    #   @param family [Wx::FontFamily]  The font family. See {Wx::Font#initialize}.
+    #   @param style [Wx::FontStyle]  One of {Wx::FontStyle::FONTSTYLE_NORMAL}, {Wx::FontStyle::FONTSTYLE_SLANT} and {Wx::FontStyle::FONTSTYLE_ITALIC}. See {Wx::Font#initialize}.
+    #   @param weight [Wx::FontWeight]  Font weight. One of the {Wx::FontWeight} enumeration values. See {Wx::Font#initialize}.
+    #   @param underline [Boolean]  The value can be true or false. See {Wx::Font#initialize}.
+    #   @param faceName [String]  An optional string specifying the face name to be used. See {Wx::Font#initialize}.
+    #   @param encoding [Wx::FontEncoding]  An encoding which may be one of the enumeration values of {Wx::FontEncoding}. See {Wx::Font#initialize}.
+    def set_text_font(*args)
+      @settings.common_text_font = if args.size == 1 && Wx::Font === args.first
+                                     args.first
+                                   else
+                                     Wx::Font.new(*args)
+                                   end
+    end
+    alias :text_font= :set_text_font
+
+    # Get default text font.
+    # @return [Wx::Font]
+    def get_text_font
+      @settings.common_text_font
+    end
+    alias :text_font :get_text_font
 
     # Set default control fill brush.
     # @overload set_control_fill(brush)
@@ -2183,8 +2248,8 @@ module Wx::SF
     def fit_position_to_grid(pos)
       pos = pos.to_point
       if has_style?(STYLE::GRID_USE)
-        Wx::Point.new(pos.x / @settings.grid_size.x * @settings.grid_size.x,
-          pos.y / @settings.grid_size.y * @settings.grid_size.y)
+        Wx::Point.new(pos.x / @settings.grid_size * @settings.grid_size,
+          pos.y / @settings.grid_size * @settings.grid_size)
       else
         pos
       end
@@ -2365,7 +2430,7 @@ module Wx::SF
     def draw_background(dc, _from_paint)
       # erase background
       if has_style?(STYLE::GRADIENT_BACKGROUND)
-        bcg_size = @settings.grid_size + get_virtual_size
+        bcg_size = get_virtual_size.to_size + @settings.grid_size
         if @settings.scale != 1.0
           dc.gradient_fill_linear(Wx::Rect.new([0, 0], [(bcg_size.x/@settings.scale).to_i, (bcg_size.y/@settings.scale).to_i]),
                                   @settings.gradient_from, @settings.gradient_to, Wx::SOUTH)
@@ -2380,10 +2445,10 @@ module Wx::SF
 
       # show grid
       if has_style?(STYLE::GRID_SHOW)
-        linedist = @settings.grid_size.x * @settings.grid_line_mult
+        linedist = @settings.grid_size * @settings.grid_line_mult
 
         if (linedist * @settings.scale) > 3.0
-          grid_rct = Wx::Rect.new([0, 0], @settings.grid_size + get_virtual_size)
+          grid_rct = Wx::Rect.new([0, 0], get_virtual_size.to_size + @settings.grid_size)
           max_x = (grid_rct.right/@settings.scale).to_i
           max_y = (grid_rct.bottom/@settings.scale).to_i
 
@@ -2887,8 +2952,8 @@ module Wx::SF
         unless @working_mode == MODE::MULTIHANDLEMOVE
           if event.dragging
             if has_style?(STYLE::GRID_USE)
-              return if (event.get_position.x - @prev_mouse_pos.x).abs < @settings.grid_size.x &&
-                        (event.get_position.y - @prev_mouse_pos.y).abs < @settings.grid_size.y
+              return if (event.get_position.x - @prev_mouse_pos.x).abs < @settings.grid_size &&
+                        (event.get_position.y - @prev_mouse_pos.y).abs < @settings.grid_size
             end
             @prev_mouse_pos = event.get_position
 
@@ -2956,10 +3021,9 @@ module Wx::SF
     # @param [Wx::MouseEvent] event Mouse event
     def on_mouse_wheel(event)
       # HINT: override it for custom actions...
-
       if event.control_down
         scale = get_scale
-        scale += (event.get_wheel_rotation/(event.get_wheel_delta*10)).to_f
+        scale += event.get_wheel_rotation.to_f/(event.get_wheel_delta*10)
 
         scale = @settings.min_scale if scale < @settings.min_scale
         scale = @settings.max_scale if scale > @settings.max_scale
