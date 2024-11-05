@@ -500,8 +500,6 @@ class MainFrame < Wx::Frame
           @diagram = @shape_canvas.get_diagram
 
           @zoom_slider.set_value((@shape_canvas.get_scale*50).to_i)
-
-          @cpicker.set_colour(@shape_canvas.get_hover_colour)
         rescue Exception => ex
           Wx.MessageDialog(self, "Failed to load the chart: #{ex.message}", 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_ERROR)
         end
