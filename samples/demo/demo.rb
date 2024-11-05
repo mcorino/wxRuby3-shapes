@@ -11,6 +11,8 @@ class ThumbFrame < Wx::Frame
   def initialize(parent, title: 'Thumbnail', size: Wx::Size.new( 200,150 ), style: Wx::CAPTION|Wx::FRAME_FLOAT_ON_PARENT|Wx::FRAME_TOOL_WINDOW|Wx::RESIZE_BORDER|Wx::TAB_TRAVERSAL)
     super
 
+    set_icon(Wx::Icon(:logo))
+
     set_size_hints(Wx::DEFAULT_SIZE)
 
     main_sizer = Wx::VBoxSizer.new
@@ -156,7 +158,7 @@ class MainFrame < Wx::Frame
   def initialize(parent, title: 'wxShapeFramework Demo Application', style: Wx::CLOSE_BOX|Wx::DEFAULT_FRAME_STYLE|Wx::RESIZE_BORDER|Wx::TAB_TRAVERSAL)
     super
 
-    set_icon(Wx::Icon(:sample))
+    set_icon(Wx::Icon(:logo))
 
     setup_frame
 
