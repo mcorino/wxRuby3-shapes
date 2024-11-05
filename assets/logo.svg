@@ -9,9 +9,9 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    version="1.2"
-   width="132.29167mm"
-   height="132.29167mm"
-   viewBox="0 0 13229.167 13229.167"
+   width="105.83334mm"
+   height="105.83334mm"
+   viewBox="0 0 10583.333 10583.333"
    preserveAspectRatio="xMidYMid"
    fill-rule="evenodd"
    stroke-width="28.222"
@@ -36,8 +36,8 @@
    id="namedview109"
    showgrid="false"
    inkscape:zoom="1.2611806"
-   inkscape:cx="210.35763"
-   inkscape:cy="205.80814"
+   inkscape:cx="186.73746"
+   inkscape:cy="181.67313"
    inkscape:window-x="0"
    inkscape:window-y="0"
    inkscape:window-maximized="1"
@@ -153,7 +153,7 @@
  </defs>
  <g
    id="g49"
-   transform="matrix(1.1969142,0,0,1.1920121,-1432.7063,-1665.2409)">
+   transform="matrix(1.1969142,0,0,1.1920121,-2057.6568,-2303.8129)">
   <g
    id="id2"
    class="Master_Slide">
@@ -168,10 +168,10 @@
  <g
    class="SlideGroup"
    id="g105"
-   transform="matrix(1.1969142,0,0,1.1920121,-1432.7063,-1665.2409)">
+   transform="matrix(1.1969142,0,0,1.1920121,-2057.6568,-2303.8129)">
   <g
    id="container-id1"
-   transform="matrix(0.81818182,0,0,0.81818177,739.77108,789.70936)">
+   transform="matrix(0.63636359,0,0,0.63636355,1523.6329,1517.9165)">
     <g
    id="id1"
    class="Slide"
