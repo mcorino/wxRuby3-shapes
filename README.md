@@ -7,7 +7,7 @@
 
 # wxRuby3/Shapes - A wxRuby3 2D shapes and diagramming framework
 
-![wxRuby3/Shapes demo](assets/screenshot.png)
+![Logo](assets/logo.svg)
 
 ## Introduction
 
@@ -42,6 +42,8 @@ of diagrams.
 
 More over, the library source code is pure Ruby based on wxRuby3 GUI toolkit, so it will
 run on any platform that supports Ruby and wxRuby3.
+
+![Screenshot](assets/screenshot.png)
 
 ## wxRuby3/Shapes licence
 

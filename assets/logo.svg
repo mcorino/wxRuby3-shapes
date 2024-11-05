@@ -9,9 +9,9 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    version="1.2"
-   width="158.75mm"
-   height="158.75mm"
-   viewBox="0 0 15875 15875"
+   width="132.29167mm"
+   height="132.29167mm"
+   viewBox="0 0 13229.167 13229.167"
    preserveAspectRatio="xMidYMid"
    fill-rule="evenodd"
    stroke-width="28.222"
@@ -36,12 +36,13 @@
    id="namedview109"
    showgrid="false"
    inkscape:zoom="1.2611806"
-   inkscape:cx="238.22362"
-   inkscape:cy="230.66457"
+   inkscape:cx="210.35763"
+   inkscape:cy="205.80814"
    inkscape:window-x="0"
    inkscape:window-y="0"
    inkscape:window-maximized="1"
-   inkscape:current-layer="svg107" />
+   inkscape:current-layer="g105"
+   inkscape:document-rotation="0" />
  <defs
    class="ClipPathGroup"
    id="defs8">
@@ -65,7 +66,9 @@
    height="14970"
    id="rect5" />
   </clipPath>
- </defs>
+ 
+   
+  </defs>
  <defs
    class="TextShapeIndex"
    id="defs12">
@@ -150,7 +153,7 @@
  </defs>
  <g
    id="g49"
-   transform="matrix(1.1969142,0,0,1.1920121,-695.41869,-1007.5811)">
+   transform="matrix(1.1969142,0,0,1.1920121,-1432.7063,-1665.2409)">
   <g
    id="id2"
    class="Master_Slide">
@@ -165,11 +168,10 @@
  <g
    class="SlideGroup"
    id="g105"
-   transform="matrix(1.1969142,0,0,1.1920121,-695.41869,-1007.5811)">
+   transform="matrix(1.1969142,0,0,1.1920121,-1432.7063,-1665.2409)">
   <g
-   id="g103">
-   <g
-   id="container-id1">
+   id="container-id1"
+   transform="matrix(0.81818182,0,0,0.81818177,739.77108,789.70936)">
     <g
    id="id1"
    class="Slide"
@@ -193,13 +195,13 @@
    id="rect51" />
         <path
    fill="none"
-   stroke="#000000"
+   stroke="#818181"
    stroke-width="353"
    stroke-linejoin="round"
    d="M 2500,9250 2485,7391"
    id="path53" />
         <path
-   fill="#000000"
+   fill="#818181"
    stroke="none"
    d="m 2986,7375 -456,-1003 -22,-29 -30,-12 -33,12 -21,26 -440,1014 -5,13 v 8 l 5,21 13,21 17,13 21,3 901,-7 21,-4 21,-13 8,-21 4,-21 v -8 z"
    id="path55" />
@@ -290,13 +292,13 @@
    id="rect81" />
         <path
    fill="none"
-   stroke="#000000"
+   stroke="#818181"
    stroke-width="353"
    stroke-linejoin="round"
    d="m 6350,2550 h 3900 v 631"
    id="path83" />
         <path
-   fill="#000000"
+   fill="#818181"
    stroke="none"
    d="m 9748,3193 449,1006 22,30 29,12 33,-12 21,-26 449,-1010 5,-13 v -8 l -5,-21 -12,-21 -17,-13 -21,-4 h -902 l -21,4 -21,13 -9,21 -3,21 v 8 z"
    id="path85" />
@@ -318,13 +320,13 @@
    id="rect90" />
         <path
    fill="none"
-   stroke="#000000"
+   stroke="#818181"
    stroke-width="353"
    stroke-linejoin="round"
    d="m 6655,12350 h 3845 V 9884"
    id="path92" />
         <path
-   fill="#000000"
+   fill="#818181"
    stroke="none"
    d="m 6643,11848 -1006,449 -30,22 -12,29 12,33 26,21 1010,449 13,5 h 8 l 21,-5 21,-12 13,-17 4,-21 v -902 l -4,-21 -13,-21 -21,-9 -21,-3 h -8 z"
    id="path94" />
@@ -333,6 +335,5 @@
      </g>
     </g>
    </g>
-  </g>
  </g>
 </svg>
