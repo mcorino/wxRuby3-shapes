@@ -21,7 +21,7 @@ The library consists of several classes encapsulating a so called 'Shape canvas'
 GUI control used for management of diagrams) providing the following features:
 
 - Create charts (diagrams) interactively in your wxRuby3 applications
-- Serialize/deserialize charts to file or any io stream in multiple formats (currently supported formats are JSON and YAML)
+- Serialize/deserialize charts to file or any io stream in multiple formats (currently supported formats are JSON, YAML and XML)
 - Support for Clipboard operations (Cut/Paste) and Drag&Drop of diagram components (shapes)
 - Support for Undo/Redo operations
 - Support for alignment of diagram components.
@@ -29,9 +29,10 @@ GUI control used for management of diagrams) providing the following features:
 - Support for diagram export to bitmap (any supported type)
 - Support for Thumbnail view of diagram
 - A standard collection of diagram components
-  - Shapes: basic rectangular, square, circle, ellipse, rounded rectangle, grid, flexible grid, text, editable text, polygonal, diamond, bitmap
+  - Shapes: basic rectangular, square, circle, ellipse, rounded rectangle, grid, flexible grid, horizontal box, 
+            vertical box, text, editable text, polygonal, diamond, bitmap
   - Lines: straight, curved, orthogonal, rounded orthogonal
-  - Line arrows: solid, open, diamond, circle
+  - Line arrows: solid, open, diamond, circle, cup, prong, square, crossbar, etc.
 - Highly customizable and extendable
 
 The shape framework (and shape canvas) allows to define the relationship between various
@@ -104,13 +105,13 @@ This documentation (for the latest release) is also available online
 with the following major implementation differences:
 
 - wxRuby3/Shapes implements a totally different serialization scheme in which none of the XML serializer 
-code has been ported. In fact wxRuby3/Shapes does not offer any XML serialization out of the box but instead 
-provides a more adaptable implementation with (for now) two supported output formats; JSON and YAML.
+code has been ported but instead relies on the [FIRM](https://github.com/mcorino/firm) gem for serialization support.
 - Related to this the internal management of shape references has been changed as well as this was tightly 
 linked to the serialization implementation.
 - The API has been Ruby-fied with respect to constant names, method names and argument passing and return
 values.
 - The ScaledDC class has been integrated with wxRuby3 and is not part of wxRuby3/Shapes.
+- The implementation has been noticeably improved and extended compared to the wxShapeFramework implementation.  
 
 In addition many small tweaks, improvements and also bugfixes have been implemented as part of the port. 
 
