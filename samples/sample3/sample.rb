@@ -112,7 +112,7 @@ class SFSample3Frame < Wx::Frame
   def initialize(title)
     super(nil, Wx::StandardID::ID_ANY, title, size: [800,600])
 
-    self.icon = Wx::Icon(:sample)
+    self.icon = Wx::Icon(:logo)
 
     if Wx.has_feature?(:USE_MENUS)
       # create a menu bar

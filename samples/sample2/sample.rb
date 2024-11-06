@@ -36,7 +36,7 @@ class SFSample2Frame < Wx::Frame
   def initialize(title)
     super(nil, Wx::StandardID::ID_ANY, title, size: [800,600])
 
-    self.icon = Wx::Icon(:sample)
+    self.icon = Wx::Icon(:logo)
 
     evt_close :on_close
 
