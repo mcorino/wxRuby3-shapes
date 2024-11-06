@@ -388,8 +388,8 @@ module Wx::SF
     # @param [Wx::Point] pos Current mouse position
 	  # @see ShapeCanvas
     def on_begin_drag(pos)
-      @prev_fill = fill
-      fill = @mod_fill
+      @prev_fill = @fill
+      @fill = get_mod_fill
       canvas = get_parent_canvas
       if canvas
         @prev_style = canvas.get_style
@@ -410,7 +410,7 @@ module Wx::SF
 	  # @param [Wx::Point] pos Current mouse position
 	  # @see ShapeCanvas
     def on_end_drag(pos)
-      fill = @prev_fill
+      @fill = @prev_fill
       canvas = get_parent_canvas
       canvas.set_style(@prev_style) if canvas
       update_control
@@ -430,9 +430,9 @@ module Wx::SF
 	  # @param [Shape::Handle] handle Reference to dragged handle
     def on_begin_handle(handle)
       @prev_border = @border
-      @border = @mod_border
+      @border = get_mod_border
       @prev_fill = @fill
-      @fill = @mod_fill
+      @fill = get_mod_fill
   
       if @control
         @control.hide
