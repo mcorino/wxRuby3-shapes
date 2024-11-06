@@ -2853,6 +2853,9 @@ module Wx::SF
         deselect_all
 
         shape = get_shape_under_cursor
+        while shape && shape.has_style?(Shape::STYLE::PROPAGATE_SELECTION)
+          shape = shape.get_parent_shape
+        end
         if shape
           shape.select(true)
           shape.on_right_click(lpos)
