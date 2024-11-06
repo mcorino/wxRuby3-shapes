@@ -549,10 +549,13 @@ module Wx::SF
     def on_end_handle(handle)
       # update percentual offset of the line's ending points
       parent = get_parent_canvas.get_shape_under_cursor
-    
+      # propagate request for interactive connection editing if requested
+      while parent && parent.has_style?(Shape::STYLE::PROPAGATE_INTERACTIVE_CONNECTION)
+        parent = parent.get_parent_shape
+      end
+
       if parent && !@stand_alone
         bb_rect = parent.get_bounding_box
-    
         case handle.type
         when Shape::Handle::TYPE::LINESTART
           if parent == @src_shape
