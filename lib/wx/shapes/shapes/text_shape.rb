@@ -22,8 +22,9 @@ module Wx::SF
       TEXT = 'Text'
     end
 
-    property :font, :text
-    property text_colour: :serialize_text_colour
+    property :text
+    property text_colour: :serialize_text_colour,
+             font: :serialize_text_font
 
     # Constructor.
     # @param [Wx::RealPoint,Wx::Point] pos Initial position
@@ -343,6 +344,12 @@ module Wx::SF
     def serialize_text_colour(*val)
       @text_color = val.first unless val.empty?
       @text_color
+    end
+
+    # (de-)serialize text colour; allows for nil values
+    def serialize_text_font(*val)
+      @font = val.first unless val.empty?
+      @font
     end
 
     # Deserialize attributes and recalculate rectangle size afterwards.
