@@ -37,11 +37,12 @@ module Wx::SF
       TRGCHANGE = self.new(3)
     end
 
-    property :src_shape, :trg_shape
-    property src_point: :serialize_src_point, trg_point: :serialize_trg_point
+    property :src_shape, :trg_shape, optional: true
+    property({ src_point: :serialize_src_point, trg_point: :serialize_trg_point },
+             optional: ->(obj, _id) { obj.src_shape.nil? && obj.trg_shape.nil? ? nil : DEFAULT::POINT})
     property :stand_alone, :src_arrow, :trg_arrow, :src_offset, :trg_offset,
              :dock_point, :control_points
-    property line_pen: :serialize_line_pen
+    property({ line_pen: :serialize_line_pen }, optional: true)
 
     # @overload initialize(src = nil, trg = nil, path: nil, manager: nil)
     #   Constructor for connecting two shapes.

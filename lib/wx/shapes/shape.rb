@@ -39,7 +39,7 @@ module Wx::SF
              :h_align, :v_align, :h_border, :v_border,
              :custom_dock_point, :connection_points,
              :user_data
-    property hover_colour: :serialize_hover_colour
+    property({ hover_colour: :serialize_hover_colour }, optional: true)
     property child_shapes: :serialize_child_shapes
 
     class SEARCHMODE < Wx::Enum
@@ -236,7 +236,7 @@ module Wx::SF
             protected :from_serialized
           end
           include ComponentSerializerMethods
-          __CODE
+        __CODE
       end
     end
 

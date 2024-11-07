@@ -23,8 +23,8 @@ module Wx::SF
     end
 
     property :text
-    property text_colour: :serialize_text_colour,
-             font: :serialize_text_font
+    property({ text_colour: :serialize_text_colour,
+               font: :serialize_text_font }, optional: true)
 
     # Constructor.
     # @param [Wx::RealPoint,Wx::Point] pos Initial position
@@ -93,14 +93,14 @@ module Wx::SF
     # Get current fill style.
     # @return [Wx::Brush] Current brush
     def get_fill
-      @fill || (@diagram&.shape_canvas ? @diagram.shape_canvas.text_fill : DEFAULT.fill)
+      @fill || (@diagram&.shape_canvas ? @diagram.shape_canvas.text_fill : DEFAULT.text_fill)
     end
     alias :fill :get_fill
 
     # Get current border style.
     # @return [Wx::Pen] Current pen
     def get_border
-      @border || (@diagram&.shape_canvas ? @diagram.shape_canvas.text_border : DEFAULT.border)
+      @border || (@diagram&.shape_canvas ? @diagram.shape_canvas.text_border : DEFAULT.text_border)
     end
     alias :border :get_border
 
