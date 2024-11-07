@@ -11,14 +11,20 @@ module Wx::SF
     module DEFAULT
       class << self
         # Default value of TextShape @font data member.
-        def font; @font ||= Wx::SWISS_FONT.dup; end
+        def font; begin; @font = Wx::SWISS_FONT.dup; @font.point_size = 12; end unless @font; @font; end
         # Default value of TextShape @text_color data member.
         def text_color; @txtclr ||= Wx::BLACK.dup; end
+        # Standard value of TextShape @fill data member
+        def text_fill; @text_fill ||= Wx::TRANSPARENT_BRUSH.dup; end
+        # Standard value of TextShape @border data member
+        def text_border; @text_border ||= Wx::TRANSPARENT_PEN.dup; end
       end
       TEXT = 'Text'
     end
 
-    property :font, :text_colour, :text
+    property :text
+    property text_colour: :serialize_text_colour,
+             font: :serialize_text_font
 
     # Constructor.
     # @param [Wx::RealPoint,Wx::Point] pos Initial position
@@ -26,25 +32,38 @@ module Wx::SF
     # @param [Wx::SF::Diagram] diagram parent diagram
     def initialize(pos = Shape::DEFAULT::POSITION, txt = DEFAULT::TEXT, diagram: nil)
       super(pos, Wx::RealPoint.new, diagram: diagram)
-      @font = DEFAULT.font
-      @font.set_point_size(12)
+      @font = nil
+      @scaled_font = nil
 
       @line_height = 12
 
-      @text_color = DEFAULT.text_color
+      @text_color = nil
       @text = txt
 
-      @fill = Wx::TRANSPARENT_BRUSH
-      @border = Wx::TRANSPARENT_PEN
       @rect_size = Wx::RealPoint.new
 
       update_rect_size
     end
 
     # Set text font.
-    # @param [Wx::Font] font Font
-    def set_font(font)
-      @font = font
+    # @overload set_text_font(font)
+    #   @param [Wx::Font] font
+    # @overload set_text_font(font_info)
+    #   @param [Wx::FontInfo] font_info
+    # @overload set_text_font(pointSize, family, style, weight, underline=false, faceName=(''), encoding=Wx::FontEncoding::FONTENCODING_DEFAULT)
+    #   @param pointSize [Integer]  Size in points. See {Wx::Font#initialize}.
+    #   @param family [Wx::FontFamily]  The font family. See {Wx::Font#initialize}.
+    #   @param style [Wx::FontStyle]  One of {Wx::FontStyle::FONTSTYLE_NORMAL}, {Wx::FontStyle::FONTSTYLE_SLANT} and {Wx::FontStyle::FONTSTYLE_ITALIC}. See {Wx::Font#initialize}.
+    #   @param weight [Wx::FontWeight]  Font weight. One of the {Wx::FontWeight} enumeration values. See {Wx::Font#initialize}.
+    #   @param underline [Boolean]  The value can be true or false. See {Wx::Font#initialize}.
+    #   @param faceName [String]  An optional string specifying the face name to be used. See {Wx::Font#initialize}.
+    #   @param encoding [Wx::FontEncoding]  An encoding which may be one of the enumeration values of {Wx::FontEncoding}. See {Wx::Font#initialize}.
+    def set_font(*args)
+      @font = if args.size == 1 && Wx::Font === args.first
+                args.first
+              else
+                Wx::Font.new(*args)
+              end
       update_rect_size
     end
     alias :font= :set_font
@@ -52,7 +71,7 @@ module Wx::SF
     # Get text font.
     # @return [Wx::Font] Font
     def get_font
-      @font
+      @font || (@diagram&.shape_canvas ? @diagram.shape_canvas.text_font : DEFAULT.font)
     end
     alias :font :get_font
 
@@ -71,18 +90,31 @@ module Wx::SF
     end
     alias :text :get_text
 
+    # Get current fill style.
+    # @return [Wx::Brush] Current brush
+    def get_fill
+      @fill || (@diagram&.shape_canvas ? @diagram.shape_canvas.text_fill : DEFAULT.fill)
+    end
+    alias :fill :get_fill
+
+    # Get current border style.
+    # @return [Wx::Pen] Current pen
+    def get_border
+      @border || (@diagram&.shape_canvas ? @diagram.shape_canvas.text_border : DEFAULT.border)
+    end
+    alias :border :get_border
 
     # Set text color.
-    # @param [Wx::Colour] col Text color
+    # @param [Wx::Colour,String,Symbol] col Text color
     def set_text_colour(col)
-      @text_color = col
+      @text_color = Wx::Colour === col ? col : Wx::Colour.new(col)
     end
     alias :text_colour= :set_text_colour
 
     # Get text color.
     # @return [Wx::Colour] Current text color
     def get_text_colour
-      @text_color
+      @text_color || (@diagram&.shape_canvas ? @diagram.shape_canvas.text_colour : DEFAULT.text_color)
     end
     alias :text_colour :get_text_colour
     
@@ -98,13 +130,14 @@ module Wx::SF
       w = -1
       h = -1
       if get_parent_canvas
+        cur_font = @scaled_font || font
         if ShapeCanvas.gc_enabled?
           Wx::GraphicsContext.draw_on(get_parent_canvas) do |gc|
             # calculate text extent
             hd = -1
             e = 0
 
-            gc.set_font(@font, Wx::BLACK)
+            gc.set_font(cur_font, Wx::BLACK)
 
             # we must use split string to inspect all lines of possible multiline text
             h = 0
@@ -119,7 +152,7 @@ module Wx::SF
           end
         else
           get_parent_canvas.paint do |dc|
-            dc.set_font(@font)
+            dc.set_font(cur_font)
             w, h, @line_height = dc.get_multi_line_text_extent(@text)
             dc.set_font(Wx::NULL_FONT)
           end
@@ -162,10 +195,17 @@ module Wx::SF
         s = y
       end
 
-      size = @font.get_point_size * s
+      cur_font = @scaled_font || font
+
+      size = cur_font.get_point_size * s
       size = 5 if size < 5
 
-      @font.set_point_size(size.to_i) unless size == @font.get_point_size
+      if size == font.point_size
+        @scaled_font = nil
+      else
+        @scaled_font ||= font.dup
+        @scaled_font.set_point_size(size.to_i) unless size == @scaled_font.get_point_size
+      end
       update_rect_size
     end
 
@@ -287,10 +327,10 @@ module Wx::SF
 	  # Draw text shape.
 	  # @param [Wx::DC] dc Device context where the text shape will be drawn to
     def draw_text_content(dc)
-      dc.with_brush(@fill) do
+      dc.with_brush(fill) do
         dc.set_background_mode(Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT.to_i)
         dc.set_text_foreground(@text_color)
-        dc.with_font(@font) do
+        dc.with_font(@scaled_font || font) do
           pos = get_absolute_position
           # draw all text lines
           @text.split("\n").each_with_index do |line, i|
@@ -298,6 +338,18 @@ module Wx::SF
           end
         end
       end
+    end
+
+    # (de-)serialize text colour; allows for nil values
+    def serialize_text_colour(*val)
+      @text_color = val.first unless val.empty?
+      @text_color
+    end
+
+    # (de-)serialize text colour; allows for nil values
+    def serialize_text_font(*val)
+      @font = val.first unless val.empty?
+      @font
     end
 
     # Deserialize attributes and recalculate rectangle size afterwards.

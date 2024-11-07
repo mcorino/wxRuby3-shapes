@@ -35,10 +35,11 @@ module Wx::SF
     property :active, :visibility, :style,
              :accepted_children, :accepted_connections,
              :accepted_src_neighbours, :accepted_trg_neighbours,
-             :hover_colour, :relative_position,
+             :relative_position,
              :h_align, :v_align, :h_border, :v_border,
              :custom_dock_point, :connection_points,
              :user_data
+    property hover_colour: :serialize_hover_colour
     property child_shapes: :serialize_child_shapes
 
     class SEARCHMODE < Wx::Enum
@@ -251,15 +252,8 @@ module Wx::SF
       @child_shapes = ShapeList.new
       @components = ::Set.new
 
-      if @diagram
-        if @diagram.shape_canvas
-          @hover_color = @diagram.shape_canvas.hover_colour
-        else
-          @hover_color = DEFAULT.hover_colour;
-        end
-      else
-        @hover_color = DEFAULT.hover_colour;
-      end
+      # by default the common canvas hover colour will be used
+      @hover_color = nil
 
       @selected = false
       @mouse_over = false
@@ -1012,7 +1006,7 @@ module Wx::SF
 	  # Get shape's hover color
     # @return [Wx::Colour] Current hover color
     def get_hover_colour
-      @hover_color
+      @hover_color || (@diagram&.shape_canvas ? @diagram.shape_canvas.hover_colour : DEFAULT.hover_colour)
     end
     alias :hover_colour :get_hover_colour
 
@@ -1987,8 +1981,8 @@ module Wx::SF
         f_refresh_all = false
 
         if canvas.has_style?(Wx::SF::ShapeCanvas::STYLE::GRID_USE)
-          dx = canvas.get_grid_size.x
-          dy = canvas.get_grid_size.y
+          dx = canvas.get_grid_size
+          dy = canvas.get_grid_size
         end
 
         lst_selection = canvas.get_selected_shapes
@@ -2116,6 +2110,12 @@ module Wx::SF
         update_child_parents
       end
       @child_shapes
+    end
+
+    # (de-)serialize hover colour; allows for nil values
+    def serialize_hover_colour(*val)
+      @hover_colour = val.first unless val.empty?
+      @hover_colour
     end
 
     public

@@ -50,7 +50,7 @@ module Wx::SF
   # @see Wx::SF::Diagram
   class ShapeCanvas < Wx::ScrolledWindow
 
-    # Working modes 
+    # Working modes
     class MODE < Wx::Enum
       # The shape canvas is in ready state (no operation is pending)
       READY = self.new(0)
@@ -197,6 +197,30 @@ module Wx::SF
         def background_color; @bgcolor ||= Wx::Colour.new(240, 240, 240); end
         # Default value of Wx::SF::CanvasSettings @common_hover_color data member
         def hover_color; @hvrcolor ||= Wx::Colour.new(120, 120, 255); end
+        # Default value of Wx::SF::CanvasSettings @common_border_pen data member
+        def border_pen; @border_pen ||= Wx::BLACK_PEN.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_fill_brush data member
+        def fill_brush; @fill_brush ||= Wx::WHITE_BRUSH.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_line_pen data member
+        def line_pen; @line_pen ||= border_pen; end
+        # Default value of Wx::SF::CanvasSettings @common_arrow_fill data member
+        def arrow_fill; @arrow_fill ||= fill_brush; end
+        # Default value of Wx::SF::CanvasSettings @common_text_color data member
+        def text_color; @text_color ||= Wx::BLACK.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_text_fill data member
+        def text_fill; @text_fill ||= Wx::TRANSPARENT_BRUSH.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_text_border data member
+        def text_border; @text_border ||= Wx::TRANSPARENT_PEN.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_text_font data member
+        def text_font; begin; @text_font = Wx::SWISS_FONT.dup; @text_font.point_size = 12; end unless @text_font; @text_font; end
+        # Default value of Wx::SF::CanvasSettings @common_control_fill data member
+        def control_fill; @ctrl_fill ||= Wx::TRANSPARENT_BRUSH.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_control_border data member
+        def control_border; @ctrl_border ||= Wx::TRANSPARENT_PEN.dup; end
+        # Default value of Wx::SF::CanvasSettings @common_control_mod_fill data member
+        def control_mod_fill; @ctrl_mod_fill ||= Wx::Brush.new(Wx::BLUE, Wx::BrushStyle::BRUSHSTYLE_BDIAGONAL_HATCH); end
+        # Default value of Wx::SF::CanvasSettings @common_control_mod_border data member
+        def control_mod_border; @ctrl_mod_border ||= Wx::Pen.new(Wx::BLUE, 1, Wx::PenStyle::PENSTYLE_SOLID); end
         # Default value of Wx::SF::CanvasSettings @grid_color data member
         def grid_color; @gridcolor ||= Wx::Colour.new(200, 200, 200); end
         # Default value of Wx::SF::CanvasSettings @gradient_from data member
@@ -209,7 +233,7 @@ module Wx::SF
         def shadow_brush; @shadowbrush ||= Wx::Brush.new(shadow_color, Wx::BrushStyle::BRUSHSTYLE_SOLID); end
       end
       # Default value of Wx::SF::CanvasSettings @grid_size data member
-      GRIDSIZE = Wx::Size.new(10, 10)
+      GRIDSIZE = 10
       # Default value of Wx::SF::CanvasSettings @grid_line_mult data member
       GRIDLINEMULT = 1
       # Default value of Wx::SF::CanvasSettings @grid_style data member
@@ -349,18 +373,47 @@ module Wx::SF
 
       include DEFAULT
 
-      property :scale, :min_scale, :max_scale, :background_color, :common_hover_color,
-               :grid_size, :grid_line_mult, :grid_color, :grid_style,
+      property :scale, :min_scale, :max_scale, :background_color,
+               :common_hover_color, :common_border_pen, :common_fill_brush, :common_line_pen,
+               :common_arrow_fill, :common_text_color, :common_text_fill, :common_text_border, :common_text_font,
+               :common_control_fill, :common_control_border, :common_control_mod_fill, :common_control_mod_border,
+               :grid_line_mult, :grid_color, :grid_style,
                :gradient_from, :gradient_to, :style, :shadow_offset, :shadow_fill,
                :print_h_align, :print_v_align, :print_mode
+      property grid_size: ->(obj, *val) {
+        unless val.empty?
+          obj.grid_size = Wx::Size === val.first ? val.first.x : val.first
+        end
+        obj.grid_size
+      }
 
       def initialize
         @scale = 1.0
         @min_scale = SCALE_MIN
         @max_scale = SCALE_MAX
         @background_color = DEFAULT.background_color
+
+        # common shape property
         @common_hover_color = DEFAULT.hover_color
-        @grid_size = GRIDSIZE.dup
+        # common rect shape properties
+        @common_border_pen = DEFAULT.border_pen
+        @common_fill_brush = DEFAULT.fill_brush
+        # common line shape property
+        @common_line_pen = DEFAULT.line_pen
+        # common arrow property
+        @common_arrow_fill = DEFAULT.arrow_fill
+        # common text shape properties (fill and border overrule common rect properties)
+        @common_text_color = DEFAULT.text_color
+        @common_text_fill = DEFAULT.text_fill
+        @common_text_border = DEFAULT.text_border
+        @common_text_font = DEFAULT.text_font
+        # common control shape properties
+        @common_control_fill = DEFAULT.control_fill
+        @common_control_border = DEFAULT.control_border
+        @common_control_mod_fill = DEFAULT.control_mod_fill
+        @common_control_mod_border = DEFAULT.control_mod_border
+
+        @grid_size = GRIDSIZE
         @grid_line_mult = GRIDLINEMULT
         @grid_color = DEFAULT.grid_color
         @grid_style = GRIDSTYLE
@@ -374,7 +427,10 @@ module Wx::SF
         @print_mode = PRINT_MODE
       end
 
-      attr_accessor :scale, :min_scale, :max_scale, :background_color, :common_hover_color,
+      attr_accessor :scale, :min_scale, :max_scale, :background_color,
+                    :common_hover_color, :common_border_pen, :common_fill_brush, :common_line_pen,
+                    :common_arrow_fill, :common_text_color, :common_text_fill, :common_text_border, :common_text_font,
+                    :common_control_fill, :common_control_border, :common_control_mod_fill, :common_control_mod_border,
                     :grid_size, :grid_line_mult, :grid_color, :grid_style,
                     :gradient_from, :gradient_to, :style, :shadow_offset, :shadow_fill,
                     :print_h_align, :print_v_align, :print_mode
@@ -436,7 +492,7 @@ module Wx::SF
 
         save_canvas_state
       end
-      
+
       # set up event handlers
       evt_paint :_on_paint
       evt_erase_background :_on_erase_background
@@ -674,7 +730,7 @@ module Wx::SF
       bmp_bb.width = (bmp_bb.width * scale).to_i
       bmp_bb.height = (bmp_bb.height * scale).to_i
 
-      bmp_bb.inflate!(@settings.grid_size * scale)
+      bmp_bb.inflate!(Wx::Size.new(@settings.grid_size, @settings.grid_size) * scale)
 
       outbmp = Wx::Bitmap.new(bmp_bb.width, bmp_bb.height)
       Wx::MemoryDC.draw_on(outbmp) do |mdc|
@@ -844,7 +900,7 @@ module Wx::SF
     def select_all
       return unless @diagram
 
-      shapes = @diagram.get_shapes
+      shapes = @diagram.get_all_shapes
 
       unless shapes.empty?
         shapes.each { |shape| shape.select(true) }
@@ -864,7 +920,7 @@ module Wx::SF
     def deselect_all
       return unless @diagram
 
-      @diagram.get_shapes.each { |shape| shape.select(false) }
+      @diagram.get_all_shapes.each { |shape| shape.select(false) }
 
       @shp_multi_edit.show(false)
     end
@@ -873,7 +929,7 @@ module Wx::SF
     def hide_all_handles
       return unless @diagram
 
-      @diagram.get_shapes.each { |shape| shape.show_handles(false) }
+      @diagram.get_all_shapes.each { |shape| shape.show_handles(false) }
     end
 
     # Repaint the shape canvas.
@@ -926,7 +982,7 @@ module Wx::SF
     def show_shadows(show, style)
       return unless @diagram
 
-      shapes = @diagram.get_shapes
+      shapes = @diagram.get_all_shapes
 
       shapes.each do |shape|
         shape.remove_style(Shape::STYLE::SHOW_SHADOW) if show
@@ -1017,6 +1073,7 @@ module Wx::SF
 
         unless lst_selection.empty?
           data_obj = Wx::SF::ShapeDataObject.new(lst_selection)
+
           clipboard.place(data_obj)
 
           restore_prev_positions
@@ -1056,9 +1113,7 @@ module Wx::SF
         data_obj = Wx::SF::ShapeDataObject.new
         if clipboard.fetch(data_obj)
 
-          sdata = data_obj.get_data_here
-          # deserialize shapes
-          new_shapes = FIRM.deserialize(sdata)
+          new_shapes = data_obj.get_as_shapes
           # add new shapes to diagram and remove those that are not accepted
           new_shapes.select! do |shape|
             ERRCODE::OK == @diagram.add_shape(shape, nil, shape.get_relative_position, INITIALIZE, DONT_SAVE_STATE)
@@ -1121,7 +1176,7 @@ module Wx::SF
       return false unless has_style?(STYLE::CLIPBOARD)
 
       Wx::Clipboard.open do |clipboard|
-        return clipboard.supported?(Wx::DataFormat.new(Wx::SF::ShapeDataObject::DataFormatID))
+        return clipboard.supported?(Wx::SF::ShapeDataObject::DataFormatID)
       end rescue false
     end
     alias :can_paste? :can_paste
@@ -1393,7 +1448,7 @@ module Wx::SF
       end
 
       # ... then test normal handles
-      @diagram.get_shapes.each do |shape|
+      @diagram.get_all_shapes.each do |shape|
         # iterate through all shape's handles
         if shape.has_style?(Shape::STYLE::SIZE_CHANGE)
           shape.handles.each do |handle|
@@ -1431,7 +1486,7 @@ module Wx::SF
       return selection unless @diagram
 
       selection.clear
-      @diagram.get_shapes.each do |shape|
+      @diagram.get_all_shapes.each do |shape|
         selection << shape if shape.selected?
       end
       selection
@@ -1443,7 +1498,7 @@ module Wx::SF
       virt_rct = nil
       if @diagram
         # calculate total bounding box (includes all shapes)
-        @diagram.get_shapes.each_with_index do |shape, ix|
+        @diagram.get_all_shapes.each_with_index do |shape, ix|
             if ix == 0
               virt_rct = shape.get_bounding_box
             else
@@ -1593,14 +1648,18 @@ module Wx::SF
     def set_canvas_colour(col)
       @settings.background_color = col
     end
+    alias :set_canvas_color :set_canvas_colour
     alias :canvas_colour= :set_canvas_colour
+    alias :canvas_color= :set_canvas_colour
 
     # Get canvas background color.
     # @return [Wx::Colour] Background color
     def get_canvas_colour
       @settings.background_color
     end
+    alias :get_canvas_color :get_canvas_colour
     alias :canvas_colour :get_canvas_colour
+    alias :canvas_color :get_canvas_colour
 
     # Set starting gradient color.
     # @param [Wx::Colour] col Color
@@ -1630,17 +1689,18 @@ module Wx::SF
     end
     alias :gradient_to :get_gradient_to
 
-    # Get grid size.
-    # @return [Wx::Size] Grid size
+    # Get grid size (px).
+    # @return [Integer] Grid size
     def get_grid_size
       @settings.grid_size
     end
     alias :grid_size :get_grid_size
 
-    # Set grid size.
-    # @param [Wx::Size] grid Grid size
-    def set_grid_size(grid)
-      @settings.grid_size = grid.to_size
+    # Set grid size (px).
+    # @param [Integer] sz Grid size
+    def set_grid_size(sz)
+      raise ArgumentError, 'Grid size must be integer > 0' if sz.to_i <= 0
+      @settings.grid_size = sz.to_i
     end
     alias :grid_size= :set_grid_size
 
@@ -1666,14 +1726,18 @@ module Wx::SF
     def set_grid_colour(col)
       @settings.grid_color = col
     end
+    alias :set_grid_color :set_grid_colour
     alias :grid_colour= :set_grid_colour
+    alias :grid_color= :set_grid_colour
 
     # Get grid color.
     # @return [Wx::Colour] Grid color
     def get_grid_colour
       @settings.grid_color
     end
+    alias :get_grid_color :get_grid_colour
     alias :grid_colour :get_grid_colour
+    alias :grid_color :get_grid_colour
 
     # Set grid line style.
     # @param [Wx::PenStyle] style Line style
@@ -1704,9 +1768,19 @@ module Wx::SF
     alias :shadow_offset :get_shadow_offset
 
     # Set shadow fill (used for shadows of non-text shapes only).
-    # @param [Wx::Brush] brush Reference to brush object
-    def set_shadow_fill(brush)
-      @settings.shadow_fill = brush
+    # @overload set_shadow_fill(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_shadow_fill(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_shadow_fill(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_shadow_fill(*args)
+      @settings.shadow_fill = if args.size == 1 && Wx::Brush === args.first
+                                args.first
+                              else
+                                Wx::Brush.new(*args)
+                              end
     end
     alias :shadow_fill= :set_shadow_fill
 
@@ -1861,23 +1935,304 @@ module Wx::SF
     alias :mode :get_mode
 
     # Set default hover color.
-    # @param [Wx::Colour] col Hover color.
+    # @param [Wx::Colour,Symbol,String] col Hover color.
     def set_hover_colour(col)
-      return unless @diagram
-
-      @settings.common_hover_color = col
-
-      # update Hover color in all existing shapes
-      @diagram.get_shapes.each { |shape| shape.set_hover_colour(col) }
+      @settings.common_hover_color = Wx::Colour === col ? col : Wx::Colour.new(col)
     end
+    alias :set_hover_color :set_hover_colour
     alias :hover_colour= :set_hover_colour
+    alias :hover_color= :set_hover_colour
 
     # Get default hover colour.
     # @return [Wx::Colour] Hover colour
     def get_hover_colour
       @settings.common_hover_color
     end
+    alias :get_hover_color :get_hover_colour
     alias :hover_colour :get_hover_colour
+    alias :hover_color :get_hover_colour
+
+    # Set default fill brush.
+    # @overload set_fill_brush(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_fill_brush(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_fill_brush(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_fill_brush(*args)
+      @settings.common_fill_brush = if args.size == 1 && Wx::Brush === args.first
+                                      args.first
+                                    else
+                                      Wx::Brush.new(*args)
+                                    end
+    end
+    alias :fill_brush= :set_fill_brush
+
+    # Get default fill brush.
+    # @return [Wx::Brush] Fill brush
+    def get_fill_brush
+      @settings.common_fill_brush
+    end
+    alias :fill_brush :get_fill_brush
+
+    # Set default border pen.
+    # @overload set_border_pen(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_border_pen(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
+    def set_border_pen(*args)
+      @settings.common_border_pen = if args.size == 1 && Wx::Pen === args.first
+                                      args.first
+                                    else
+                                      Wx::Pen.new(*args)
+                                    end
+    end
+    alias :border_pen= :set_border_pen
+
+    # Get default border pen.
+    # @return [Wx::Pen]
+    def get_border_pen
+      @settings.common_border_pen
+    end
+    alias :border_pen :get_border_pen
+
+    # Set default line pen.
+    # @overload set_line_pen(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_line_pen(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
+    def set_line_pen(*args)
+      @settings.common_line_pen = if args.size == 1 && Wx::Pen === args.first
+                                      args.first
+                                    else
+                                      Wx::Pen.new(*args)
+                                    end
+    end
+    alias :line_pen= :set_line_pen
+
+    # Get default line pen.
+    # @return [Wx::Pen]
+    def get_line_pen
+      @settings.common_line_pen
+    end
+    alias :line_pen :get_line_pen
+
+    # Set default arrow fill brush.
+    # @overload set_arrow_fill(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_arrow_fill(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_arrow_fill(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_arrow_fill(*args)
+      @settings.common_arrow_fill = if args.size == 1 && Wx::Brush === args.first
+                                      args.first
+                                    else
+                                      Wx::Brush.new(*args)
+                                    end
+    end
+    alias :arrow_fill= :set_arrow_fill
+
+    # Get default arrow fill brush.
+    # @return [Wx::Brush] Fill brush
+    def get_arrow_fill
+      @settings.common_arrow_fill
+    end
+    alias :arrow_fill :get_arrow_fill
+
+    # Set default text color.
+    # @param [Wx::Colour,Symbol,String] col text color.
+    def set_text_colour(col)
+      @settings.common_text_color = Wx::Colour === col ? col : Wx::Colour.new(col)
+    end
+    alias :set_text_color= :set_text_colour
+    alias :text_colour= :set_text_colour
+    alias :text_color= :set_text_colour
+
+    # Get default text colour.
+    # @return [Wx::Colour] text colour
+    def get_text_colour
+      @settings.common_text_color
+    end
+    alias :get_text_color :get_text_colour
+    alias :text_colour :get_text_colour
+    alias :text_color :get_text_colour
+
+    # Set default text fill brush.
+    # @overload set_text_fill(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_text_fill(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_text_fill(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_text_fill(*args)
+      @settings.common_text_fill = if args.size == 1 && Wx::Brush === args.first
+                                      args.first
+                                    else
+                                      Wx::Brush.new(*args)
+                                    end
+    end
+    alias :text_fill= :set_text_fill
+
+    # Get default text fill brush.
+    # @return [Wx::Brush] Fill brush
+    def get_text_fill
+      @settings.common_text_fill
+    end
+    alias :text_fill :get_text_fill
+    
+    # Set default text border.
+    # @overload set_text_border(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_text_border(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
+    def set_text_border(*args)
+      @settings.common_text_border = if args.size == 1 && Wx::Pen === args.first
+                                    args.first
+                                  else
+                                    Wx::Pen.new(*args)
+                                  end
+    end
+    alias :text_border= :set_text_border
+
+    # Get default text border.
+    # @return [Wx::Pen]
+    def get_text_border
+      @settings.common_text_border
+    end
+    alias :text_border :get_text_border
+
+    # Set default text font.
+    # @overload set_text_font(font)
+    #   @param [Wx::Font] font
+    # @overload set_text_font(font_info)
+    #   @param [Wx::FontInfo] font_info
+    # @overload set_text_font(pointSize, family, style, weight, underline=false, faceName=(''), encoding=Wx::FontEncoding::FONTENCODING_DEFAULT)
+    #   @param pointSize [Integer]  Size in points. See {Wx::Font#initialize}.
+    #   @param family [Wx::FontFamily]  The font family. See {Wx::Font#initialize}.
+    #   @param style [Wx::FontStyle]  One of {Wx::FontStyle::FONTSTYLE_NORMAL}, {Wx::FontStyle::FONTSTYLE_SLANT} and {Wx::FontStyle::FONTSTYLE_ITALIC}. See {Wx::Font#initialize}.
+    #   @param weight [Wx::FontWeight]  Font weight. One of the {Wx::FontWeight} enumeration values. See {Wx::Font#initialize}.
+    #   @param underline [Boolean]  The value can be true or false. See {Wx::Font#initialize}.
+    #   @param faceName [String]  An optional string specifying the face name to be used. See {Wx::Font#initialize}.
+    #   @param encoding [Wx::FontEncoding]  An encoding which may be one of the enumeration values of {Wx::FontEncoding}. See {Wx::Font#initialize}.
+    def set_text_font(*args)
+      @settings.common_text_font = if args.size == 1 && Wx::Font === args.first
+                                     args.first
+                                   else
+                                     Wx::Font.new(*args)
+                                   end
+    end
+    alias :text_font= :set_text_font
+
+    # Get default text font.
+    # @return [Wx::Font]
+    def get_text_font
+      @settings.common_text_font
+    end
+    alias :text_font :get_text_font
+
+    # Set default control fill brush.
+    # @overload set_control_fill(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_control_fill(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_control_fill(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_control_fill(*args)
+      @settings.common_control_fill = if args.size == 1 && Wx::Brush === args.first
+                                     args.first
+                                   else
+                                     Wx::Brush.new(*args)
+                                   end
+    end
+    alias :control_fill= :set_control_fill
+
+    # Get default control fill brush.
+    # @return [Wx::Brush] Fill brush
+    def get_control_fill
+      @settings.common_control_fill
+    end
+    alias :control_fill :get_control_fill
+
+    # Set default control border.
+    # @overload set_control_border(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_control_border(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
+    def set_control_border(*args)
+      @settings.common_control_border = if args.size == 1 && Wx::Pen === args.first
+                                       args.first
+                                     else
+                                       Wx::Pen.new(*args)
+                                     end
+    end
+    alias :control_border= :set_control_border
+
+    # Get default control border.
+    # @return [Wx::Pen]
+    def get_control_border
+      @settings.common_control_border
+    end
+    alias :control_border :get_control_border
+
+    # Set default control modification fill brush.
+    # @overload set_control_mod_fill(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_control_mod_fill(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_control_mod_fill(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_control_mod_fill(*args)
+      @settings.common_control_mod_fill = if args.size == 1 && Wx::Brush === args.first
+                                        args.first
+                                      else
+                                        Wx::Brush.new(*args)
+                                      end
+    end
+    alias :control_mod_fill= :set_control_mod_fill
+
+    # Get default control modification fill brush.
+    # @return [Wx::Brush] Fill brush
+    def get_control_mod_fill
+      @settings.common_control_mod_fill
+    end
+    alias :control_mod_fill :get_control_mod_fill
+
+    # Set default control modification border.
+    # @overload set_control_mod_border(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_control_mod_border(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
+    def set_control_mod_border(*args)
+      @settings.common_control_mod_border = if args.size == 1 && Wx::Pen === args.first
+                                          args.first
+                                        else
+                                          Wx::Pen.new(*args)
+                                        end
+    end
+    alias :control_mod_border= :set_control_mod_border
+
+    # Get default control modification border.
+    # @return [Wx::Pen]
+    def get_control_mod_border
+      @settings.common_control_mod_border
+    end
+    alias :control_mod_border :get_control_mod_border
 
     # Get canvas history manager.
     # @return [Wx::SF::CanvasHistory] the canvas history manager
@@ -1893,8 +2248,8 @@ module Wx::SF
     def fit_position_to_grid(pos)
       pos = pos.to_point
       if has_style?(STYLE::GRID_USE)
-        Wx::Point.new(pos.x / @settings.grid_size.x * @settings.grid_size.x,
-          pos.y / @settings.grid_size.y * @settings.grid_size.y)
+        Wx::Point.new(pos.x / @settings.grid_size * @settings.grid_size,
+          pos.y / @settings.grid_size * @settings.grid_size)
       else
         pos
       end
@@ -1955,7 +2310,7 @@ module Wx::SF
 
       move_shapes_from_negatives
     end
-    
+
     # Validate selection (remove redundantly selected shapes etc...).
     # @param [Array<Wx::SF::Shape>] selection List of selected shapes that should be validated
     def validate_selection(selection)
@@ -2075,7 +2430,7 @@ module Wx::SF
     def draw_background(dc, _from_paint)
       # erase background
       if has_style?(STYLE::GRADIENT_BACKGROUND)
-        bcg_size = @settings.grid_size + get_virtual_size
+        bcg_size = get_virtual_size.to_size + @settings.grid_size
         if @settings.scale != 1.0
           dc.gradient_fill_linear(Wx::Rect.new([0, 0], [(bcg_size.x/@settings.scale).to_i, (bcg_size.y/@settings.scale).to_i]),
                                   @settings.gradient_from, @settings.gradient_to, Wx::SOUTH)
@@ -2090,10 +2445,10 @@ module Wx::SF
 
       # show grid
       if has_style?(STYLE::GRID_SHOW)
-        linedist = @settings.grid_size.x * @settings.grid_line_mult
+        linedist = @settings.grid_size * @settings.grid_line_mult
 
         if (linedist * @settings.scale) > 3.0
-          grid_rct = Wx::Rect.new([0, 0], @settings.grid_size + get_virtual_size)
+          grid_rct = Wx::Rect.new([0, 0], get_virtual_size.to_size + @settings.grid_size)
           max_x = (grid_rct.right/@settings.scale).to_i
           max_y = (grid_rct.bottom/@settings.scale).to_i
 
@@ -2140,11 +2495,11 @@ module Wx::SF
 
       _notify_canvas_change(CHANGE::FOCUS)
       set_focus
-    
+
       lpos = dp2lp(event.get_position)
-    
+
       @can_save_state_on_mouse_up = false
-    
+
       case @working_mode
       when MODE::READY
         @selected_handle = get_topmost_handle_at_position(lpos)
@@ -2203,7 +2558,7 @@ module Wx::SF
 
               # inform also connections assigned to the shape and its children
               lst_connections.clear
-              append_assigned_connections(shape, lst_connections, true)
+              append_assigned_connections(shape, lst_connections)
 
               lst_connections.each do |line|
                 line.send(:_on_begin_drag, fit_pos)
@@ -2325,7 +2680,7 @@ module Wx::SF
       else
         @working_mode = MODE::READY
       end
-    
+
       refresh_invalidated_rect
     end
 
@@ -2372,7 +2727,7 @@ module Wx::SF
     def on_left_up(event)
       # HINT: override it for custom actions...
       lpos = dp2lp(event.get_position)
-    
+
       case @working_mode
       when MODE::MULTIHANDLEMOVE, MODE::HANDLEMOVE
         # resize parent shape to fit all its children if necessary
@@ -2411,29 +2766,29 @@ module Wx::SF
         @selected_handle.send(:_on_end_drag, lpos)
 
         @selected_handle = nil
-        save_canvas_state if @can_save_state_on_mouse_up 
+        save_canvas_state if @can_save_state_on_mouse_up
 
       when MODE::SHAPEMOVE
         lst_selection = get_selected_shapes
-  
+
         lst_selection.each do |shape|
           # notify shape
           shape.send(:_on_end_drag, lpos)
           # reparent based on new position
           reparent_dropped_shape(shape, lpos)
         end
-  
+
         if lst_selection.size>1
           @shp_multi_edit.show(true)
           @shp_multi_edit.show_handles(true)
         else
           @shp_multi_edit.show(false)
         end
-  
+
         move_shapes_from_negatives
 
         save_canvas_state if @can_save_state_on_mouse_up
-    
+
       when MODE::MULTISELECTION
         lst_selection = get_selected_shapes
 
@@ -2465,7 +2820,7 @@ module Wx::SF
 
         @shp_selection.show(false)
       end
-    
+
       if @working_mode != MODE::CREATECONNECTION
         # update canvas
         @working_mode = MODE::READY
@@ -2491,19 +2846,22 @@ module Wx::SF
 
       _notify_canvas_change(CHANGE::FOCUS)
       set_focus
-    
+
       lpos = dp2lp(event.get_position)
-    
+
       if @working_mode == MODE::READY
         deselect_all
-  
+
         shape = get_shape_under_cursor
+        while shape && shape.has_style?(Shape::STYLE::PROPAGATE_SELECTION)
+          shape = shape.get_parent_shape
+        end
         if shape
           shape.select(true)
           shape.on_right_click(lpos)
         end
       end
-    
+
       refresh(false)
     end
 
@@ -2521,9 +2879,9 @@ module Wx::SF
 
       _notify_canvas_change(CHANGE::FOCUS)
       set_focus
-    
+
       lpos = dp2lp(event.get_position)
-    
+
       if @working_mode == MODE::READY
         shape = get_shape_under_cursor
         shape.on_right_double_click(lpos) if shape
@@ -2557,9 +2915,9 @@ module Wx::SF
     def on_mouse_move(event)
       # HINT: override it for custom actions...
       return unless @diagram
-    
+
       lpos = dp2lp(event.get_position)
-    
+
       case @working_mode
       when MODE::READY, MODE::CREATECONNECTION
         unless event.dragging
@@ -2597,8 +2955,8 @@ module Wx::SF
         unless @working_mode == MODE::MULTIHANDLEMOVE
           if event.dragging
             if has_style?(STYLE::GRID_USE)
-              return if (event.get_position.x - @prev_mouse_pos.x).abs < @settings.grid_size.x &&
-                        (event.get_position.y - @prev_mouse_pos.y).abs < @settings.grid_size.y
+              return if (event.get_position.x - @prev_mouse_pos.x).abs < @settings.grid_size &&
+                        (event.get_position.y - @prev_mouse_pos.y).abs < @settings.grid_size
             end
             @prev_mouse_pos = event.get_position
 
@@ -2617,7 +2975,7 @@ module Wx::SF
                   # move also connections assigned to this shape and its children
                   lst_connections.clear
 
-                  append_assigned_connections(shape, lst_connections,true)
+                  append_assigned_connections(shape, lst_connections)
 
                   lst_connections.each { |line| line.send(:_on_dragging, fit_position_to_grid(lpos)) }
 
@@ -2652,7 +3010,7 @@ module Wx::SF
 
         invalidate_visible_rect
       end
-    
+
       refresh_invalidated_rect
     end
 
@@ -2666,18 +3024,17 @@ module Wx::SF
     # @param [Wx::MouseEvent] event Mouse event
     def on_mouse_wheel(event)
       # HINT: override it for custom actions...
-    
       if event.control_down
         scale = get_scale
-        scale += (event.get_wheel_rotation/(event.get_wheel_delta*10)).to_f
+        scale += event.get_wheel_rotation.to_f/(event.get_wheel_delta*10)
 
         scale = @settings.min_scale if scale < @settings.min_scale
         scale = @settings.max_scale if scale > @settings.max_scale
-    
+
         set_scale(scale)
         refresh(false)
       end
-    
+
       event.skip
     end
 
@@ -2695,7 +3052,7 @@ module Wx::SF
       return unless @diagram
 
       lst_selection = get_selected_shapes
-    
+
       case event.get_key_code
       when Wx::K_DELETE
         # send event to selected shapes
@@ -2748,16 +3105,16 @@ module Wx::SF
           lst_connections = []
           lst_selection.each do |shape|
             shape.send(:_on_key, event.get_key_code)
-    
+
             # inform also connections assigned to this shape
             lst_connections.clear
-            append_assigned_connections(shape, lst_connections, true)
-    
+            append_assigned_connections(shape, lst_connections)
+
             lst_connections.each do |line|
               line.send(:_on_key, event.get_key_code) unless line.selected?
             end
           end
-    
+
           # send the event to multiedit ctrl if displayed
           @shp_multi_edit.send(:_on_key, event.get_key_code) if @shp_multi_edit.visible?
 
@@ -2779,7 +3136,7 @@ module Wx::SF
     # @see Wx::SF::ShapeTextEvent
     def on_text_change(shape)
       # HINT: override it for custom actions...
-    
+
       # ... standard implementation generates the Wx::SF::EVT_SF_TEXT_CHANGE event.
       id = shape ? shape.object_id : nil
 
@@ -2797,7 +3154,7 @@ module Wx::SF
     # @see Wx::SF::ShapeEvent
     def on_connection_finished(connection)
       # HINT: override to perform user-defined actions...
-    
+
       # ... standard implementation generates the Wx::SF::EVT_SF_LINE_DONE event.
       id = connection ? connection.object_id : -1
 
@@ -2818,10 +3175,10 @@ module Wx::SF
     # @see Wx::SF::ShapeEvent
     def on_pre_connection_finished(connection)
       # HINT: override to perform user-defined actions...
-    
+
       # ... standard implementation generates the Wx::SF::EVT_SF_LINE_DONE event.
       id = connection ? connection.object_id : -1
-    
+
       event = ShapeEvent.new(Wx::SF::EVT_SF_LINE_BEFORE_DONE, id)
       event.set_shape(connection)
       process_event(event)
@@ -2844,10 +3201,10 @@ module Wx::SF
     # @see Wx::SF::ShapeDropEvent
     def on_drop(x, y, deflt, dropped)
       # HINT: override it for custom actions...
-    
+
       # ... standard implementation generates the Wx::SF::EVT_SF_ON_DROP event.
       return unless has_style?(STYLE::DND)
-    
+
       # create the drop event and process it
       event = ShapeDropEvent.new(Wx::SF::EVT_SF_ON_DROP, x, y, self, deflt, Wx::ID_ANY)
       event.set_dropped_shapes(dropped)
@@ -2864,10 +3221,10 @@ module Wx::SF
     # @see Wx::SF::ShapePasteEvent
     def on_paste(pasted)
       # HINT: override it for custom actions...
-    
+
       # ... standard implementation generates the Wx::SF::EVT_SF_ON_PASTE event.
       return unless has_style?(STYLE::CLIPBOARD)
-    
+
       # create the drop event and process it
       event = ShapePasteEvent.new(Wx::SF::EVT_SF_ON_PASTE, self, Wx::ID_ANY)
       event.set_pasted_shapes(pasted)
@@ -2894,12 +3251,14 @@ module Wx::SF
     # @param [Array<Wx::SF::Shape>] selection
     # @param [Boolean] storeprevpos
     def validate_selection_for_clipboard(selection, storeprevpos)
-      selection.dup.each do |shape|
+      # first remove any shapes not eligible for copying
+      selection.reject! do |shape|
+        do_reject = false
         if shape.get_parent_shape
            # remove child shapes without parent in the selection and without STYLE::PARENT_CHANGE style
            # defined from the selection
           if !shape.has_style?(Shape::STYLE::PARENT_CHANGE) && !selection.include?(shape.get_parent_shape)
-            selection.delete(shape)
+            do_reject = true
           else
             # convert relative position to absolute position if the shape is copied
             # without its parent
@@ -2908,32 +3267,49 @@ module Wx::SF
               shape.set_relative_position(shape.get_absolute_position)
             end
           end
+        elsif LineShape === shape && !shape.stand_alone?
+          # remove any stand alone LineShape for which the source or target shape are not included in the selection
+          # (or any of it's child shapes)
+          unless (selection.include?(shape.get_src_shape) ||
+                    selection.any? { |selshp| selshp.include_child_shape?(shape.get_src_shape, true) }) &&
+                 (selection.include?(shape.get_trg_shape) ||
+                   selection.any? { |selshp| selshp.include_child_shape?(shape.get_trg_shape, true) })
+            do_reject = true
+          end
         end
-    
-        append_assigned_connections(shape, selection, false)
+        do_reject
+      end
+
+      # now append all connections for which source AND target are included in the selection
+      selection.each do |shape|
+        append_assigned_connections(shape, selection, children_only: false, complete_only: true)
       end
     end
 
-    #  Append connections assigned to shapes in given list to this list as well
-    # @param [Wx::SF::Shape] shape
-    # @param [Array<Wx::SF::Shape>] selection
-    # @param [Boolean] childrenonly
-    def append_assigned_connections(shape, selection, childrenonly)
+    # Append connections assigned to shapes in given list to this list as well
+    # @param [Wx::SF::Shape] shape shape
+    # @param [Array<Wx::SF::Shape>] selection selected shapes
+    # @param [Boolean] children_only appends connections from child shapes only
+    # @param [Boolean] complete_only append complete (src and trg shapes in selection) only
+    def append_assigned_connections(shape, selection, children_only: true, complete_only: false)
       # add connections assigned to copied topmost shapes and their children to the copy list
       lst_children = shape.get_child_shapes(ANY, RECURSIVE)
-    
+
       # get connections assigned to the parent shape
-      lst_connections = @diagram.get_assigned_connections(shape, LineShape, Shape::CONNECTMODE::BOTH) unless childrenonly
+      lst_connections = @diagram.get_assigned_connections(shape, LineShape, Shape::CONNECTMODE::BOTH) unless children_only
       lst_connections ||= []
-      # get connections assigned to its child shape
+      # get connections assigned to its child shape(s)
       lst_children.each do |child|
-        # get connections assigned to the child shape
+        # get connections assigned to the child shape(s)
         @diagram.get_assigned_connections(child, LineShape, Shape::CONNECTMODE::BOTH, lst_connections)
       end
-    
+
       # insert connections to the copy list
       lst_connections.each do |line|
-        selection << line unless selection.include?(line)
+        selection << line unless selection.include?(line) ||
+                                  (complete_only &&
+                                    !(selection.include?(line.get_src_shape) &&
+                                      selection.include?(line.get_trg_shape)))
       end
     end
 
@@ -2949,7 +3325,7 @@ module Wx::SF
       end
     end
 
-    #  Clear all temporary containers 
+    #  Clear all temporary containers
     def clear_temporaries
       @current_shapes.clear
       @new_line_shape = nil
@@ -3013,7 +3389,7 @@ module Wx::SF
             @diagram.reparent_shape(shape, parent_shape)
           end
         end
-    
+
         prev_parent.update if prev_parent
         parent_shape.update if parent_shape && parent_shape != prev_parent
       end
@@ -3078,7 +3454,7 @@ module Wx::SF
       else
         @working_mode = MODE::READY
       end
-    
+
       event.skip
     end
 
@@ -3086,16 +3462,16 @@ module Wx::SF
 	  # @param [Wx::MouseEvent] event Mouse event
     def _on_enter_window(event)
       @prev_mouse_pos = event.get_position
-    
+
       lpos = dp2lp(event.get_position)
-    
+
       case @working_mode
       when MODE::MULTISELECTION
         unless event.left_is_down
           update_multiedit_size
           @shp_multi_edit.show(false)
           @working_mode = MODE::READY
-    
+
           invalidate_visible_rect
         end
 
@@ -3105,13 +3481,13 @@ module Wx::SF
             if @selected_handle.get_parent_shape.is_a?(LineShape)
               @selected_handle.get_parent_shape.send(:set_line_mode, LineShape::LINEMODE::READY)
             end
-    
+
             @selected_handle.send(:_on_end_drag, lpos)
-    
+
             save_canvas_state
             @working_mode = MODE::READY
             @selected_handle = nil
-    
+
             invalidate_visible_rect
           end
         end
@@ -3120,10 +3496,10 @@ module Wx::SF
         unless event.left_is_down
           if @selected_handle
             @selected_handle.send(:_on_end_drag, lpos)
-    
+
             save_canvas_state
             @working_mode = MODE::READY
-    
+
             invalidate_visible_rect
           end
         end
@@ -3131,26 +3507,26 @@ module Wx::SF
       when MODE::SHAPEMOVE
         unless event.left_is_down
           lst_selection = get_selected_shapes
-    
+
           move_shapes_from_negatives
           update_virtual_size
-    
+
           if lst_selection.size > 1
             update_multiedit_size
             @shp_multi_edit.show(true)
             @shp_multi_edit.show_handles(true)
           end
-    
+
           lst_selection.each { |shape|  shape.send(:_on_end_drag, lpos) }
 
           @working_mode = MODE::READY
-    
+
           invalidate_visible_rect
         end
       end
-    
+
       refresh_invalidated_rect
-    
+
       event.skip
     end
 
@@ -3161,9 +3537,9 @@ module Wx::SF
 
       event.skip
     end
-    
+
     # original private event handlers
-    
+
 	  # Original private event handler called when the canvas is clicked by
 	  # left mouse button. The handler calls user-overridable event handler function
 	  # and skips the event for next possible processing.
@@ -3279,7 +3655,7 @@ module Wx::SF
 	  # @see Wx::SF::CanvasDropTarget
     def _on_drop(x, y, deflt, data)
       if data && Wx::SF::ShapeDataObject === data
-        lst_new_content = FIRM.deserialize(data.get_data_here)
+        lst_new_content = data.get_as_shapes
         if lst_new_content && !lst_new_content.empty?
           lst_parents_to_update = []
           lpos = dp2lp(Wx::Point.new(x, y))
@@ -3349,7 +3725,7 @@ module Wx::SF
         end
       end
     end
-      
+
     end
 
     def _notify_canvas_change(change, *args)

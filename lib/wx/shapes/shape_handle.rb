@@ -168,7 +168,7 @@ module Wx::SF
 
       # Set parent shape.
       # @param [Wx::Shape] parent parent shape to set
-      def parent_shape=(parent)
+      def set_parent_shape(parent)
         @parent_shape = parent
       end
 

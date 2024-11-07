@@ -221,8 +221,8 @@ module Wx::SF
     def draw_normal(dc)
       # HINT: overload it for custom actions...
 
-      dc.with_pen(@border) do
-        dc.with_brush(@fill) do
+      dc.with_pen(border) do
+        dc.with_brush(fill) do
           draw_polygon_shape(dc)
         end
       end
@@ -235,7 +235,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       dc.with_pen(Wx::Pen.new(get_hover_colour, 1)) do
-        dc.with_brush(@fill) do
+        dc.with_brush(fill) do
           draw_polygon_shape(dc)
         end
       end
@@ -249,7 +249,7 @@ module Wx::SF
       # HINT: overload it for custom actions...
 
       dc.with_pen(Wx::Pen.new(get_hover_colour, 2)) do
-        dc.with_brush(@fill) do
+        dc.with_brush(fill) do
           draw_polygon_shape(dc)
         end
       end
@@ -260,7 +260,7 @@ module Wx::SF
     def draw_shadow(dc)
       # HINT: overload it for custom actions...
 
-      if @fill.get_style != Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT
+      if fill.get_style != Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT
         dc.with_pen(Wx::TRANSPARENT_PEN) do
           dc.with_brush(get_parent_canvas.get_shadow_fill) do
             offset = get_parent_canvas.get_shadow_offset

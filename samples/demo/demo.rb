@@ -3,12 +3,15 @@
 
 require 'nokogiri'
 require 'wx/shapes'
+require 'wx/mdap'
 require_relative './frame_canvas'
 
 class ThumbFrame < Wx::Frame
 
   def initialize(parent, title: 'Thumbnail', size: Wx::Size.new( 200,150 ), style: Wx::CAPTION|Wx::FRAME_FLOAT_ON_PARENT|Wx::FRAME_TOOL_WINDOW|Wx::RESIZE_BORDER|Wx::TAB_TRAVERSAL)
     super
+
+    set_icon(Wx::Icon(:logo))
 
     set_size_hints(Wx::DEFAULT_SIZE)
 
@@ -68,8 +71,7 @@ class MainFrame < Wx::Frame
     # tool IDs
     #---------------------------------------------------------------#
     T_FIRST_TOOLMARKER = self.next_id
-    T_GRID = self.next_id
-    T_SHADOW = self.next_id
+    T_SETTINGS = self.next_id
     T_GC = self.next_id
     T_TOOL = self.next_id
     T_RECTSHP = self.next_id
@@ -156,30 +158,55 @@ class MainFrame < Wx::Frame
   def initialize(parent, title: 'wxShapeFramework Demo Application', style: Wx::CLOSE_BOX|Wx::DEFAULT_FRAME_STYLE|Wx::RESIZE_BORDER|Wx::TAB_TRAVERSAL)
     super
 
-    set_icon(Wx::Icon(:sample))
+    set_icon(Wx::Icon(:logo))
 
     setup_frame
 
-    @file_menu.append(Wx::ID_NEW, "&New\tCtrl+N", "New chart", Wx::ITEM_NORMAL)
-    @file_menu.append(Wx::ID_OPEN, "&Open\tCtrl+O", "Load a chart from file", Wx::ITEM_NORMAL)
-    @file_menu.append(Wx::ID_SAVE, "&Save as...\tCtrl+Shift+S", "Save the chart to file", Wx::ITEM_NORMAL)
+    mi = Wx::MenuItem.new(@file_menu, Wx::ID_NEW, "&New\tCtrl+N", "New chart")
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_NEW, Wx::ART_MENU))
+    @file_menu.append mi
+    mi = Wx::MenuItem.new(@file_menu, Wx::ID_OPEN, "&Open\tCtrl+O", "Load a chart from file")
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_FILE_OPEN, Wx::ART_MENU))
+    @file_menu.append mi
+    mi = Wx::MenuItem.new(@file_menu, Wx::ID_SAVE, "&Save as...\tCtrl+Shift+S", "Save the chart to file")
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_FILE_SAVE, Wx::ART_MENU))
+    @file_menu.append mi
     @file_menu.append_separator
     @file_menu.append(ID::M_SAVEASBITMAP, "&Export to image...", "Export the chart to BMP file", Wx::ITEM_NORMAL)
     @file_menu.append_separator
-    @file_menu.append(Wx::ID_PRINT, "&Print...\tCtrl+P", "Open print dialog", Wx::ITEM_NORMAL)
-    @file_menu.append(Wx::ID_PREVIEW, "Print pre&view...\tAlt+P", "Open print preview window", Wx::ITEM_NORMAL)
+    mi = Wx::MenuItem.new(@file_menu, Wx::ID_PRINT, "&Print...\tCtrl+P", "Open print dialog")
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_PRINT, Wx::ART_MENU))
+    @file_menu.append mi
+    mi = Wx::MenuItem.new(@file_menu, Wx::ID_PREVIEW, "Print pre&view...\tAlt+P", "Open print preview window")
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_FIND, Wx::ART_MENU))
+    @file_menu.append mi
     @file_menu.append(Wx::ID_PAGE_SETUP, "Pa&ge setup...", "Set print page properties", Wx::ITEM_NORMAL)
     @file_menu.append_separator
-    @file_menu.append(Wx::ID_EXIT, "E&xit\tAlt+X", "Close application", Wx::ITEM_NORMAL)
-  
-    @edit_menu.append(Wx::ID_UNDO, "&Undo\tCtrl+Z", "Discard previous action", Wx::ITEM_NORMAL)
-    @edit_menu.append(Wx::ID_REDO, "&Redo\tCtrl+Y", "Re-do previously discarded action", Wx::ITEM_NORMAL)
+    mi = Wx::MenuItem.new(@file_menu, Wx::ID_EXIT, "E&xit\tAlt+X", "Close application")
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_QUIT, Wx::ART_MENU))
+    @file_menu.append mi
+
+    mi = Wx::MenuItem.new(@edit_menu, Wx::ID_UNDO, "&Undo\tCtrl+Z", "Discard previous action")
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_UNDO, Wx::ART_MENU))
+    @edit_menu.append mi
+    mi = Wx::MenuItem.new(@edit_menu, Wx::ID_REDO, "&Redo\tCtrl+Y", "Re-do previously discarded action")
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_REDO, Wx::ART_MENU))
+    @edit_menu.append mi
     @edit_menu.append_separator
-    @edit_menu.append(Wx::ID_SELECTALL, "Select &all\tCtrl+A", "Select all shapes", Wx::ITEM_NORMAL)
+    mi = Wx::MenuItem.new(@edit_menu, Wx::ID_SELECTALL, "Select &all\tCtrl+A", "Select all shapes")
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::MDAP::ART_SELECT_ALL, Wx::MDAP::ART_MATERIAL_DESIGN_OUTLINED,
+                                             Wx::ArtProvider.get_native_size_hint(Wx::ART_MENU)))
+    @edit_menu.append mi
     @edit_menu.append_separator
-    @edit_menu.append(Wx::ID_COPY, "&Copy\tCtrl+C", "Copy shapes to the clipboard", Wx::ITEM_NORMAL)
-    @edit_menu.append(Wx::ID_CUT, "Cu&t\tCtrl+X", "Cut shapes to the clipboard", Wx::ITEM_NORMAL)
-    @edit_menu.append(Wx::ID_PASTE, "&Paste\tCtrl+V", "Paste shapes to the canvas", Wx::ITEM_NORMAL)
+    mi = Wx::MenuItem.new(@edit_menu, Wx::ID_COPY, "&Copy\tCtrl+C", "Copy shapes to the clipboard")
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_COPY, Wx::ART_MENU))
+    @edit_menu.append mi
+    mi = Wx::MenuItem.new(@edit_menu, Wx::ID_CUT, "Cu&t\tCtrl+X", "Cut shapes to the clipboard")
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_CUT, Wx::ART_MENU))
+    @edit_menu.append mi
+    mi = Wx::MenuItem.new(@edit_menu, Wx::ID_PASTE, "&Paste\tCtrl+V", "Paste shapes to the canvas")
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_PASTE, Wx::ART_MENU))
+    @edit_menu.append mi
 
     submenu = Wx::Menu.new
     submenu.append_radio_item(ID::T_TOOL, 'Design tool', 'Design tool')
@@ -220,8 +247,10 @@ class MainFrame < Wx::Frame
     Wx::SF::AutoLayout.layout_algorithms.each_with_index do |la_name, i|
       @auto_layout_menu.append(ID::M_AUTOLAYOUT_FIRST + i, la_name)
     end
-  
-    @help_menu.append(Wx::ID_ABOUT, '&About...', 'About application...', Wx::ITEM_NORMAL)
+
+    mi = Wx::MenuItem.new(@help_menu, Wx::ID_ABOUT, '&About...', 'About application...')
+    mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_INFORMATION, Wx::ART_MENU))
+    @help_menu.append mi
 
     # set shape canvas and associate it with diagram
     @diagram = Wx::SF::Diagram.new
@@ -237,14 +266,6 @@ class MainFrame < Wx::Frame
     @thumb_frm.thumbnail.set_canvas(@shape_canvas)
     @thumb_frm.show
   
-    # create colour picker
-    if Wx::PLATFORM == 'WXMSW'
-      @cpicker = Wx::ColourPickerCtrl.new(@tool_bar, ID::T_COLORPICKER, Wx::Colour.new(120, 120, 255), Wx::DEFAULT_POSITION, Wx::Size.new(22, 22))
-    else
-      @cpicker = Wx::ColourPickerCtrl.new(@tool_bar, ID::T_COLORPICKER, Wx::Colour.new(120, 120, 255), Wx::DEFAULT_POSITION, Wx::Size.new(28, 28))
-    end
-    @cpicker.set_tool_tip('Set hover color')
-    
   	# add m_pToolBar tools
     @tool_bar.set_tool_bitmap_size([16, 15])
     @tool_bar.add_tool(Wx::ID_NEW, 'New', Wx::ArtProvider.get_bitmap(Wx::ART_NEW, Wx::ART_MENU), 'New diagram')
@@ -261,9 +282,8 @@ class MainFrame < Wx::Frame
     @tool_bar.add_tool(Wx::ID_UNDO, 'Undo', Wx::ArtProvider.get_bitmap(Wx::ART_UNDO, Wx::ART_MENU), 'Undo')
     @tool_bar.add_tool(Wx::ID_REDO, 'Redo', Wx::ArtProvider.get_bitmap(Wx::ART_REDO, Wx::ART_MENU), 'Redo')
     @tool_bar.add_separator
-    @tool_bar.add_check_tool(ID::T_GRID, 'Grid', Wx::Bitmap(:Grid), Wx::NULL_BITMAP, 'Show/hide grid')
-    @tool_bar.add_check_tool(ID::T_SHADOW, 'Shadows', Wx::Bitmap(:Shadow), Wx::NULL_BITMAP, 'Show/hide shadows')
-    @tool_bar.add_check_tool(ID::T_GC, 'Enhanced graphics context', Wx::Bitmap(:GC), Wx::NULL_BITMAP, 'Use enhanced graphics context (Wx::GraphicsContext)')
+    @tool_bar.add_tool(ID::T_SETTINGS, 'Settings', Wx::ArtProvider.get_bitmap(Wx::ART_HELP_SETTINGS, Wx::ART_MENU), 'Settings')
+    # @tool_bar.add_check_tool(ID::T_GC, 'Enhanced graphics context', Wx::Bitmap(:GC), Wx::NULL_BITMAP, 'Use enhanced graphics context (Wx::GraphicsContext)')
     @tool_bar.add_separator
     @tool_bar.add_radio_tool(ID::T_TOOL, 'Tool', Wx::Bitmap(:Tool), Wx::NULL_BITMAP, 'Design tool')
     @tool_bar.add_radio_tool(ID::T_RECTSHP, 'Rectangle', Wx::Bitmap(:Rect), Wx::NULL_BITMAP, 'Rectangle')
@@ -291,8 +311,6 @@ class MainFrame < Wx::Frame
     @tool_bar.add_tool(ID::T_ALIGN_BOTTOM, 'Align bottom', Wx::Bitmap(:AlignBottom), 'Align selected shapes to the bottom')
     @tool_bar.add_tool(ID::T_ALIGN_MIDDLE, 'Align middle', Wx::Bitmap(:AlignMiddle), 'Align selected shapes to the middle')
     @tool_bar.add_tool(ID::T_ALIGN_CENTER, 'Align center', Wx::Bitmap(:AlignCenter), 'Align selected shapes to the center')
-    @tool_bar.add_separator
-    @tool_bar.add_control(@cpicker)
     @tool_bar.realize
 
     @status_bar.set_status_text('Ready')
@@ -484,8 +502,6 @@ class MainFrame < Wx::Frame
           @diagram = @shape_canvas.get_diagram
 
           @zoom_slider.set_value((@shape_canvas.get_scale*50).to_i)
-
-          @cpicker.set_colour(@shape_canvas.get_hover_colour)
         rescue Exception => ex
           Wx.MessageDialog(self, "Failed to load the chart: #{ex.message}", 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_ERROR)
         end
@@ -580,24 +596,8 @@ class MainFrame < Wx::Frame
     @shape_canvas.abort_interactive_connection if @shape_canvas.get_mode == Wx::SF::ShapeCanvas::MODE::CREATECONNECTION
 
     case event.get_id
-    when ID::T_GRID
-      @show_grid = !@show_grid
-			if @show_grid 
-        @shape_canvas.add_style(Wx::SF::ShapeCanvas::STYLE::GRID_SHOW)
-        @shape_canvas.add_style(Wx::SF::ShapeCanvas::STYLE::GRID_USE)
-			else
-				@shape_canvas.remove_style(Wx::SF::ShapeCanvas::STYLE::GRID_SHOW)
-				@shape_canvas.remove_style(Wx::SF::ShapeCanvas::STYLE::GRID_USE)
-      end
-      @shape_canvas.refresh(false)
-
-    when ID::T_SHADOW
-      @show_shadows = !@show_shadows
-
-      @shape_canvas.show_shadows(@show_shadows, Wx::SF::ShapeCanvas::SHADOWMODE::ALL)
-      # also shadows for topmost shapes only are allowed:
-      # @shape_canvas.show_shadows(@show_shadows, Wx::SF::ShapeCanvas::SHADOWMODE::TOPMOST)
-      @shape_canvas.refresh(false)
+    when ID::T_SETTINGS
+      Dialogs::WXSFPreferencesDialog(self, @shape_canvas)
 
     when ID::T_GC
 			if Wx.has_feature?(:USE_GRAPHICS_CONTEXT)
@@ -726,9 +726,6 @@ class MainFrame < Wx::Frame
 
   def on_update_tool(event)
     case event.get_id
-    when ID::T_GRID
-      event.check(@show_grid)
-
     when ID::T_GC
       event.check(Wx::SF::ShapeCanvas.gc_enabled?)
 
@@ -814,5 +811,7 @@ class MainFrame < Wx::Frame
 end
 
 Wx::App.run do
+  Wx::ArtProvider.push(Wx::MDAP::MaterialDesignArtProvider.new)
+  # Wx::MDAP::MaterialDesignArtProvider.use_art_colour('DARK SLATE GREY')
   MainFrame.new(nil).show
 end

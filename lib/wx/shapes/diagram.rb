@@ -339,7 +339,7 @@ module Wx::SF
       min_x = min_y = 0.0
     
       # find the maximal negative position value
-      shapes = get_shapes
+      shapes = get_all_shapes
     
       shapes.each_with_index do |shape, ix|
         shape_pos = shape.get_absolute_position
@@ -365,7 +365,7 @@ module Wx::SF
 
     # Update all shapes in the diagram manager
     def update_all
-      get_shapes.each { |shape| shape.update unless shape.has_children? }
+      get_all_shapes.each { |shape| shape.update unless shape.has_children? }
     end
     
     # Add given shape type to an acceptance list. The acceptance list contains class
@@ -450,7 +450,7 @@ module Wx::SF
       return lines unless parent
 
       # lines are all toplevel so we do not have to search recursively...
-      lst_lines = @shapes.select { |shape| shape.is_a?(shape_info) }
+      lst_lines = @shapes.select { |shape| shape.is_a?(shape_info) && !shape.stand_alone? }
 
       lst_lines.each do |line|
         case mode
@@ -507,7 +507,7 @@ module Wx::SF
       # and all non-line shapes get listed in reversed order as returned from get_shapes (for z order)
       ins_pos = 0
       pos = pos.to_point
-      shapes = get_shapes.inject([]) do |list, shape|
+      shapes = get_all_shapes.inject([]) do |list, shape|
         if shape.is_a?(LineShape)
           list.prepend(shape)
           ins_pos += 1
@@ -603,14 +603,13 @@ module Wx::SF
 
     # Update shapes after importing/dropping of new shapes
     def on_import(new_shapes)
-      # deserializing will create unique ids synchronized across all deserialized shapes
-      # lines and both connected shapes should have matching ids
-      # we will remove any lines for which one or both connected shapes are missing (not copied)
+      # Deserializing will create unique new shapes from the serialized data where
+      # lines and both connected shapes should be present.
+      # We will remove any lines for which one or both connected shapes are missing (not copied).
       new_shapes.select! do |shape|
         if shape.is_a?(LineShape)
-          # so that lines with both connected shapes will have matching ids
-          # we will remove any lines for which one or both connected shapes are missing (not copied)
-          if @shapes.include?(shape.get_src_shape) && @shapes.include?(shape.get_trg_shape)
+          # remove any lines for which one or both connected shapes are missing (not copied)
+          if @shapes.include?(shape.get_src_shape, true) && @shapes.include?(shape.get_trg_shape, true)
             shape.create_handles
             true # keep
           else

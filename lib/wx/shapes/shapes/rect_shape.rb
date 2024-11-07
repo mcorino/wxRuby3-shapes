@@ -8,8 +8,8 @@ module Wx::SF
     # default values
     module DEFAULT
       class << self
-        # Default value of RectShape @fill data member.
-        def fill; @file ||= Wx::WHITE_BRUSH.dup; end
+        # Default value of RectShape fill data member.
+        def fill; fill ||= Wx::WHITE_BRUSH.dup; end
         # Default value of RectShape @border data member.
         def border; @border ||= Wx::BLACK_PEN.dup; end
       end
@@ -17,8 +17,9 @@ module Wx::SF
       SIZE = Wx::RealPoint.new(100, 50)
     end
 
-    property rect_size: :serialize_rect_size
-    property :fill, :border
+    property rect_size: :serialize_rect_size,
+             fill: :serialize_rect_fill,
+             border: :serialize_rect_border
 
     # Constructor.
     # @param [Wx::RealPoint,Wx::Point] pos Initial position
@@ -27,35 +28,54 @@ module Wx::SF
     def initialize(pos = Shape::DEFAULT::POSITION, size = DEFAULT::SIZE, diagram: nil)
       super(pos, diagram: diagram)
       set_rect_size(size.to_real_point)
-      @fill = DEFAULT.fill
-      @border = DEFAULT.border
+      @fill = nil
+      @border = nil
     end
 
     # Set rectangle's fill style.
-    # @param [Wx::Brush] brush Reference to a brush object
-    def set_fill(brush)
-      @fill = brush
+    # @overload set_fill(brush)
+    #   @param [Wx::Brush] brush
+    # @overload set_fill(color, style=Wx::BrushStyle::BRUSHSTYLE_SOLID)
+    #   @param [Wx::Colour,Symbol,String] color brush color
+    #   @param [Wx::BrushStyle] style
+    # @overload set_fill(stipple_bitmap)
+    #   @param [Wx::Bitmap] stipple_bitmap
+    def set_fill(*args)
+      @fill = if args.size == 1 && Wx::Brush === args.first
+                args.first
+              else
+                Wx::Brush.new(*args)
+              end
     end
     alias :fill= :set_fill
 
     # Get current fill style.
     # @return [Wx::Brush] Current brush
     def get_fill
-      @fill
+      @fill || (@diagram&.shape_canvas ? @diagram.shape_canvas.fill_brush : DEFAULT.fill)
     end
     alias :fill :get_fill
 
     # Set rectangle's border style.
-    # @param [Wx::Pen] pen Reference to a pen object
-    def set_border(pen)
-      @border = pen
+    # @overload set_border(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_border(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
+    def set_border(*args)
+      @border = if args.size == 1 && Wx::Pen === args.first
+                  args.first
+                else
+                  Wx::Pen.new(*args)
+                end
     end
     alias :border= :set_border
 
     # Get current border style.
     # @return [Wx::Pen] Current pen
     def get_border
-      @border
+      @border || (@diagram&.shape_canvas ? @diagram.shape_canvas.border_pen : DEFAULT.border)
     end
     alias :border :get_border
 
@@ -262,8 +282,8 @@ module Wx::SF
     def draw_normal(dc)
       # HINT: overload it for custom actions...
 
-      dc.with_pen(@border) do
-        dc.with_brush(@fill) do
+      dc.with_pen(border) do
+        dc.with_brush(fill) do
           dc.draw_rectangle(get_absolute_position.to_point, @rect_size.to_size)
         end
       end
@@ -275,8 +295,8 @@ module Wx::SF
     def draw_hover(dc)
       # HINT: overload it for custom actions...
 
-      dc.with_pen(Wx::Pen.new(@hover_color, 1)) do
-        dc.with_brush(@fill) do
+      dc.with_pen(Wx::Pen.new(hover_colour, 1)) do
+        dc.with_brush(fill) do
           dc.draw_rectangle(get_absolute_position.to_point, @rect_size.to_size)
         end
       end
@@ -289,8 +309,8 @@ module Wx::SF
     def draw_highlighted(dc)
       # HINT: overload it for custom actions...
 
-      dc.with_pen(Wx::Pen.new(@hover_color, 2)) do
-        dc.with_brush(@fill) do
+      dc.with_pen(Wx::Pen.new(hover_colour, 2)) do
+        dc.with_brush(fill) do
           dc.draw_rectangle(get_absolute_position.to_point, @rect_size.to_size)
         end
       end
@@ -301,7 +321,7 @@ module Wx::SF
     def draw_shadow(dc)
       # HINT: overload it for custom actions...
 
-      if @fill.style != Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT
+      if fill.style != Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT
         dc.with_pen(Wx::TRANSPARENT_PEN) do
           dc.with_brush(get_parent_canvas.get_shadow_fill) do
             dc.draw_rectangle((get_absolute_position + get_parent_canvas.get_shadow_offset).to_point, @rect_size.to_size)
@@ -381,6 +401,18 @@ module Wx::SF
       @rect_size
     end
     private :serialize_rect_size
+
+    def serialize_rect_fill(*val)
+      @fill = val.first unless val.empty?
+      @fill
+    end
+    private :serialize_rect_fill
+
+    def serialize_rect_border(*val)
+      @border = val.first unless val.empty?
+      @border
+    end
+    private :serialize_rect_border
 
   end
 

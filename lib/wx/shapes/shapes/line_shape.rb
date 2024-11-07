@@ -40,7 +40,8 @@ module Wx::SF
     property :src_shape, :trg_shape
     property src_point: :serialize_src_point, trg_point: :serialize_trg_point
     property :stand_alone, :src_arrow, :trg_arrow, :src_offset, :trg_offset,
-             :dock_point, :line_pen, :control_points
+             :dock_point, :control_points
+    property line_pen: :serialize_line_pen
 
     # @overload initialize(src = nil, trg = nil, path: nil, manager: nil)
     #   Constructor for connecting two shapes.
@@ -78,7 +79,7 @@ module Wx::SF
       @trg_arrow = nil
 
       @dock_point = DEFAULT::DOCKPOINT
-      @pen = DEFAULT.pen
+      @pen = nil
 
       @src_offset = DEFAULT::OFFSET.dup
       @trg_offset = DEFAULT::OFFSET.dup
@@ -225,14 +226,23 @@ module Wx::SF
     # Get line type
     # @return [Wx::Pen]
     def get_line_pen
-      @pen
+      @pen || (@diagram&.shape_canvas ? @diagram.shape_canvas.line_pen : DEFAULT.pen)
     end
     alias :line_pen :get_line_pen
 
     # Set line type
-    # @param [Wx::Pen] pen line type
-    def set_line_pen(pen)
-      @pen = pen
+    # @overload set_line_pen(pen)
+    #   @param [Wx::Pen] pen
+    # @overload set_line_pen(color, width=1, style=Wx::PenStyle::PENSTYLE_SOLID)
+    #   @param [Wx::Colour,String,Symbol] color
+    #   @param [Integer] width
+    #   @param [Wx::PenStyle] style
+    def set_line_pen(*args)
+      @pen = if args.size == 1 && Wx::Pen === args.first
+               args.first
+             else
+               Wx::Pen.new(*args)
+             end
     end
     alias :line_pen= :set_line_pen
 
@@ -539,10 +549,13 @@ module Wx::SF
     def on_end_handle(handle)
       # update percentual offset of the line's ending points
       parent = get_parent_canvas.get_shape_under_cursor
-    
+      # propagate request for interactive connection editing if requested
+      while parent && parent.has_style?(Shape::STYLE::PROPAGATE_INTERACTIVE_CONNECTION)
+        parent = parent.get_parent_shape
+      end
+
       if parent && !@stand_alone
         bb_rect = parent.get_bounding_box
-    
         case handle.type
         when Shape::Handle::TYPE::LINESTART
           if parent == @src_shape
@@ -649,7 +662,7 @@ module Wx::SF
 	  # Draw the shape in the normal way. The function can be overridden if necessary.
 	  # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_normal(dc)
-      dc.with_pen(@pen) do
+      dc.with_pen(line_pen) do
         draw_complete_line(dc)
       end
     end
@@ -658,7 +671,7 @@ module Wx::SF
     # The function can be overridden if necessary.
 	  # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_hover(dc)
-      dc.with_pen(Wx::Pen.new(@hover_color, 1)) do
+      dc.with_pen(Wx::Pen.new(hover_colour, 1)) do
         draw_complete_line(dc)
       end
     end
@@ -668,7 +681,7 @@ module Wx::SF
     # The function can be overridden if necessary.
 	  # @param [Wx::DC] dc Reference to device context where the shape will be drawn to
     def draw_highlighted(dc)
-      dc.with_pen(Wx::Pen.new(@hover_color, 2)) do
+      dc.with_pen(Wx::Pen.new(hover_colour, 2)) do
         draw_complete_line(dc)
       end
     end
@@ -875,6 +888,11 @@ module Wx::SF
     def serialize_trg_point(*arg)
       @trg_point = arg.shift unless arg.empty?
       @trg_point
+    end
+
+    def serialize_line_pen(*val)
+      @pen = val.first unless val.empty?
+      @pen
     end
 
   end
