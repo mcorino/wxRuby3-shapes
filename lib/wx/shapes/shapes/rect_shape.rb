@@ -17,9 +17,10 @@ module Wx::SF
       SIZE = Wx::RealPoint.new(100, 50)
     end
 
-    property rect_size: :serialize_rect_size,
-             fill: :serialize_rect_fill,
-             border: :serialize_rect_border
+    property rect_size: :serialize_rect_size
+    property({ fill: :serialize_rect_fill,
+               border: :serialize_rect_border },
+             optional: true)
 
     # Constructor.
     # @param [Wx::RealPoint,Wx::Point] pos Initial position

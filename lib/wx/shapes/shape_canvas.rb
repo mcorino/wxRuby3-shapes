@@ -602,6 +602,7 @@ module Wx::SF
         rescue SFException
           ::Kernel.raise
         rescue ::Exception
+          $stderr.puts "#{$!}\n#{$!.backtrace.join("\n")}\n"
           ::Kernel.raise SFException, "Failed to load canvas: #{$!.message}"
         ensure
           ShapeCanvas.reset_compat_loading
@@ -614,6 +615,7 @@ module Wx::SF
         update_virtual_size
         refresh(false)
       rescue Exception
+        $stderr.puts "#{$!}\n#{$!.backtrace.join("\n")}\n"
         # restore previous state
         @settings = old_settings
         set_diagram(old_diagram)

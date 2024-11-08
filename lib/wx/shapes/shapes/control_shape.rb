@@ -132,7 +132,7 @@ module Wx::SF
     end
 
     property :event_processing, :control_offset
-    property mod_fill: :serialize_mod_fill, mod_border: :serialize_mod_border
+    property({ mod_fill: :serialize_mod_fill, mod_border: :serialize_mod_border }, optional: true)
 
     # Constructor.
     # @param [Wx::RealPoint] pos Initial position

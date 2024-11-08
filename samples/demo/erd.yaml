@@ -1296,12 +1296,6 @@
           :max_radius: 7
           :src_shape: *23
           :trg_shape: *24
-          :src_point: !ruby/object:Wx::RealPoint
-            :x: 0.0
-            :y: 0.0
-          :trg_point: !ruby/object:Wx::RealPoint
-            :x: 0.0
-            :y: 0.0
           :stand_alone: false
           :src_arrow: !ruby/object:Wx::SF::DoubleCrossBarArrow
             :pen: 
@@ -1495,12 +1489,6 @@
                       :list: !ruby/object:Set
                         hash: {}
                   : true
-          :src_point: !ruby/object:Wx::RealPoint
-            :x: 0.0
-            :y: 0.0
-          :trg_point: !ruby/object:Wx::RealPoint
-            :x: 0.0
-            :y: 0.0
           :stand_alone: false
           :src_arrow: !ruby/object:Wx::SF::DoubleCrossBarArrow
             :pen: 
@@ -2133,12 +2121,6 @@
           :max_radius: 7
           :src_shape: *23
           :trg_shape: *37
-          :src_point: !ruby/object:Wx::RealPoint
-            :x: 0.0
-            :y: 0.0
-          :trg_point: !ruby/object:Wx::RealPoint
-            :x: 0.0
-            :y: 0.0
           :stand_alone: false
           :src_arrow: !ruby/object:Wx::SF::DoubleCrossBarArrow
             :pen: 
@@ -2331,12 +2313,6 @@
                         hash: {}
                   : true
           :trg_shape: *40
-          :src_point: !ruby/object:Wx::RealPoint
-            :x: 0.0
-            :y: 0.0
-          :trg_point: !ruby/object:Wx::RealPoint
-            :x: 0.0
-            :y: 0.0
           :stand_alone: false
           :src_arrow: !ruby/object:Wx::SF::DoubleCrossBarArrow
             :pen: 
@@ -2531,12 +2507,6 @@
                       :list: !ruby/object:Set
                         hash: {}
                   : true
-          :src_point: !ruby/object:Wx::RealPoint
-            :x: 0.0
-            :y: 0.0
-          :trg_point: !ruby/object:Wx::RealPoint
-            :x: 0.0
-            :y: 0.0
           :stand_alone: false
           :src_arrow: !ruby/object:Wx::SF::DoubleCrossBarArrow
             :pen: 
@@ -4041,12 +4011,6 @@
           :max_radius: 7
           :src_shape: *62
           :trg_shape: *63
-          :src_point: !ruby/object:Wx::RealPoint
-            :x: 0.0
-            :y: 0.0
-          :trg_point: !ruby/object:Wx::RealPoint
-            :x: 0.0
-            :y: 0.0
           :stand_alone: false
           :src_arrow: !ruby/object:Wx::SF::DoubleCrossBarArrow
             :pen: 
