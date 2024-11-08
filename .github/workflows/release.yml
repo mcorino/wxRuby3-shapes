@@ -21,7 +21,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
-            ruby: '3.2'
+            ruby: 'system'
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.os }} wxRuby3/Shapes Release (${{ github.ref_name }})
     env:
@@ -33,9 +33,13 @@ jobs:
     - name: Checkout wxRuby3Shapes
       uses: actions/checkout@v4
 
-    - uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: ${{ matrix.ruby }}
+    - name: Prepare package repos
+      run: |
+        sudo apt-get update
+
+    - name: Install packages
+      run: |
+        sudo apt-get install -y ruby-bundler
 
     - name: Setup Ruby gems
       run: |
@@ -77,83 +81,39 @@ jobs:
         include:
           - os: ubuntu-22.04
             gtk_version: 3
-            CC: gcc-12
-            CXX: g++-12
-            ruby: '3.2'
-            wxWidgets: '3.2.2.1'
-            swig: '4'
-            configure_flags:
-            use_xvfb: true
+            arch: x86_64
+            ruby: 'system'
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.os }} wxRuby3/Shapes Gem Test (${{ github.ref_name }})
     env:
-      WXWIDGETS_ROOT: ${{ github.workspace }}/ext/wxWidgets
-      WXWIN_INSTALL: ${{ github.workspace }}/ext/wxWidgets/install
-      wxGTK_VERSION: ${{ matrix.gtk_version && matrix.gtk_version || 3 }}
-      wxCONFIGURE_FLAGS: ${{ matrix.configure_flags }}
-      wxUSE_ASAN: ${{ matrix.use_asan && 1 || 0 }}
-      wxUSE_XVFB: ${{ matrix.use_xvfb && 1 || 0 }}
-      WX_EXTRA_PACKAGES: doxygen patchelf
-      CC: ${{ matrix.CC }}
-      CXX: ${{ matrix.CXX }}
       WXSHAPES_VERSION: ${{ needs.release.outputs.version }}
       WXSHAPES_PRERELEASE: ${{ needs.release.outputs.prerelease }}
     steps:
-      - name: Install Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby }}
-
-      - name: checkout wxWidgets
-        uses: actions/checkout@v4
-        with:
-          repository: wxWidgets/wxWidgets
-          path: ${{ env.WXWIDGETS_ROOT }}
-          ref: v${{ matrix.wxWidgets }}
-          submodules: 'recursive'
-
-      - name: Set up build environment
+      - name: Prepare package repos
         run: |
-          # Install locales used by our tests to run all the tests instead of
-          # skipping them.
-          sudo locale-gen de_DE.utf8 de_CH.utf8 en_US.utf8 fr_FR.utf8 sv_SE.utf8
-          
-          $WXWIDGETS_ROOT/build/tools/before_install.sh
+          sudo apt-get update
+
+      - name: Install packages
+        run: |
+          sudo apt-get install -y xvfb xfonts-75dpi ruby-bundler
+          case ${{ matrix.os }} in
+          ubuntu-24.04)
+            sudo apt-get install -y 'libgtk-3-[0-9]+' 'libwebkit2gtk-4.1-[0-9]+' 'libgspell-1-[0-9]+' libnotify4 'libsecret-1-[0-9]+'
+            ;;
+          *)
+            sudo apt-get install -y 'libgtk-3-[0-9]+' 'libwebkit2gtk-4.0-[0-9]+' 'libgspell-1-[0-9]+' libnotify4 'libsecret-1-[0-9]+'
+            ;;
+          esac
 
       - name: Display build environment
         run: |
           echo $PATH
+          uname -a
           ruby -v
-          doxygen -v
-          gcc -v
-          g++ -v
 
-      - name: Configuring wxWidgets
+      - name: Wait for RubyGems
         run: |
-          wxCONFIGURE_OPTIONS="$wxCONFIGURE_FLAGS"
-          if [ -n "${{ matrix.gtk_version }}" ]; then
-            wxCONFIGURE_OPTIONS="--with-gtk=${{ matrix.gtk_version }} $wxCONFIGURE_OPTIONS"
-          fi
-          pushd $WXWIDGETS_ROOT
-          ./configure $wxCONFIGURE_OPTIONS --disable-tests --without-subdirs --disable-debug_info || rc=$?
-          popd
-          if [ -n "$rc" ]; then
-            echo '*** Configuring failed, contents of config.log follows: ***'
-            echo '-----------------------------------------------------------'
-            cat $WXWIDGETS_ROOT/config.log
-            echo '-----------------------------------------------------------'
-            exit $rc
-          fi
-
-      - name: Build and install wxWidgets
-        run: |
-          pushd $WXWIDGETS_ROOT
-          make && sudo make install && sudo ldconfig
-          popd
-
-      - name: Remove wxWidgets
-        run: |
-          rm -rf $WXWIDGETS_ROOT
+          sleep 180
 
       - name: Install wxRuby3/Shapes gem
         run: |
@@ -186,21 +146,18 @@ jobs:
 
   verify-gem-msw:
     needs: [release]
-    runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} wxRuby/Shapes Gem Test (${{ github.ref_name }})
-    env:
-      WXSHAPES_VERSION: ${{ needs.release.outputs.version }}
-      WXSHAPES_PRERELEASE: ${{ needs.release.outputs.prerelease }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: windows-2022
             platform: 'x64'
-            CXX: g++-12
-            ruby: '3.2'
-            wxWidgets: '3.2.2.1'
-            swig: '4'
+            ruby: 'ruby'
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} wxRuby/Shapes Gem Test (${{ github.ref_name }})
+    env:
+      WXSHAPES_VERSION: ${{ needs.release.outputs.version }}
+      WXSHAPES_PRERELEASE: ${{ needs.release.outputs.prerelease }}
 
     steps:
       - name: Install Ruby
@@ -210,7 +167,7 @@ jobs:
 
       - name: Wait for RubyGems
         run: |
-          Start-Sleep -Seconds 300
+          Start-Sleep -Seconds 180
 
       - name: Install wxRuby3/Shapes gem
         run: |
@@ -220,6 +177,43 @@ jobs:
           Else {
             gem install wxruby3-shapes -v $env:WXSHAPES_VERSION
           }
+
+      - name: Run wxRuby3/Shapes regression tests
+        run: |
+          wx-shapes test
+
+  verify-gem-osx:
+    needs: [release]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            arch: aarch64
+            ruby: 'ruby'
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} wxRuby/Shapes Gem Test (${{ github.ref_name }})
+    env:
+      WXSHAPES_VERSION: ${{ needs.release.outputs.version }}
+      WXSHAPES_PRERELEASE: ${{ needs.release.outputs.prerelease }}
+
+    steps:
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+
+      - name: Wait for RubyGems
+        run: |
+          sleep 180
+
+      - name: Install wxRuby3/Shapes gem
+        run: |
+          if [ "$WXSHAPES_PRERELEASE" == "1" ]; then
+            gem install wxruby3-shapes -v $WXSHAPES_VERSION --pre
+          else
+            gem install wxruby3-shapes -v $WXSHAPES_VERSION
+          fi
 
       - name: Run wxRuby3/Shapes regression tests
         run: |
