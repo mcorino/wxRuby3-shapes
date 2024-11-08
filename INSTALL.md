@@ -14,13 +14,11 @@ gem install wxruby3-shapes
  ```
 
 This will install the wxruby3-shapes gem on any system supporting Ruby and wxRuby.
-As wxRuby3/Shapes has a dependency on wxRuby3 the wxRuby3 gem will be attempted to be installed if (the required version is) 
-not yet installed. This will be attempted using a default installation of the wxRuby3 gem. As this is a gem building 
-a native extension (except for Windows where the default install will be a prebuilt binary extension gem) this can take quite a
-while. 
-
-Due to the dependencies of the wxRuby3 gem itself it might be preferable to install that gem separately beforehand. See the
-[INSTALL](https://github.com/mcorino/wxRuby3/blob/master/INSTALL.md) document of the wxRuby3 project for more details.
+As wxRuby3/Shapes has a dependency on wxRuby3 the wxRuby3 gem will be installed as well if not yet installed. 
+Depending on your system this may install a prebuilt binary package (see the [wxRuby3](https://github.com/mcorino/wxRuby3) 
+project for more information about supported platforms) or require you to run a post-install step to build the wxRuby3
+extension library binaries before you can use wxRuby3/Shapes (see the
+[INSTALL](https://github.com/mcorino/wxRuby3/blob/master/INSTALL.md) document of the wxRuby3 project for more details).
 
 ## Building from source
 

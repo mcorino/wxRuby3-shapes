@@ -46,6 +46,35 @@ run on any platform that supports Ruby and wxRuby3.
 
 ![Screenshot](assets/screenshot.png)
 
+### To install
+
+The wxRuby3/Shapes project provides gems on [RubyGems](https://rubygems.org) which can be installed with the
+standard `gem install` command line this:
+
+```shell
+gem install wxruby3-shapes
+ ```
+
+See [INSTALL](INSTALL.md) for more details. 
+
+### To test
+
+After installation run this:
+
+```shell
+wx-shapes test
+```
+
+### To run a demonstration application
+
+After installation run this:
+
+```shell
+wx-shapes sampler
+```
+
+See the output of `wx-shapes --help` for more options.
+
 ## wxRuby3/Shapes licence
 
 wxruby3/shapes is free and open-source. It is distributed under the liberal
