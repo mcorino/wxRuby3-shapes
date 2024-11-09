@@ -181,7 +181,7 @@ module Wx::SF
     # @overload component(hash)
     #   Specifies one or more serialized component properties with associated setter/getter method ids/procs/lambda-s.
     #   @example
-    #     property(
+    #     component(
     #       prop_a: ->(obj, *val) {
     #                 obj.my_prop_a_setter(val.first) unless val.empty?
     #                 obj.my_prop_a_getter
