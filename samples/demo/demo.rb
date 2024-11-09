@@ -384,22 +384,28 @@ class MainFrame < Wx::Frame
     @menu_bar.append(@help_menu, "&Help")  
     
     set_menu_bar(@menu_bar)
-    
-    @tool_bar = create_tool_bar(Wx::TB_HORIZONTAL, Wx::ID_ANY) 
-    @tool_bar.realize 
-    
+
     @status_bar = create_status_bar(1, Wx::STB_SIZEGRIP, Wx::ID_ANY)
-    main_sizer = Wx::FlexGridSizer.new(2, 1, 0, 0)
+    main_sizer = Wx::FlexGridSizer.new(3, 1, 0, 0)
     main_sizer.add_growable_col(0)
-    main_sizer.add_growable_row(0)
+    main_sizer.add_growable_row(1)
     main_sizer.set_flexible_direction(Wx::BOTH)
     main_sizer.set_non_flexible_grow_mode(Wx::FLEX_GROWMODE_SPECIFIED)
-    
+
+    tool_bar_panel = Wx::Panel.new(self, Wx::ID_ANY)
+    tool_bar_sizer = Wx::VBoxSizer.new
+    @tool_bar = Wx::ToolBar.new(tool_bar_panel, style: Wx::TB_HORIZONTAL | Wx::NO_BORDER | Wx::TB_FLAT)
+    @tool_bar.realize
+    tool_bar_sizer.add(@tool_bar, 0, Wx::EXPAND)
+    tool_bar_panel.sizer = tool_bar_sizer
+    tool_bar_panel.layout
+    main_sizer.add(tool_bar_panel, 0, Wx::EXPAND, 5)
+
     @canvas_panel = Wx::Panel.new(self, Wx::ID_ANY, style: Wx::TAB_TRAVERSAL)
     @canvas_panel.set_extra_style(Wx::WS_EX_BLOCK_EVENTS)
     
     @canvas_sizer = Wx::VBoxSizer.new
-    
+
     @canvas_panel.set_sizer(@canvas_sizer)
     @canvas_panel.layout
     @canvas_sizer.fit(@canvas_panel)
