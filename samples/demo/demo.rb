@@ -123,6 +123,13 @@ class MainFrame < Wx::Frame
       @checkbox = nil
       @dialog = dlg
       @dialog.set_customize_hook(self)
+      if Wx::PLATFORM == 'WXMSW'
+        # set the default filter index to the '*.*' filter otherwise
+        # wxw will setup the native dialog to *ALWAYS* append the default extension
+        # to any file name entered without extension for a save dialog making it impossible
+        # to save a file without extension
+        @dialog.set_filter_index(3)
+      end
     end
 
     attr_reader :format, :compact
