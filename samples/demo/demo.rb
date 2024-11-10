@@ -266,8 +266,7 @@ class MainFrame < Wx::Frame
     @thumb_frm.thumbnail.set_canvas(@shape_canvas)
     @thumb_frm.show
   
-  	# add m_pToolBar tools
-    @tool_bar.set_tool_bitmap_size([16, 15])
+  	# add tool_bar tools
     @tool_bar.add_tool(Wx::ID_NEW, 'New', Wx::ArtProvider.get_bitmap(Wx::ART_NEW, Wx::ART_MENU), 'New diagram')
     @tool_bar.add_tool(Wx::ID_OPEN, 'Load', Wx::ArtProvider.get_bitmap(Wx::ART_FILE_OPEN, Wx::ART_MENU), 'Open file...')
     @tool_bar.add_tool(Wx::ID_SAVE, 'Save', Wx::ArtProvider.get_bitmap(Wx::ART_FILE_SAVE, Wx::ART_MENU), 'Save file...')
@@ -283,7 +282,6 @@ class MainFrame < Wx::Frame
     @tool_bar.add_tool(Wx::ID_REDO, 'Redo', Wx::ArtProvider.get_bitmap(Wx::ART_REDO, Wx::ART_MENU), 'Redo')
     @tool_bar.add_separator
     @tool_bar.add_tool(ID::T_SETTINGS, 'Settings', Wx::ArtProvider.get_bitmap(Wx::ART_HELP_SETTINGS, Wx::ART_MENU), 'Settings')
-    # @tool_bar.add_check_tool(ID::T_GC, 'Enhanced graphics context', Wx::Bitmap(:GC), Wx::NULL_BITMAP, 'Use enhanced graphics context (Wx::GraphicsContext)')
     @tool_bar.add_separator
     @tool_bar.add_radio_tool(ID::T_TOOL, 'Tool', Wx::Bitmap(:Tool), Wx::NULL_BITMAP, 'Design tool')
     @tool_bar.add_radio_tool(ID::T_RECTSHP, 'Rectangle', Wx::Bitmap(:Rect), Wx::NULL_BITMAP, 'Rectangle')
@@ -321,6 +319,7 @@ class MainFrame < Wx::Frame
     @show_grid = true
     @show_shadows = false
 
+    set_size([1280, 800])
     centre
     
     # setup event handlers
@@ -361,11 +360,7 @@ class MainFrame < Wx::Frame
   attr_reader :grid_columns, :zoom_slider
 
   def setup_frame
-    if Wx::PLATFORM == 'WXMSW'
-      set_size_hints([1024,700])
-    else
-      set_size_hints([1100,700])
-    end
+    set_size_hints([1024, 640])
     
     @menu_bar = Wx::MenuBar.new(0)
     @file_menu = Wx::Menu.new
@@ -818,6 +813,5 @@ end
 
 Wx::App.run do
   Wx::ArtProvider.push(Wx::MDAP::MaterialDesignArtProvider.new)
-  # Wx::MDAP::MaterialDesignArtProvider.use_art_colour('DARK SLATE GREY')
   MainFrame.new(nil).show
 end
