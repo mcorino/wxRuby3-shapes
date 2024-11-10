@@ -144,42 +144,20 @@ class MainFrame < Wx::Frame
       end
     end
 
-    def get_path
-      if Wx::PLATFORM == 'WXGTK'
-        @dialog.get_path
-      else
-        @dialog.get_currently_selected_filename
-      end
-    end
-
     def update_custom_controls
       if get_filter_index<0 || get_filter_index >= FORMATS.size
-        case File.extname(get_path)
-        when '.json' then @choice.set_selection(0)
-        when '.yaml', '.yml' then @choice.set_selection(1)
-        when '.xml' then @choice.set_selection(2)
-        end
+        @choice.enable(true)
       else
-        @choice.set_selection(get_filter_index)
+        @choice.enable(false)
       end
     end
 
     def transfer_data_from_custom_controls
-      if get_filter_index<0 || get_filter_index >= FORMATS.size
-        @format = case File.extname(get_path)
-                  when '.json' then :json
-                  when '.yaml', '.yml' then :yaml
-                  when '.xml' then :xml
-                  else
-                    case @choice.get_selection
-                    when Wx::NOT_FOUND then nil
-                    else
-                      FORMATS[@choice.get_selection].to_sym
-                    end
-                  end
-      else
-          @format = FORMATS[get_filter_index].to_sym
-      end
+      @format = case @choice.get_selection
+                when Wx::NOT_FOUND then nil
+                else
+                  FORMATS[@choice.get_selection].to_sym
+                end
       @compact = @checkbox.get_value if @checkbox
       @dialog = nil
     end
@@ -498,22 +476,31 @@ class MainFrame < Wx::Frame
         begin
           path = dlg.get_path.dup
           if File.extname(path).empty?
-            # determine extension to provide
-            case dlg_hook.format
-            when :json then path << '.json'
-            when :yaml then path << '.yaml'
-            when :xml then path << '.xml'
-            else
-              case dlg.get_filter_index
-              when 0 then path << '.json'
-              when 1 then path << '.yaml'
-              when 2 then path << '.xml'
+            format = if dlg.get_filter_index < 0 || dlg.get_filter_index >= DiagramFileDialog::FORMATS.size
+                       dlg_hook.format || :json
+                     else
+                       DiagramFileDialog::FORMATS[dlg.get_filter_index].to_sym
+                     end
+            unless File.exist?(path)
+              # determine extension to provide
+              case format
+              when :json then path << '.json'
+              when :yaml then path << '.yaml'
+              when :xml then path << '.xml'
               end
             end
+          else
+            format = case File.extname(dlg.get_path)
+                     when '.json' then :json
+                     when '.yaml', '.yml' then :yaml
+                     when '.xml' then :xml
+                     else
+                       dlg_hook.format || :json
+                     end
           end
           if !File.exist?(path) ||
             Wx.message_box("File #{path} already exists. Do you want to overwrite it?", 'Confirm', Wx::YES_NO) == Wx::YES
-            @shape_canvas.save_canvas(path, compact: dlg_hook.compact, format: dlg_hook.format)
+            @shape_canvas.save_canvas(path, compact: dlg_hook.compact, format: format)
 
             Wx.MessageDialog(self, "The chart has been saved to '#{path}'.", 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_INFORMATION)
           end
@@ -529,7 +516,14 @@ class MainFrame < Wx::Frame
       dlg_hook = DiagramFileDialog.new(dlg)
       if dlg.show_modal == Wx::ID_OK
         begin
-          @shape_canvas.load_canvas(dlg.get_path, format: dlg_hook.format)
+          format = case File.extname(dlg.get_path)
+                   when '.json' then :json
+                   when '.yaml', '.yml' then :yaml
+                   when '.xml' then :xml
+                   else
+                     dlg_hook.format || :json
+                   end
+          @shape_canvas.load_canvas(dlg.get_path, format: format)
           @diagram = @shape_canvas.get_diagram
 
           @zoom_slider.set_value((@shape_canvas.get_scale*50).to_i)
