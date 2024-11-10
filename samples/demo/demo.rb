@@ -136,21 +136,37 @@ class MainFrame < Wx::Frame
       end
     end
 
+    def get_filter_index
+      if Wx::PLATFORM == 'WXGTK'
+        @dialog.get_filter_index
+      else
+        @dialog.get_currently_selected_filter_index
+      end
+    end
+
+    def get_path
+      if Wx::PLATFORM == 'WXGTK'
+        @dialog.get_path
+      else
+        @dialog.get_currently_selected_filename
+      end
+    end
+
     def update_custom_controls
-      if @dialog.get_filter_index >= FORMATS.size
-        case File.extname(@dialog.get_path)
+      if get_filter_index<0 || get_filter_index >= FORMATS.size
+        case File.extname(get_path)
         when '.json' then @choice.set_selection(0)
         when '.yaml', '.yml' then @choice.set_selection(1)
         when '.xml' then @choice.set_selection(2)
         end
       else
-        @choice.set_selection(@dialog.get_filter_index)
+        @choice.set_selection(get_filter_index)
       end
     end
 
     def transfer_data_from_custom_controls
-      if @dialog.get_filter_index >= FORMATS.size
-        @format = case File.extname(@dialog.get_path)
+      if get_filter_index<0 || get_filter_index >= FORMATS.size
+        @format = case File.extname(get_path)
                   when '.json' then :json
                   when '.yaml', '.yml' then :yaml
                   when '.xml' then :xml
@@ -162,7 +178,7 @@ class MainFrame < Wx::Frame
                     end
                   end
       else
-          @format = FORMATS[@dialog.get_filter_index].to_sym
+          @format = FORMATS[get_filter_index].to_sym
       end
       @compact = @checkbox.get_value if @checkbox
       @dialog = nil
