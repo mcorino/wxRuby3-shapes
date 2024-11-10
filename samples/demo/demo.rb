@@ -498,7 +498,7 @@ class MainFrame < Wx::Frame
                        dlg_hook.format || :json
                      end
           end
-          if !File.exist?(path) ||
+          if Wx::PLATFORM == 'WXOSX' || !File.exist?(path) ||
             Wx.message_box("File #{path} already exists. Do you want to overwrite it?", 'Confirm', Wx::YES_NO) == Wx::YES
             @shape_canvas.save_canvas(path, compact: dlg_hook.compact, format: format)
 
