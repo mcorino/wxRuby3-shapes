@@ -137,19 +137,33 @@ class MainFrame < Wx::Frame
     end
 
     def update_custom_controls
-      case File.extname(@dialog.get_path)
-      when '.json' then @choice.set_selection(0)
-      when '.yaml', '.yml' then @choice.set_selection(1)
-      when '.xml' then @choice.set_selection(2)
+      if @dialog.get_filter_index >= FORMATS.size
+        case File.extname(@dialog.get_path)
+        when '.json' then @choice.set_selection(0)
+        when '.yaml', '.yml' then @choice.set_selection(1)
+        when '.xml' then @choice.set_selection(2)
+        end
+      else
+        @choice.set_selection(@dialog.get_filter_index)
       end
     end
 
     def transfer_data_from_custom_controls
-      @format = case @choice.get_selection
-                when Wx::NOT_FOUND then nil
-                else
-                  FORMATS[@choice.get_selection].to_sym
-                end
+      if @dialog.get_filter_index >= FORMATS.size
+        @format = case File.extname(@dialog.get_path)
+                  when '.json' then :json
+                  when '.yaml', '.yml' then :yaml
+                  when '.xml' then :xml
+                  else
+                    case @choice.get_selection
+                    when Wx::NOT_FOUND then nil
+                    else
+                      FORMATS[@choice.get_selection].to_sym
+                    end
+                  end
+      else
+          @format = FORMATS[@dialog.get_filter_index].to_sym
+      end
       @compact = @checkbox.get_value if @checkbox
       @dialog = nil
     end
@@ -811,7 +825,12 @@ class MainFrame < Wx::Frame
 
 end
 
+if Wx::PLATFORM == 'WXOSX' && !Wx.const_defined?(:OSX_FILEDIALOG_ALWAYS_SHOW_TYPES)
+  Wx::OSX_FILEDIALOG_ALWAYS_SHOW_TYPES = 'osx.openfiledialog.always-show-types'
+end
+
 Wx::App.run do
+  Wx::SystemOptions.set_option(Wx::OSX_FILEDIALOG_ALWAYS_SHOW_TYPES, 1) if Wx::PLATFORM == 'WXOSX'
   Wx::ArtProvider.push(Wx::MDAP::MaterialDesignArtProvider.new)
   MainFrame.new(nil).show
 end
