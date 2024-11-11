@@ -267,9 +267,8 @@ class MainFrame < Wx::Frame
     mi.set_bitmap(Wx::ArtProvider.get_bitmap(Wx::ART_INFORMATION, Wx::ART_MENU))
     @help_menu.append mi
 
-    # set shape canvas and associate it with diagram
-    @diagram = Wx::SF::Diagram.new
-    @shape_canvas = FrameCanvas.new(@diagram, @canvas_panel, Wx::ID_ANY)
+    # set shape canvas and associate it with a new, empty, diagram
+    @shape_canvas = FrameCanvas.new(Wx::SF::Diagram.new, @canvas_panel, Wx::ID_ANY)
     @canvas_sizer.add(@shape_canvas, 1, Wx::EXPAND, 0)
     @canvas_panel.layout
     # enable using Wx::GraphicsContext by default
@@ -374,6 +373,11 @@ class MainFrame < Wx::Frame
 
   attr_reader :grid_columns, :zoom_slider
 
+  def diagram
+    @shape_canvas&.diagram
+  end
+  private :diagram
+
   def setup_frame
     set_size_hints([1024, 640])
     
@@ -437,8 +441,8 @@ class MainFrame < Wx::Frame
   protected
 
   def clean_up
-    @diagram.set_shape_canvas(nil)
-    @diagram.clear
+    diagram.set_shape_canvas(nil)
+    diagram.clear
     
     @thumb_frm.hide
     @thumb_frm.thumbnail.set_canvas(nil)
@@ -452,7 +456,7 @@ class MainFrame < Wx::Frame
   end
 
   def on_idle(_event)
-    if @diagram.is_modified
+    if diagram.is_modified
       set_title('wxRuby ShapeFramework Demo (diagram is modified)')
     else
       set_title('wxRuby ShapeFramework Demo')
@@ -467,7 +471,7 @@ class MainFrame < Wx::Frame
   def on_new(_event)
     if Wx.message_box('Current chart will be lost. Do you want to proceed?',
                       'wxRuby ShapeFramework', Wx::YES_NO | Wx::ICON_QUESTION) == Wx::YES
-      @diagram.clear
+      diagram.clear
 
       @shape_canvas.clear_canvas_history
       @shape_canvas.save_canvas_state
@@ -531,7 +535,6 @@ class MainFrame < Wx::Frame
                      dlg_hook.format || :json
                    end
           @shape_canvas.load_canvas(dlg.get_path, format: format)
-          @diagram = @shape_canvas.get_diagram
 
           @zoom_slider.set_value((@shape_canvas.get_scale*50).to_i)
         rescue Exception => ex
@@ -635,7 +638,7 @@ class MainFrame < Wx::Frame
 			if Wx.has_feature?(:USE_GRAPHICS_CONTEXT)
         Wx::SF::ShapeCanvas.enable_gc(!Wx::SF::ShapeCanvas.gc_enabled?)
         # update all shapes in the manager
-        @diagram.update_all
+        diagram.update_all
         # refresh shape canvas
         @shape_canvas.refresh(false)
 			else
@@ -832,7 +835,7 @@ class MainFrame < Wx::Frame
   end
 
   def on_update_auto_layout(event)
-    event.enable(!@diagram.empty?)
+    event.enable(!diagram.empty?)
   end
 
   def on_update_gridcol_nr(_event)
