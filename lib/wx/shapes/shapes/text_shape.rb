@@ -329,7 +329,7 @@ module Wx::SF
     def draw_text_content(dc)
       dc.with_brush(fill) do
         dc.set_background_mode(Wx::BrushStyle::BRUSHSTYLE_TRANSPARENT.to_i)
-        dc.set_text_foreground(@text_color)
+        dc.set_text_foreground(text_colour)
         dc.with_font(@scaled_font || font) do
           pos = get_absolute_position
           # draw all text lines

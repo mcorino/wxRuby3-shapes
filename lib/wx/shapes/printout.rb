@@ -100,26 +100,13 @@ module Wx::SF
   
         # store current canvas properties
         prev_scale = @canvas.get_scale
-        prev_style = @canvas.get_style
-        prev_colour = @canvas.get_canvas_colour
 
-        # disable canvas background drawing if required
-        unless @canvas.has_style?(ShapeCanvas::STYLE::PRINT_BACKGROUND)
-          @canvas.remove_style(ShapeCanvas::STYLE::GRADIENT_BACKGROUND)
-          @canvas.remove_style(ShapeCanvas::STYLE::GRID_SHOW)
-          @canvas.set_canvas_colour(Wx::WHITE)
-        end
-  
         # draw the canvas content without any scale (dc is scaled by the printing framework)
         @canvas.set_scale(1.0)
+        @canvas.draw_background(dc, NOT_FROM_PAINT) if @canvas.has_style?(ShapeCanvas::STYLE::PRINT_BACKGROUND)
         @canvas.draw_content(dc, NOT_FROM_PAINT)
+        @canvas.draw_foreground(dc, NOT_FROM_PAINT)
         @canvas.set_scale(prev_scale)
-  
-        # restore previous canvas properties if needed
-        unless @canvas.has_style?(ShapeCanvas::STYLE::PRINT_BACKGROUND)
-          @canvas.set_style(prev_style)
-          @canvas.set_canvas_colour(prev_colour)
-        end
   
         return true
       end
