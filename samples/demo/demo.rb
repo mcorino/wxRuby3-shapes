@@ -123,6 +123,13 @@ class MainFrame < Wx::Frame
       @checkbox = nil
       @dialog = dlg
       @dialog.set_customize_hook(self)
+      if Wx::PLATFORM == 'WXMSW'
+        # set the default filter index to the '*.*' filter otherwise
+        # wxw will setup the native dialog to *ALWAYS* append the default extension
+        # to any file name entered without extension for a save dialog making it impossible
+        # to save a file without extension
+        @dialog.set_filter_index(3)
+      end
     end
 
     attr_reader :format, :compact
@@ -136,11 +143,19 @@ class MainFrame < Wx::Frame
       end
     end
 
+    def get_filter_index
+      if Wx::PLATFORM == 'WXGTK'
+        @dialog.get_filter_index
+      else
+        @dialog.get_currently_selected_filter_index
+      end
+    end
+
     def update_custom_controls
-      case File.extname(@dialog.get_path)
-      when '.json' then @choice.set_selection(0)
-      when '.yaml', '.yml' then @choice.set_selection(1)
-      when '.xml' then @choice.set_selection(2)
+      if get_filter_index<0 || get_filter_index >= FORMATS.size
+        @choice.enable(true)
+      else
+        @choice.enable(false)
       end
     end
 
@@ -266,8 +281,7 @@ class MainFrame < Wx::Frame
     @thumb_frm.thumbnail.set_canvas(@shape_canvas)
     @thumb_frm.show
   
-  	# add m_pToolBar tools
-    @tool_bar.set_tool_bitmap_size([16, 15])
+  	# add tool_bar tools
     @tool_bar.add_tool(Wx::ID_NEW, 'New', Wx::ArtProvider.get_bitmap(Wx::ART_NEW, Wx::ART_MENU), 'New diagram')
     @tool_bar.add_tool(Wx::ID_OPEN, 'Load', Wx::ArtProvider.get_bitmap(Wx::ART_FILE_OPEN, Wx::ART_MENU), 'Open file...')
     @tool_bar.add_tool(Wx::ID_SAVE, 'Save', Wx::ArtProvider.get_bitmap(Wx::ART_FILE_SAVE, Wx::ART_MENU), 'Save file...')
@@ -283,7 +297,6 @@ class MainFrame < Wx::Frame
     @tool_bar.add_tool(Wx::ID_REDO, 'Redo', Wx::ArtProvider.get_bitmap(Wx::ART_REDO, Wx::ART_MENU), 'Redo')
     @tool_bar.add_separator
     @tool_bar.add_tool(ID::T_SETTINGS, 'Settings', Wx::ArtProvider.get_bitmap(Wx::ART_HELP_SETTINGS, Wx::ART_MENU), 'Settings')
-    # @tool_bar.add_check_tool(ID::T_GC, 'Enhanced graphics context', Wx::Bitmap(:GC), Wx::NULL_BITMAP, 'Use enhanced graphics context (Wx::GraphicsContext)')
     @tool_bar.add_separator
     @tool_bar.add_radio_tool(ID::T_TOOL, 'Tool', Wx::Bitmap(:Tool), Wx::NULL_BITMAP, 'Design tool')
     @tool_bar.add_radio_tool(ID::T_RECTSHP, 'Rectangle', Wx::Bitmap(:Rect), Wx::NULL_BITMAP, 'Rectangle')
@@ -321,6 +334,7 @@ class MainFrame < Wx::Frame
     @show_grid = true
     @show_shadows = false
 
+    set_size([1280, 800])
     centre
     
     # setup event handlers
@@ -361,11 +375,7 @@ class MainFrame < Wx::Frame
   attr_reader :grid_columns, :zoom_slider
 
   def setup_frame
-    if Wx::PLATFORM == 'WXMSW'
-      set_size_hints([1024,700])
-    else
-      set_size_hints([1100,700])
-    end
+    set_size_hints([1024, 640])
     
     @menu_bar = Wx::MenuBar.new(0)
     @file_menu = Wx::Menu.new
@@ -384,22 +394,28 @@ class MainFrame < Wx::Frame
     @menu_bar.append(@help_menu, "&Help")  
     
     set_menu_bar(@menu_bar)
-    
-    @tool_bar = create_tool_bar(Wx::TB_HORIZONTAL, Wx::ID_ANY) 
-    @tool_bar.realize 
-    
+
     @status_bar = create_status_bar(1, Wx::STB_SIZEGRIP, Wx::ID_ANY)
-    main_sizer = Wx::FlexGridSizer.new(2, 1, 0, 0)
+    main_sizer = Wx::FlexGridSizer.new(3, 1, 0, 0)
     main_sizer.add_growable_col(0)
-    main_sizer.add_growable_row(0)
+    main_sizer.add_growable_row(1)
     main_sizer.set_flexible_direction(Wx::BOTH)
     main_sizer.set_non_flexible_grow_mode(Wx::FLEX_GROWMODE_SPECIFIED)
-    
+
+    tool_bar_panel = Wx::Panel.new(self, Wx::ID_ANY)
+    tool_bar_sizer = Wx::VBoxSizer.new
+    @tool_bar = Wx::ToolBar.new(tool_bar_panel, style: Wx::TB_HORIZONTAL | Wx::NO_BORDER | Wx::TB_FLAT)
+    @tool_bar.realize
+    tool_bar_sizer.add(@tool_bar, 0, Wx::EXPAND)
+    tool_bar_panel.sizer = tool_bar_sizer
+    tool_bar_panel.layout
+    main_sizer.add(tool_bar_panel, 0, Wx::EXPAND, 5)
+
     @canvas_panel = Wx::Panel.new(self, Wx::ID_ANY, style: Wx::TAB_TRAVERSAL)
     @canvas_panel.set_extra_style(Wx::WS_EX_BLOCK_EVENTS)
     
     @canvas_sizer = Wx::VBoxSizer.new
-    
+
     @canvas_panel.set_sizer(@canvas_sizer)
     @canvas_panel.layout
     @canvas_sizer.fit(@canvas_panel)
@@ -467,22 +483,31 @@ class MainFrame < Wx::Frame
         begin
           path = dlg.get_path.dup
           if File.extname(path).empty?
-            # determine extension to provide
-            case dlg_hook.format
-            when :json then path << '.json'
-            when :yaml then path << '.yaml'
-            when :xml then path << '.xml'
-            else
-              case dlg.get_filter_index
-              when 0 then path << '.json'
-              when 1 then path << '.yaml'
-              when 2 then path << '.xml'
+            format = if dlg.get_filter_index < 0 || dlg.get_filter_index >= DiagramFileDialog::FORMATS.size
+                       dlg_hook.format || :json
+                     else
+                       DiagramFileDialog::FORMATS[dlg.get_filter_index].to_sym
+                     end
+            unless File.exist?(path)
+              # determine extension to provide
+              case format
+              when :json then path << '.json'
+              when :yaml then path << '.yaml'
+              when :xml then path << '.xml'
               end
             end
+          else
+            format = case File.extname(dlg.get_path)
+                     when '.json' then :json
+                     when '.yaml', '.yml' then :yaml
+                     when '.xml' then :xml
+                     else
+                       dlg_hook.format || :json
+                     end
           end
-          if !File.exist?(path) ||
+          if Wx::PLATFORM == 'WXOSX' || !File.exist?(path) ||
             Wx.message_box("File #{path} already exists. Do you want to overwrite it?", 'Confirm', Wx::YES_NO) == Wx::YES
-            @shape_canvas.save_canvas(path, compact: dlg_hook.compact, format: dlg_hook.format)
+            @shape_canvas.save_canvas(path, compact: dlg_hook.compact, format: format)
 
             Wx.MessageDialog(self, "The chart has been saved to '#{path}'.", 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_INFORMATION)
           end
@@ -498,7 +523,14 @@ class MainFrame < Wx::Frame
       dlg_hook = DiagramFileDialog.new(dlg)
       if dlg.show_modal == Wx::ID_OK
         begin
-          @shape_canvas.load_canvas(dlg.get_path, format: dlg_hook.format)
+          format = case File.extname(dlg.get_path)
+                   when '.json' then :json
+                   when '.yaml', '.yml' then :yaml
+                   when '.xml' then :xml
+                   else
+                     dlg_hook.format || :json
+                   end
+          @shape_canvas.load_canvas(dlg.get_path, format: format)
           @diagram = @shape_canvas.get_diagram
 
           @zoom_slider.set_value((@shape_canvas.get_scale*50).to_i)
@@ -810,8 +842,12 @@ class MainFrame < Wx::Frame
 
 end
 
+if Wx::PLATFORM == 'WXOSX' && !Wx.const_defined?(:OSX_FILEDIALOG_ALWAYS_SHOW_TYPES)
+  Wx::OSX_FILEDIALOG_ALWAYS_SHOW_TYPES = 'osx.openfiledialog.always-show-types'
+end
+
 Wx::App.run do
+  Wx::SystemOptions.set_option(Wx::OSX_FILEDIALOG_ALWAYS_SHOW_TYPES, 1) if Wx::PLATFORM == 'WXOSX'
   Wx::ArtProvider.push(Wx::MDAP::MaterialDesignArtProvider.new)
-  # Wx::MDAP::MaterialDesignArtProvider.use_art_colour('DARK SLATE GREY')
   MainFrame.new(nil).show
 end
