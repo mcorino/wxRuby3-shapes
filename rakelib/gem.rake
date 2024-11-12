@@ -25,11 +25,13 @@ file WXRuby3Shapes::Gem.gem_file('wxruby3-shapes', WXRuby3Shapes::WXSF_VERSION) 
     gem.executables = WXRuby3Shapes::Bin.binaries
     gem.required_ruby_version = '>= 2.5'
     gem.licenses = ['MIT']
-    gem.add_dependency 'nokogiri', '~> 1.12'
     gem.add_dependency 'rake'
     gem.add_dependency 'minitest', '~> 5.15'
     gem.add_dependency 'test-unit', '~> 3.5'
-    gem.add_dependency 'wxruby3', '~> 0.9.0.pre.beta.14'
+    gem.add_dependency 'nokogiri', '~> 1.12'
+    gem.add_dependency 'firm', '~> 1.0'
+    gem.add_dependency 'wxruby3', '~> 1.3'
+    gem.add_dependency 'wxruby3-mdap', '~> 1.0'
     gem.metadata = {
       "bug_tracker_uri"   => "https://github.com/mcorino/wxRuby3-shapes/issues",
       "source_code_uri"   => "https://github.com/mcorino/wxRuby3-shapes",
