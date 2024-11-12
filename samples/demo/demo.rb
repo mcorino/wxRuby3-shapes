@@ -488,7 +488,7 @@ class MainFrame < Wx::Frame
           path = dlg.get_path.dup
           selected_filter = dlg.get_filter_index
           ext = File.extname(path)
-          if ext == '.'
+          if ext == '.' && !(Wx::PLATFORM == 'WXOSX' && File.exist?(path))
             ext = ''
             path = File.join(File.dirname(path), File.basename(path, '.*'))
             check_overwrite = true
@@ -499,7 +499,7 @@ class MainFrame < Wx::Frame
                      else
                        DiagramFileDialog::FORMATS[selected_filter].to_sym
                      end
-            if selected_filter < DiagramFileDialog::FORMATS.size
+            if selected_filter < DiagramFileDialog::FORMATS.size && !(Wx::PLATFORM == 'WXOSX' && File.exist?(path))
               # determine extension to provide
               case format
               when :json then path << '.json'
