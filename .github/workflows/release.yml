@@ -41,6 +41,11 @@ jobs:
       run: |
         sudo apt-get install -y ruby-bundler
 
+    - name: Set Ruby Bundler path
+      run: |
+        mkdir -p ${{ github.workspace }}/.bundler
+        bundle config path ${{ github.workspace }}/.bundler
+
     - name: Setup Ruby gems
       run: |
         bundle config set --local without wxruby
