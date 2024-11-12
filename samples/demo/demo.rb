@@ -109,7 +109,12 @@ class MainFrame < Wx::Frame
     T_COLORPICKER = self.next_id(M_AUTOLAYOUT_LAST) + 1
   end
 
-  FILE_MASK = 'JSON files (*.json)|*.json|YAML files (*.yaml,*.yml)|*.yaml;*.yml|XML files (*.xml)|*.xml|All files (*.*)|*.*;*'
+  FILE_MASK = 'JSON files (*.json)|*.json|YAML files (*.yaml,*.yml)|*.yaml;*.yml|XML files (*.xml)|*.xml'
+  if Wx::PLATFORM == 'WXMSW'
+    FILE_MASK << '|All files (*.*)|*.*'
+  else
+    FILE_MASK << '|All files (*)|*'
+  end
 
   class DiagramFileDialog < Wx::FileDialogCustomizeHook
 
@@ -123,13 +128,6 @@ class MainFrame < Wx::Frame
       @checkbox = nil
       @dialog = dlg
       @dialog.set_customize_hook(self)
-      if Wx::PLATFORM == 'WXMSW'
-        # set the default filter index to the '*.*' filter otherwise
-        # wxw will setup the native dialog to *ALWAYS* append the default extension
-        # to any file name entered without extension for a save dialog making it impossible
-        # to save a file without extension
-        @dialog.set_filter_index(3)
-      end
     end
 
     attr_reader :format, :compact
@@ -482,23 +480,33 @@ class MainFrame < Wx::Frame
 
   def on_save(_event)
     Wx.FileDialog(self, 'Save canvas to file...', __dir__, '', FILE_MASK, Wx::FD_SAVE) do |dlg|
+      dlg.set_filter_index(0)
       dlg_hook = DiagramFileDialog.new(dlg, compact: true)
       if dlg.show_modal == Wx::ID_OK
+        check_overwrite = Wx::PLATFORM != 'WXOSX'
         begin
           path = dlg.get_path.dup
-          if File.extname(path).empty?
-            format = if dlg.get_filter_index < 0 || dlg.get_filter_index >= DiagramFileDialog::FORMATS.size
+          selected_filter = dlg.get_filter_index
+          ext = File.extname(path)
+          if ext == '.'
+            ext = ''
+            path = File.join(File.dirname(path), File.basename(path, '.*'))
+            check_overwrite = true
+          end
+          if ext.empty?
+            format = if selected_filter < 0 || selected_filter >= DiagramFileDialog::FORMATS.size
                        dlg_hook.format || :json
                      else
-                       DiagramFileDialog::FORMATS[dlg.get_filter_index].to_sym
+                       DiagramFileDialog::FORMATS[selected_filter].to_sym
                      end
-            unless File.exist?(path)
+            if selected_filter < DiagramFileDialog::FORMATS.size
               # determine extension to provide
               case format
               when :json then path << '.json'
               when :yaml then path << '.yaml'
               when :xml then path << '.xml'
               end
+              check_overwrite = true
             end
           else
             format = case File.extname(dlg.get_path)
@@ -506,11 +514,15 @@ class MainFrame < Wx::Frame
                      when '.yaml', '.yml' then :yaml
                      when '.xml' then :xml
                      else
-                       dlg_hook.format || :json
+                       if selected_filter < 0 || selected_filter >= DiagramFileDialog::FORMATS.size
+                         dlg_hook.format || :json
+                       else
+                         DiagramFileDialog::FORMATS[selected_filter].to_sym
+                       end
                      end
           end
-          if Wx::PLATFORM == 'WXOSX' || !File.exist?(path) ||
-            Wx.message_box("File #{path} already exists. Do you want to overwrite it?", 'Confirm', Wx::YES_NO) == Wx::YES
+          if !check_overwrite || !File.exist?(path) ||
+            Wx.message_box("File '#{File.basename(path)}' already exists in folder '#{File.dirname(path)}'.\nDo you want to overwrite it?", 'Confirm', Wx::YES_NO) == Wx::YES
             @shape_canvas.save_canvas(path, compact: dlg_hook.compact, format: format)
 
             Wx.MessageDialog(self, "The chart has been saved to '#{path}'.", 'wxRuby ShapeFramework', Wx::OK | Wx::ICON_INFORMATION)
