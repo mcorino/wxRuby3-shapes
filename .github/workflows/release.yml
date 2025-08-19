@@ -31,7 +31,7 @@ jobs:
       prerelease: ${{ steps.version_var.outputs.WXSHAPES_PRERELEASE }}
     steps:
     - name: Checkout wxRuby3Shapes
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Prepare package repos
       run: |
