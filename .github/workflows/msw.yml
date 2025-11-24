@@ -47,7 +47,7 @@ jobs:
     name: ${{ matrix.os }} wxMSW ${{ matrix.platform }} ruby-${{ matrix.ruby }} wxruby-${{ matrix.wxr_type }}
     steps:
       - name: Checkout wxRuby3/Shapes
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Ruby
         uses: ruby/setup-ruby@v1
