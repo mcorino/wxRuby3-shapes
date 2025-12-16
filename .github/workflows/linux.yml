@@ -49,7 +49,7 @@ jobs:
     name: ${{ matrix.os }} GTK${{ matrix.gtk_version }} ${{ matrix.arch}} ruby-${{ matrix.ruby }}
     steps:
     - name: Checkout wxRuby3/Shapes
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Prepare package repos
       run: |
