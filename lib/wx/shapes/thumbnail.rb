@@ -185,8 +185,8 @@ module Wx::SF
     def _on_right_down(event)
       menu_popup = Wx::Menu.new
 
-      menu_popup.append_check_item(IDM_SHOWELEMENTS, 'Show elements')
-      menu_popup.append_check_item(IDM_SHOWCONNECTIONS, 'Show connections')
+      menu_popup.append_check_item(ID::M_SHOWELEMENTS, 'Show elements')
+      menu_popup.append_check_item(ID::M_SHOWCONNECTIONS, 'Show connections')
 
       popup_menu(menu_popup, event.get_position)
     end
